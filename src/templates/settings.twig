@@ -1,0 +1,95 @@
+{#
+ # Formie REST API Settings
+ #
+ # @link      https://lindemannrock.com
+ # @copyright Copyright (c) 2025 LindemannRock
+ #}
+
+{% import "_includes/forms" as forms %}
+
+<fieldset style="margin-top: 0;">
+    <h2>{{ 'General Settings'|t('formie-rest-api') }}</h2>
+
+    {{ forms.textField({
+        label: 'Plugin Name'|t('formie-rest-api'),
+        instructions: 'The public-facing name of the plugin'|t('formie-rest-api'),
+        id: 'pluginName',
+        name: 'pluginName',
+        value: settings.pluginName ?? 'Formie REST API',
+        placeholder: 'Formie REST API',
+        warning: settings.isOverridden('pluginName') ? 'This is being overridden by the `pluginName` setting in the `config/formie-rest-api.php` file.'|t('formie-rest-api'),
+        disabled: settings.isOverridden('pluginName')
+    }) }}
+</fieldset>
+
+<hr>
+
+<fieldset>
+    <h2>{{ 'API Information'|t('formie-rest-api') }}</h2>
+    
+    <div class="field">
+        <div class="heading">
+            <label>{{ 'Available API Endpoints'|t('formie-rest-api') }}</label>
+        </div>
+        <div class="input">
+            <p class="light">
+                {{ 'This plugin provides REST and GraphQL API endpoints for accessing Formie form data.'|t('formie-rest-api') }}
+            </p>
+            
+            <h4>{{ 'Production REST API'|t('formie-rest-api') }}</h4>
+            <ul>
+                <li><code>/api/v1/formie/forms</code> - {{ 'List all forms'|t('formie-rest-api') }}</li>
+                <li><code>/api/v1/formie/submissions</code> - {{ 'List form submissions'|t('formie-rest-api') }}</li>
+            </ul>
+            
+            <h4>{{ 'Test Endpoints'|t('formie-rest-api') }}</h4>
+            <ul>
+                <li><code>/api/test/formie/forms</code> - {{ 'Test forms endpoint'|t('formie-rest-api') }}</li>
+                <li><code>/api/test/formie/auth</code> - {{ 'Test authentication'|t('formie-rest-api') }}</li>
+                <li><code>/api/test/graphql/info</code> - {{ 'GraphQL API information'|t('formie-rest-api') }}</li>
+            </ul>
+            
+            <h4>{{ 'GraphQL Endpoint'|t('formie-rest-api') }}</h4>
+            <ul>
+                <li><code>/api</code> - {{ 'Main GraphQL endpoint'|t('formie-rest-api') }}</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="field">
+        <div class="heading">
+            <label>{{ 'Authentication'|t('formie-rest-api') }}</label>
+        </div>
+        <div class="input">
+            <p class="light">
+                {{ 'API endpoints require authentication:'|t('formie-rest-api') }}
+            </p>
+            <ul>
+                <li><strong>{{ 'REST API'|t('formie-rest-api') }}:</strong> {{ 'X-API-Key header'|t('formie-rest-api') }}</li>
+                <li><strong>{{ 'GraphQL API'|t('formie-rest-api') }}:</strong> {{ 'Bearer token (create in GraphQL → Tokens)'|t('formie-rest-api') }}</li>
+            </ul>
+            <p class="light">
+                {{ 'Configure API keys in your .env file. See .env.example for details.'|t('formie-rest-api') }}
+            </p>
+        </div>
+    </div>
+    
+    <div class="field">
+        <div class="heading">
+            <label>{{ 'Documentation'|t('formie-rest-api') }}</label>
+        </div>
+        <div class="input">
+            <p class="light">
+                {{ 'For detailed API documentation and examples:'|t('formie-rest-api') }}
+            </p>
+            <ul>
+                <li><code>README.md</code> - {{ 'Complete API documentation'|t('formie-rest-api') }}</li>
+                <li><code>API_TEST_GUIDE.md</code> - {{ 'API testing guide'|t('formie-rest-api') }}</li>
+                <li><code>GRAPHQL_EXAMPLES.md</code> - {{ 'GraphQL query examples'|t('formie-rest-api') }}</li>
+                <li><code>.env.example</code> - {{ 'Environment variable setup'|t('formie-rest-api') }}</li>
+            </ul>
+        </div>
+    </div>
+</fieldset>
+
+{% include 'formie-rest-api/_components/plugin-credit.twig' %}
