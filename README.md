@@ -37,7 +37,7 @@ Until published on Packagist, install directly from the repository:
 
 ```bash
 cd /path/to/project
-composer config repositories.formie-rest-api vcs https://github.com/LindemannRock/formie-rest-api
+composer config repositories.formie-rest-api vcs https://github.com/LindemannRock/craft-formie-rest-api
 composer require lindemannrock/formie-rest-api:dev-main
 ./craft plugin/install formie-rest-api
 ```
@@ -174,8 +174,8 @@ Navigate to **Settings → Plugins → Formie REST API** for:
 
 ## Support
 
-- **Documentation**: [https://github.com/LindemannRock/formie-rest-api](https://github.com/LindemannRock/formie-rest-api)
-- **Issues**: [https://github.com/LindemannRock/formie-rest-api/issues](https://github.com/LindemannRock/formie-rest-api/issues)
+- **Documentation**: [https://github.com/LindemannRock/craft-formie-rest-api](https://github.com/LindemannRock/craft-formie-rest-api)
+- **Issues**: [https://github.com/LindemannRock/craft-formie-rest-api/issues](https://github.com/LindemannRock/craft-formie-rest-api/issues)
 - **Email**: [support@lindemannrock.com](mailto:support@lindemannrock.com)
 
 ## License
