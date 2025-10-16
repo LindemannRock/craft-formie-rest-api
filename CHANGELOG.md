@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.3...v1.0.4) (2025-10-16)
+
+
+### Bug Fixes
+
+* update installation instructions for Composer and DDEV ([3256296](https://github.com/LindemannRock/craft-formie-rest-api/commit/32562968f738a1f03f5e5d42d97e81e60961d452))
+
 ## [1.0.3](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.2...v1.0.3) (2025-10-16)
 
 
