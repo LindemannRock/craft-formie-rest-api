@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.1...v1.0.2) (2025-10-16)
+
+
+### Bug Fixes
+
+* update author details and add RSS feed link in composer.json ([78d5a0c](https://github.com/LindemannRock/craft-formie-rest-api/commit/78d5a0cc74d5eab472f546cb9571d050b292d906))
+
 ## [1.0.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.0...v1.0.1) (2025-09-24)
 
 
