@@ -16,15 +16,18 @@
     "license": "proprietary",
     "authors": [
         {
-            "name": "LindemannRock",
-            "homepage": "https://lindemannrock.com"
+            "name": "Bilal Hary Lindemann",
+            "email": "bh@lindemannrock.com",
+            "homepage": "https://lindemannrock.com",
+            "role": "Developer"
         }
     ],
     "support": {
         "email": "support@lindemannrock.com",
         "issues": "https://github.com/LindemannRock/craft-formie-rest-api/issues",
         "source": "https://github.com/LindemannRock/craft-formie-rest-api",
-        "docs": "https://github.com/LindemannRock/craft-formie-rest-api/blob/main/README.md"
+        "docs": "https://github.com/LindemannRock/craft-formie-rest-api/blob/main/README.md",
+        "rss": "https://github.com/LindemannRock/craft-formie-rest-api/commits/main.atom"
     },
     "require": {
         "php": "^8.2",
