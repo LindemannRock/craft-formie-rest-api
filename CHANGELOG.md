@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.2...v1.0.3) (2025-10-16)
+
+
+### Bug Fixes
+
+* change license from proprietary to MIT in composer.json ([0d62507](https://github.com/LindemannRock/craft-formie-rest-api/commit/0d62507f223cced4b6e4769b10dcdc8fa34374d7))
+
 ## [1.0.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.1...v1.0.2) (2025-10-16)
 
 
