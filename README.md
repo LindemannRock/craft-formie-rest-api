@@ -31,32 +31,25 @@ The Formie REST API plugin provides:
 
 ## Installation
 
-### Via Composer (Development)
-
-Until published on Packagist, install directly from the repository:
+### Via Composer
 
 ```bash
 cd /path/to/project
-composer config repositories.formie-rest-api vcs https://github.com/LindemannRock/craft-formie-rest-api
-composer require lindemannrock/formie-rest-api:dev-main
+composer require lindemannrock/craft-formie-rest-api
 ./craft plugin/install formie-rest-api
 ```
 
-### Via Composer (Production - Coming Soon)
-
-Once published on Packagist:
+### Using DDEV
 
 ```bash
 cd /path/to/project
-composer require lindemannrock/formie-rest-api
-./craft plugin/install formie-rest-api
+ddev composer require lindemannrock/craft-formie-rest-api
+ddev craft plugin/install formie-rest-api
 ```
 
-### Via Plugin Store (Future)
+### Via Control Panel
 
-1. Go to the Plugin Store in your Craft control panel
-2. Search for "Formie REST API"
-3. Click "Install"
+In the Control Panel, go to Settings → Plugins and click "Install" for Formie REST API.
 
 ## Environment Configuration
 
