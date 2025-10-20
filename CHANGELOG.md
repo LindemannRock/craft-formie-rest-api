@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.4...v3.0.0) (2025-10-20)
+
+
+### Miscellaneous Chores
+
+* bump version scheme to match Formie 3 ([c531f2f](https://github.com/LindemannRock/craft-formie-rest-api/commit/c531f2fb4ad778f7df832db681a6e91a4fe4b68c))
+
 ## [1.0.4](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.3...v1.0.4) (2025-10-16)
 
 
