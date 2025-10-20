@@ -1,5 +1,11 @@
 # Formie REST & GraphQL API Plugin
 
+[![Latest Version](https://img.shields.io/packagist/v/lindemannrock/craft-formie-rest-api.svg)](https://packagist.org/packages/lindemannrock/craft-formie-rest-api)
+[![Craft CMS](https://img.shields.io/badge/Craft%20CMS-5.0+-orange.svg)](https://craftcms.com/)
+[![Formie](https://img.shields.io/badge/Formie-3.0+-purple.svg)](https://verbb.io/craft-plugins/formie)
+[![PHP](https://img.shields.io/badge/PHP-8.2+-blue.svg)](https://php.net/)
+[![License](https://img.shields.io/packagist/l/lindemannrock/craft-formie-rest-api.svg)](LICENSE)
+
 A comprehensive API plugin for Craft CMS that provides both REST and GraphQL access to Formie forms and submissions data. This plugin enables external systems (like SAP) to retrieve form data through authenticated endpoints using their preferred API style.
 
 ## Requirements
