@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.0...v3.0.1) (2025-10-20)
+
+
+### Miscellaneous Chores
+
+* update README with additional badges ([434ffe7](https://github.com/LindemannRock/craft-formie-rest-api/commit/434ffe7a09ece1c2926b12ea77ca9482e111c172))
+
 ## [3.0.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.4...v3.0.0) (2025-10-20)
 
 
