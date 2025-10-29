@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.1...v3.0.2) (2025-10-27)
+
+
+### Miscellaneous Chores
+
+* update .gitignore ([31e2ba7](https://github.com/LindemannRock/craft-formie-rest-api/commit/31e2ba71da69222f32d7607f3b50c61f72474a46))
+
 ## [3.0.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.0...v3.0.1) (2025-10-20)
 
 
