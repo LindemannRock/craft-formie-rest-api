@@ -51,7 +51,7 @@ class Settings extends Model
      * @param string $setting
      * @return bool
      */
-    public function isOverridden(string $setting): bool
+    public function isOverriddenByConfig(string $setting): bool
     {
         $configFileSettings = Craft::$app->getConfig()->getConfigFromFile('formie-rest-api');
         return isset($configFileSettings[$setting]);
