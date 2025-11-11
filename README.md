@@ -41,7 +41,13 @@ The Formie REST API plugin provides:
 
 ```bash
 cd /path/to/project
+```
+
+```bash
 composer require lindemannrock/craft-formie-rest-api
+```
+
+```bash
 ./craft plugin/install formie-rest-api
 ```
 
@@ -49,7 +55,13 @@ composer require lindemannrock/craft-formie-rest-api
 
 ```bash
 cd /path/to/project
+```
+
+```bash
 ddev composer require lindemannrock/craft-formie-rest-api
+```
+
+```bash
 ddev craft plugin/install formie-rest-api
 ```
 
