@@ -35,10 +35,18 @@
         "verbb/formie": "^3.0.0",
         "guzzlehttp/guzzle": "^7.0"
     },
+    "require-dev": {
+        "craftcms/phpstan": "dev-main"
+    },
     "autoload": {
         "psr-4": {
             "lindemannrock\\formierestapi\\": "src/"
         }
+    },
+    "scripts": {
+        "phpstan": "phpstan --ansi --memory-limit=1G",
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --fix --ansi"
     },
     "extra": {
         "name": "Formie REST API",

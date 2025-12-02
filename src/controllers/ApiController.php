@@ -1,9 +1,9 @@
 <?php
 /**
  * Formie API Controller
- * 
+ *
  * Provides REST API endpoints for accessing Formie forms and submissions
- * 
+ *
  * @author LindemannRock
  * @copyright Copyright (c) 2025 LindemannRock
  * @link https://lindemannrock.com
@@ -14,16 +14,16 @@
 namespace lindemannrock\formierestapi\controllers;
 
 use Craft;
-use craft\web\Controller;
 use craft\helpers\Json;
-use verbb\formie\Formie;
+use craft\web\Controller;
+use lindemannrock\formierestapi\FormieRestApi;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\Formie;
+use yii\web\BadRequestHttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\web\UnauthorizedHttpException;
-use yii\web\NotFoundHttpException;
-use yii\web\BadRequestHttpException;
-use lindemannrock\formierestapi\FormieRestApi;
 
 class ApiController extends Controller
 {

@@ -1,10 +1,10 @@
 <?php
 /**
  * GraphQL Test Controller
- * 
+ *
  * Provides test endpoints that demonstrate GraphQL queries
  * and help developers understand how to use Formie's GraphQL API
- * 
+ *
  * @author LindemannRock
  * @copyright Copyright (c) 2025 LindemannRock
  * @link https://lindemannrock.com
@@ -15,11 +15,9 @@
 namespace lindemannrock\formierestapi\controllers;
 
 use Craft;
-use craft\web\Controller;
 use craft\helpers\Json;
-use craft\gql\GqlEntityRegistry;
+use craft\web\Controller;
 use GraphQL\GraphQL;
-use GraphQL\Type\Definition\Type;
 use yii\web\Response;
 
 class GraphqlTestController extends Controller
@@ -167,7 +165,7 @@ query GetSubmissionsByDate($form: [String]!, $after: String!, $before: String!) 
     /**
      * Test GraphQL query execution
      * POST /api/test/graphql/query
-     * 
+     *
      * This demonstrates how to execute GraphQL queries programmatically
      */
     public function actionQuery(): array

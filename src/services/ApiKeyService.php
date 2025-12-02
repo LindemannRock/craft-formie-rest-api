@@ -1,9 +1,9 @@
 <?php
 /**
  * API Key Service
- * 
+ *
  * Centralized service for managing API key validation and permissions
- * 
+ *
  * @author LindemannRock
  * @copyright Copyright (c) 2025 LindemannRock
  * @link https://lindemannrock.com
@@ -20,7 +20,7 @@ class ApiKeyService extends Component
 {
     /**
      * Validate API key and return key data if valid
-     * 
+     *
      * @param string|null $apiKey
      * @return array|false
      */
@@ -37,7 +37,7 @@ class ApiKeyService extends Component
     
     /**
      * Check if API key has required permission
-     * 
+     *
      * @param array $apiKeyData
      * @param string $permission
      * @return bool
@@ -49,7 +49,7 @@ class ApiKeyService extends Component
     
     /**
      * Get valid API keys from environment variables or database
-     * 
+     *
      * @return array
      */
     public function getValidApiKeys(): array
@@ -103,7 +103,7 @@ class ApiKeyService extends Component
     /**
      * Get custom API keys (e.g., from database)
      * Override this method to add database-stored keys
-     * 
+     *
      * @return array
      */
     protected function getCustomApiKeys(): array
@@ -115,7 +115,7 @@ class ApiKeyService extends Component
         $records = ApiKeyRecord::find()
             ->where(['enabled' => true])
             ->all();
-            
+
         foreach ($records as $record) {
             $keys[$record->key] = [
                 'name' => $record->name,
@@ -124,7 +124,7 @@ class ApiKeyService extends Component
                 'environment' => 'custom',
             ];
         }
-        
+
         return $keys;
         */
         
@@ -133,7 +133,7 @@ class ApiKeyService extends Component
     
     /**
      * Generate a secure API key
-     * 
+     *
      * @param string $prefix
      * @return string
      */
@@ -144,13 +144,13 @@ class ApiKeyService extends Component
     
     /**
      * Get rate limit based on environment and key type
-     * 
+     *
      * @param string $keyType
      * @return int
      */
     private function getRateLimitForEnvironment(string $keyType): int
     {
-        return match([Craft::$app->env, $keyType]) {
+        return match ([Craft::$app->env, $keyType]) {
             ['production', 'primary'] => 1000,
             ['production', 'limited'] => 100,
             ['staging', 'primary'] => 500,
@@ -161,7 +161,7 @@ class ApiKeyService extends Component
     
     /**
      * Get IP whitelist for environment
-     * 
+     *
      * @return array
      */
     private function getIpWhitelistForEnvironment(): array

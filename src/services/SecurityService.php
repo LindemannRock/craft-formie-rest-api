@@ -1,9 +1,9 @@
 <?php
 /**
  * Security Service
- * 
+ *
  * Comprehensive security features for API protection
- * 
+ *
  * @author LindemannRock
  * @copyright Copyright (c) 2025 LindemannRock
  * @link https://lindemannrock.com
@@ -27,7 +27,7 @@ class SecurityService extends Component
     
     /**
      * Check rate limit for API key
-     * 
+     *
      * @param string $apiKey
      * @param array $apiKeyData
      * @return bool
@@ -73,7 +73,7 @@ class SecurityService extends Component
     
     /**
      * Get rate limit headers
-     * 
+     *
      * @param string $apiKey
      * @param array $apiKeyData
      * @return array
@@ -94,7 +94,7 @@ class SecurityService extends Component
     
     /**
      * Validate IP whitelist
-     * 
+     *
      * @param array $whitelist
      * @return bool
      */
@@ -117,7 +117,7 @@ class SecurityService extends Component
     
     /**
      * Check if IP matches pattern (supports CIDR)
-     * 
+     *
      * @param string $ip
      * @param string $pattern
      * @return bool
@@ -143,7 +143,7 @@ class SecurityService extends Component
     
     /**
      * Log API access
-     * 
+     *
      * @param string $apiKey
      * @param string $endpoint
      * @param array $params
@@ -172,7 +172,7 @@ class SecurityService extends Component
     
     /**
      * Validate request signature (HMAC)
-     * 
+     *
      * @param string $apiKey
      * @param string $secret
      * @return bool
@@ -203,7 +203,7 @@ class SecurityService extends Component
     
     /**
      * Get CORS headers based on environment
-     * 
+     *
      * @return array
      */
     public function getCorsHeaders(): array
@@ -211,7 +211,7 @@ class SecurityService extends Component
         $headers = [];
         
         // Configure allowed origins per environment
-        $allowedOrigins = match(Craft::$app->env) {
+        $allowedOrigins = match (Craft::$app->env) {
             'production' => ['https://alhatab.com.sa', 'https://sap.alhatab.com'],
             'staging' => ['https://staging.alhatab.com.sa'],
             'dev' => ['http://localhost:3000', 'https://ahf.ddev.site'],
@@ -231,7 +231,7 @@ class SecurityService extends Component
     
     /**
      * Sanitize output to prevent data leakage
-     * 
+     *
      * @param array $data
      * @param array $allowedFields
      * @return array

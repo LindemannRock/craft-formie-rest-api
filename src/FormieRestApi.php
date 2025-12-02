@@ -11,13 +11,13 @@
 namespace lindemannrock\formierestapi;
 
 use Craft;
-use lindemannrock\formierestapi\models\Settings;
-use lindemannrock\formierestapi\services\ApiKeyService;
-use lindemannrock\formierestapi\services\SecurityService;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\events\RegisterUrlRulesEvent;
 use craft\web\UrlManager;
+use lindemannrock\formierestapi\models\Settings;
+use lindemannrock\formierestapi\services\ApiKeyService;
+use lindemannrock\formierestapi\services\SecurityService;
 use yii\base\Event;
 
 /**
@@ -87,7 +87,7 @@ class FormieRestApi extends Plugin
         Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-            function (RegisterUrlRulesEvent $event) {
+            function(RegisterUrlRulesEvent $event) {
                 // Production API routes
                 $event->rules['api/v1/formie/forms'] = 'formie-rest-api/api/forms';
                 $event->rules['api/v1/formie/forms/<formId:\d+>'] = 'formie-rest-api/api/form-detail';

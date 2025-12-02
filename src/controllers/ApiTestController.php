@@ -1,10 +1,10 @@
 <?php
 /**
  * API Test Controller for Formie REST API Module
- * 
+ *
  * This controller provides sample endpoints to demonstrate
  * what data the SAP team would receive from API queries
- * 
+ *
  * @author LindemannRock
  * @copyright Copyright (c) 2025 LindemannRock
  * @link https://lindemannrock.com
@@ -15,13 +15,13 @@
 namespace lindemannrock\formierestapi\controllers;
 
 use Craft;
-use craft\web\Controller;
 use craft\helpers\Json;
-use verbb\formie\Formie;
+use craft\web\Controller;
+use lindemannrock\formierestapi\FormieRestApi;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\Formie;
 use yii\web\Response;
-use lindemannrock\formierestapi\FormieRestApi;
 
 class ApiTestController extends Controller
 {
@@ -112,8 +112,8 @@ class ApiTestController extends Controller
                     'success' => false,
                     'error' => [
                         'code' => 'NOT_FOUND',
-                        'message' => $formHandle 
-                            ? "Form with handle '{$formHandle}' not found" 
+                        'message' => $formHandle
+                            ? "Form with handle '{$formHandle}' not found"
                             : "Form with ID '{$formId}' not found",
                     ],
                 ]);
@@ -150,7 +150,6 @@ class ApiTestController extends Controller
                     'endpoint' => 'forms',
                 ],
             ]);
-            
         } catch (\Throwable $e) {
             Craft::error('API Test Error: ' . $e->getMessage(), __METHOD__);
             
@@ -391,7 +390,6 @@ class ApiTestController extends Controller
                     'endpoint' => 'submissions',
                 ],
             ]);
-            
         } catch (\Throwable $e) {
             Craft::error('API Test Error: ' . $e->getMessage(), __METHOD__);
             
