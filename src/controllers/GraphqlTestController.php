@@ -195,29 +195,22 @@ query GetSubmissionsByDate($form: [String]!, $after: String!, $before: String!) 
             ];
         }
 
-        try {
-            // This is a demonstration - in production, use Craft's GraphQL controller
-            return [
-                'success' => true,
-                'message' => 'To execute this query, send it to the main GraphQL endpoint',
-                'endpoint' => '/api',
-                'method' => 'POST',
-                'headers' => [
-                    'Authorization' => 'Bearer YOUR_TOKEN',
-                    'Content-Type' => 'application/json',
-                ],
-                'body' => [
-                    'query' => $query,
-                    'variables' => $variables,
-                ],
-                'note' => 'This test endpoint shows the structure but does not execute queries. Use the actual /api endpoint.',
-            ];
-        } catch (\Throwable $e) {
-            return [
-                'success' => false,
-                'error' => $e->getMessage(),
-            ];
-        }
+        // This is a demonstration - in production, use Craft's GraphQL controller
+        return [
+            'success' => true,
+            'message' => 'To execute this query, send it to the main GraphQL endpoint',
+            'endpoint' => '/api',
+            'method' => 'POST',
+            'headers' => [
+                'Authorization' => 'Bearer YOUR_TOKEN',
+                'Content-Type' => 'application/json',
+            ],
+            'body' => [
+                'query' => $query,
+                'variables' => $variables,
+            ],
+            'note' => 'This test endpoint shows the structure but does not execute queries. Use the actual /api endpoint.',
+        ];
     }
 
     /**

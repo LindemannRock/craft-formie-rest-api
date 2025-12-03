@@ -44,20 +44,12 @@ class ApiController extends Controller
         if (!$apiKeyData) {
             throw new UnauthorizedHttpException('Invalid or missing API key');
         }
-        
-        // Store API key data for use in actions
-        $this->apiKeyData = $apiKeyData;
 
         // Set response format to JSON
         Craft::$app->response->format = Response::FORMAT_JSON;
 
         return parent::beforeAction($action);
     }
-    
-    /**
-     * @var array Current API key data
-     */
-    private array $apiKeyData = [];
 
     /**
      * Get all forms
@@ -80,11 +72,12 @@ class ApiController extends Controller
         }
         
         $query->limit($limit)->offset($offset);
-        
+
         // Get forms
+        /** @var \verbb\formie\elements\Form[] $forms */
         $forms = $query->all();
         $total = $query->count();
-        
+
         // Format response
         $formData = [];
         foreach ($forms as $form) {
@@ -109,8 +102,9 @@ class ApiController extends Controller
      */
     public function actionFormDetail(int $formId): array
     {
+        /** @var \verbb\formie\elements\Form|null $form */
         $form = Form::find()->id($formId)->one();
-        
+
         if (!$form) {
             throw new NotFoundHttpException("Form with ID {$formId} not found");
         }
@@ -130,12 +124,13 @@ class ApiController extends Controller
      */
     public function actionFormByHandle(string $handle): array
     {
+        /** @var \verbb\formie\elements\Form|null $form */
         $form = Form::find()->handle($handle)->one();
-        
+
         if (!$form) {
             throw new NotFoundHttpException("Form with handle '{$handle}' not found");
         }
-        
+
         return [
             'success' => true,
             'data' => $this->transformForm($form, true),
@@ -194,11 +189,12 @@ class ApiController extends Controller
         
         // Order by newest first
         $query->orderBy('dateCreated DESC');
-        
+
         // Get submissions
+        /** @var \verbb\formie\elements\Submission[] $submissions */
         $submissions = $query->all();
         $total = $query->count();
-        
+
         // Format response
         $submissionData = [];
         foreach ($submissions as $submission) {
@@ -223,8 +219,9 @@ class ApiController extends Controller
      */
     public function actionSubmissionDetail(int $submissionId): array
     {
+        /** @var \verbb\formie\elements\Submission|null $submission */
         $submission = Submission::find()->id($submissionId)->one();
-        
+
         if (!$submission) {
             throw new NotFoundHttpException("Submission with ID {$submissionId} not found");
         }
@@ -294,8 +291,13 @@ class ApiController extends Controller
                         continue;
                     }
                     
+                    $label = $handle;
+                    if (property_exists($field, 'label') && isset($field->label)) {
+                        $label = $field->label;
+                    }
+
                     $fieldData = [
-                        'label' => $field->label,
+                        'label' => $label,
                         'handle' => $handle,
                         'type' => $fieldType,
                         'value' => $this->processFieldValue($field, $value),

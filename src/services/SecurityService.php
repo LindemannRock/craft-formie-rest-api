@@ -130,10 +130,10 @@ class SecurityService extends Component
         
         // CIDR notation support
         if (strpos($pattern, '/') !== false) {
-            list($subnet, $mask) = explode('/', $pattern);
+            list($subnet, $maskStr) = explode('/', $pattern);
             $subnet = ip2long($subnet);
             $ip = ip2long($ip);
-            $mask = -1 << (32 - $mask);
+            $mask = -1 << (32 - (int)$maskStr);
             $subnet &= $mask;
             return ($ip & $mask) == $subnet;
         }
@@ -189,13 +189,13 @@ class SecurityService extends Component
         $path = Craft::$app->request->getUrl();
         $timestamp = Craft::$app->request->getHeaders()->get('X-Timestamp');
         $body = Craft::$app->request->getRawBody();
-        
+
         // Check timestamp to prevent replay attacks
         if (!$timestamp || abs(time() - (int)$timestamp) > 300) { // 5 minute window
             return false;
         }
-        
-        $signatureBase = implode("\n", [$method, $path, $timestamp, $body]);
+
+        $signatureBase = implode("\n", [(string)$method, (string)$path, (string)$timestamp, (string)$body]);
         $expectedSignature = hash_hmac('sha256', $signatureBase, $secret);
         
         return hash_equals($expectedSignature, $signature);

@@ -104,8 +104,9 @@ class ApiTestController extends Controller
             }
             
             // Get forms
+            /** @var \verbb\formie\elements\Form[] $forms */
             $forms = $query->all();
-            
+
             // If filtering by handle/id and no form found
             if (($formHandle || $formId) && empty($forms)) {
                 return $this->asJson([
@@ -221,9 +222,11 @@ class ApiTestController extends Controller
             } else {
                 $formQuery->id($formId);
             }
-            
+
+
+            /** @var \verbb\formie\elements\Form|null $form */
             $form = $formQuery->one();
-            
+
             if (!$form) {
                 return $this->asJson([
                     'success' => false,
@@ -258,10 +261,11 @@ class ApiTestController extends Controller
             $total = $query->count();
             $offset = ($page - 1) * $limit;
             
+            /** @var \verbb\formie\elements\Submission[] $submissions */
             $submissions = $query
                 ->offset($offset)
                 ->all();
-            
+
             $submissionData = [];
             foreach ($submissions as $submission) {
                 $data = [
@@ -298,8 +302,13 @@ class ApiTestController extends Controller
                                 continue;
                             }
                             
+                            $label = $handle;
+                            if (property_exists($field, 'label') && isset($field->label)) {
+                                $label = $field->label;
+                            }
+
                             $fieldData = [
-                                'label' => $field->label,
+                                'label' => $label,
                                 'handle' => $handle,
                                 'type' => $fieldType,
                                 'value' => $this->processFieldValue($field, $value),
@@ -342,9 +351,14 @@ class ApiTestController extends Controller
                                 }
                                 
                                 $value = $submission->getFieldValue($field->handle);
-                                
+
+                                $label = $field->handle;
+                                if (property_exists($field, 'label') && isset($field->label)) {
+                                    $label = $field->label;
+                                }
+
                                 $fieldData = [
-                                    'label' => $field->label,
+                                    'label' => $label,
                                     'handle' => $field->handle,
                                     'type' => $fieldType,
                                     'value' => $this->processFieldValue($field, $value),

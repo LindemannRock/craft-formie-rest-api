@@ -37,7 +37,7 @@ class FormieRestApi extends Plugin
     /**
      * @var FormieRestApi|null Singleton plugin instance
      */
-    public static FormieRestApi $plugin;
+    public static ?FormieRestApi $plugin = null;
 
     /**
      * @var string Plugin schema version for migrations
@@ -121,7 +121,7 @@ class FormieRestApi extends Plugin
         
         // Set the plugin name from settings
         $settings = $this->getSettings();
-        if ($settings && !empty($settings->pluginName)) {
+        if (!empty($settings->pluginName)) {
             $this->name = $settings->pluginName;
         }
 
