@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.1.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.3...v3.1.0) (2025-12-04)
+
+
+### Features
+
+* add PHPStan and ECS configurations, and include Postman collections for Al Hatab Foods API ([ad24852](https://github.com/LindemannRock/craft-formie-rest-api/commit/ad248521dfd605256200bdd8e06275cba3880a26))
+
+
+### Bug Fixes
+
+* improve documentation for plugin properties and ensure newline at end of file ([17d5144](https://github.com/LindemannRock/craft-formie-rest-api/commit/17d51446eb8e907fd1b53b2fc4aadd4e7da384cb))
+
 ## [3.0.3](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.2...v3.0.3) (2025-11-01)
 
 
