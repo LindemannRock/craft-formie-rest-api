@@ -8,6 +8,14 @@
 
 A comprehensive API plugin for Craft CMS that provides both REST and GraphQL access to Formie forms and submissions data. This plugin enables external systems (like SAP) to retrieve form data through authenticated endpoints using their preferred API style.
 
+## ⚠️ Beta Notice
+
+This plugin is currently in active development and provided under the MIT License for testing purposes.
+
+**Licensing is subject to change.** We are finalizing our licensing structure and some or all features may require a paid license when officially released on the Craft Plugin Store. Some plugins may remain free, others may offer free and Pro editions, or be fully commercial.
+
+If you are using this plugin, please be aware that future versions may have different licensing terms.
+
 ## Requirements
 
 - Craft CMS 5.0 or greater
