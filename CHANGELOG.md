@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.2.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.1.0...v3.2.0) (2026-01-11)
+
+
+### Features
+
+* bootstrap base plugin helper in FormieRestApi initialization ([9150a5e](https://github.com/LindemannRock/craft-formie-rest-api/commit/9150a5e6d3258dfc9c126bacf199d4b4c3730a8c))
+
+
+### Bug Fixes
+
+* update Settings model to improve type handling and refactor plugin handle method ([fe1dd6e](https://github.com/LindemannRock/craft-formie-rest-api/commit/fe1dd6eabf40dcca45016d50c5ef52d59334f700))
+
+
+### Miscellaneous Chores
+
+* update composer.json to include ECS in require-dev section ([af26f85](https://github.com/LindemannRock/craft-formie-rest-api/commit/af26f85c8f13e691e4fb929d29d34e385c1ff5ad))
+
 ## [3.1.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.3...v3.1.0) (2025-12-04)
 
 
