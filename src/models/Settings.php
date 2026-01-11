@@ -10,6 +10,8 @@ namespace lindemannrock\formierestapi\models;
 
 use Craft;
 use craft\base\Model;
+use lindemannrock\base\traits\SettingsConfigTrait;
+use lindemannrock\base\traits\SettingsDisplayNameTrait;
 
 /**
  * Formie REST API Settings Model
@@ -20,10 +22,12 @@ use craft\base\Model;
  */
 class Settings extends Model
 {
+    use SettingsConfigTrait;
+    use SettingsDisplayNameTrait;
     /**
-     * @var string|null The public-facing name of the plugin
+     * @var string The public-facing name of the plugin
      */
-    public ?string $pluginName = 'Formie REST API';
+    public string $pluginName = 'Formie REST API';
 
     /**
      * @inheritdoc
@@ -46,14 +50,10 @@ class Settings extends Model
     }
 
     /**
-     * Check if a setting is overridden in config file
-     *
-     * @param string $setting
-     * @return bool
+     * Plugin handle for config file resolution
      */
-    public function isOverriddenByConfig(string $setting): bool
+    protected static function pluginHandle(): string
     {
-        $configFileSettings = Craft::$app->getConfig()->getConfigFromFile('formie-rest-api');
-        return isset($configFileSettings[$setting]);
+        return 'formie-rest-api';
     }
 }
