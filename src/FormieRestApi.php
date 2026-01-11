@@ -15,6 +15,7 @@ use craft\base\Model;
 use craft\base\Plugin;
 use craft\events\RegisterUrlRulesEvent;
 use craft\web\UrlManager;
+use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\formierestapi\models\Settings;
 use lindemannrock\formierestapi\services\ApiKeyService;
 use lindemannrock\formierestapi\services\SecurityService;
@@ -56,6 +57,9 @@ class FormieRestApi extends Plugin
     {
         parent::init();
         self::$plugin = $this;
+
+        // Bootstrap the base plugin helper
+        PluginHelper::bootstrap($this, 'formieRestApiHelper');
 
         // Set the alias for this plugin
         Craft::setAlias('@lindemannrock/formierestapi', __DIR__);
