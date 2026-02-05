@@ -113,16 +113,6 @@ class FormieRestApi extends Plugin
             }
         );
         
-        // Set translation category
-        $i18n = Craft::$app->getI18n();
-        if (!isset($i18n->translations['formie-rest-api'])) {
-            $i18n->translations['formie-rest-api'] = [
-                'class' => \craft\i18n\PhpMessageSource::class,
-                'sourceLanguage' => 'en',
-                'basePath' => '@lindemannrock/formierestapi/translations',
-            ];
-        }
-        
         // Set the plugin name from settings
         $settings = $this->getSettings();
         if (!empty($settings->pluginName)) {
