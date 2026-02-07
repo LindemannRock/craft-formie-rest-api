@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.0...v3.2.1) (2026-02-07)
+
+
+### Miscellaneous Chores
+
+* release 3.2.1 ([db79319](https://github.com/LindemannRock/craft-formie-rest-api/commit/db79319857f8eb7f311d325e1ca289cc728de222))
+
 ## [3.2.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.1.0...v3.2.0) (2026-01-11)
 
 
