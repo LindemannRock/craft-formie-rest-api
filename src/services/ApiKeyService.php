@@ -15,6 +15,7 @@ namespace lindemannrock\formierestapi\services;
 
 use Craft;
 use craft\base\Component;
+use craft\helpers\App;
 
 class ApiKeyService extends Component
 {
@@ -57,7 +58,7 @@ class ApiKeyService extends Component
         $keys = [];
         
         // Primary API key with full access
-        $primaryKey = Craft::$app->config->general->formieApiKey ?? getenv('FORMIE_API_KEY');
+        $primaryKey = Craft::$app->config->general->formieApiKey ?? App::env('FORMIE_API_KEY');
         if ($primaryKey) {
             $keys[$primaryKey] = [
                 'name' => 'Primary API Key',
@@ -70,7 +71,7 @@ class ApiKeyService extends Component
         }
         
         // Secondary API key with limited access
-        $secondaryKey = Craft::$app->config->general->formieApiKeyLimited ?? getenv('FORMIE_API_KEY_LIMITED');
+        $secondaryKey = Craft::$app->config->general->formieApiKeyLimited ?? App::env('FORMIE_API_KEY_LIMITED');
         if ($secondaryKey) {
             $keys[$secondaryKey] = [
                 'name' => 'Limited Access Key',
@@ -84,7 +85,7 @@ class ApiKeyService extends Component
         
         // Test key for development (only in dev mode)
         if (Craft::$app->config->general->devMode) {
-            $testKey = getenv('FORMIE_API_KEY_TEST') ?: 'test_key_dev_only';
+            $testKey = App::env('FORMIE_API_KEY_TEST') ?: 'test_key_dev_only';
             $keys[$testKey] = [
                 'name' => 'Development Test Key',
                 'permissions' => ['read_forms', 'read_submissions', 'create_submissions'],
