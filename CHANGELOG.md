@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.2.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.1...v3.2.2) (2026-03-04)
+
+
+### Bug Fixes
+
+* **models:** require pluginName in Settings model validation ([f7726ad](https://github.com/LindemannRock/craft-formie-rest-api/commit/f7726adaef03932c38d9bc9bb27ddd3bd8883b6e))
+* **services:** replace getenv with App::env for API key retrieval ([1f9214e](https://github.com/LindemannRock/craft-formie-rest-api/commit/1f9214e1d8f3e22ab864aa6e3cd3ccd82b0a9b5e))
+
+
+### Miscellaneous Chores
+
+* add .gitattributes with export-ignore for Packagist distribution ([17a84bc](https://github.com/LindemannRock/craft-formie-rest-api/commit/17a84bc9801833881355270d35c0964bef58e3de))
+* switch to Craft License for commercial release ([0359a81](https://github.com/LindemannRock/craft-formie-rest-api/commit/0359a81d6c3b6fbd672f7109ac57ceebfde245ec))
+
 ## [3.2.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.0...v3.2.1) (2026-02-07)
 
 
