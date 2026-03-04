@@ -7,6 +7,14 @@
 
 {% import "_includes/forms" as forms %}
 
+{% if settings is defined and settings.hasErrors() %}
+    {{ include('lindemannrock-base/_partials/error-summary', {
+        errors: settings.getErrors(),
+        translationCategory: 'formie-rest-api',
+        linkMode: 'field-id',
+    }) }}
+{% endif %}
+
 <fieldset style="margin-top: 0;">
 	<h2>{{ 'General Settings'|t('formie-rest-api') }}</h2>
 
@@ -18,7 +26,8 @@
         value: settings.pluginName ?? 'Formie REST API',
         placeholder: 'Formie REST API',
         warning: settings.isOverriddenByConfig('pluginName') ? 'This is being overridden by the `pluginName` setting in the `config/formie-rest-api.php` file.'|t('formie-rest-api'),
-        disabled: settings.isOverriddenByConfig('pluginName')
+        disabled: settings.isOverriddenByConfig('pluginName'),
+        errors: settings.getErrors('pluginName')
     }) }}
 </fieldset>
 

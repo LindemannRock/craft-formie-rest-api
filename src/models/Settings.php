@@ -35,6 +35,7 @@ class Settings extends Model
     public function defineRules(): array
     {
         return [
+            [['pluginName'], 'required'],
             [['pluginName'], 'string'],
         ];
     }
