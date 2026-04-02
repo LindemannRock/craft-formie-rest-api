@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.2...v3.3.0) (2026-04-02)
+
+
+### Features
+
+* **svg:** add new icon mask SVG file and replace existing icon ([c20e01c](https://github.com/LindemannRock/craft-formie-rest-api/commit/c20e01ced74ffb6729567da259bdca299c8e4b22))
+
 ## [3.2.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.1...v3.2.2) (2026-03-04)
 
 
