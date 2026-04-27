@@ -11,6 +11,7 @@ namespace lindemannrock\formierestapi\console\controllers;
 use Craft;
 use craft\console\Controller;
 use craft\helpers\Console;
+use lindemannrock\formierestapi\FormieRestApi;
 use yii\console\ExitCode;
 
 /**
@@ -59,7 +60,7 @@ class SecurityController extends Controller
 
         $prefix = $prefixInput === '-' ? '' : $prefixInput;
 
-        $key = $prefix . bin2hex(random_bytes(32));
+        $key = FormieRestApi::$plugin->apiKey->generateApiKey($prefix);
 
         $this->stdout("\nGenerated key:\n", Console::FG_YELLOW);
         $this->stdout($key . "\n\n", Console::FG_GREEN);

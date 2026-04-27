@@ -138,7 +138,7 @@ class ApiKeyService extends Component
      * @param string $prefix
      * @return string
      */
-    public function generateApiKey(string $prefix = 'sk_'): string
+    public function generateApiKey(string $prefix = 'fra_'): string
     {
         return $prefix . bin2hex(random_bytes(32));
     }
