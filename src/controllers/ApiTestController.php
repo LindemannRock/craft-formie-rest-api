@@ -27,6 +27,7 @@ use yii\db\Expression;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
+use yii\web\TooManyRequestsHttpException;
 use yii\web\UnauthorizedHttpException;
 
 class ApiTestController extends Controller
@@ -68,7 +69,37 @@ class ApiTestController extends Controller
 
         $this->apiKeyData = $apiKeyData;
 
+        // Rate limiting (counter persisted in Craft cache, fixed 1-hour window)
+        $allowed = FormieRestApi::$plugin->security->checkRateLimit((string) $apiKey, $apiKeyData);
+
+        // Always advertise the budget on success and 429 alike
+        foreach (FormieRestApi::$plugin->security->getRateLimitHeaders((string) $apiKey, $apiKeyData) as $name => $value) {
+            Craft::$app->response->headers->set($name, $value);
+        }
+
+        if (!$allowed) {
+            throw new TooManyRequestsHttpException(message: 'API rate limit exceeded. Try again later.');
+        }
+
         return parent::beforeAction($action);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterAction($action, $result)
+    {
+        $apiKey = Craft::$app->request->getHeaders()->get('X-API-Key');
+        if (is_string($apiKey) && $apiKey !== '') {
+            FormieRestApi::$plugin->security->logApiAccess(
+                $apiKey,
+                Craft::$app->request->getUrl(),
+                Craft::$app->request->getQueryParams(),
+                Craft::$app->response->statusCode,
+            );
+        }
+
+        return parent::afterAction($action, $result);
     }
 
     /**
@@ -216,14 +247,18 @@ class ApiTestController extends Controller
     {
         $this->requireApiPermission('read_submissions');
 
-        $formHandle = Craft::$app->request->getParam('formHandle');
-        $formId = Craft::$app->request->getParam('formId');
-        $limit = Craft::$app->request->getParam('limit', 10);
-        $page = Craft::$app->request->getParam('page', 1);
-        $dateFrom = Craft::$app->request->getParam('dateFrom');
-        $dateTo = Craft::$app->request->getParam('dateTo');
-        $status = Craft::$app->request->getParam('status'); // enabled, disabled, etc.
-        
+        $request = Craft::$app->request;
+        $formHandle = $request->getParam('formHandle');
+        $formId = $request->getParam('formId');
+        $limit = max(1, (int) $request->getParam('limit', 10));
+        $page = max(1, (int) $request->getParam('page', 1));
+        $status = $request->getParam('status');
+
+        // Validate date params before entering the try block — `BadRequestHttpException`
+        // here must surface as a real 400, not be swallowed by the catch below.
+        $dateFromStr = $this->parseDateFilter($request->getParam('dateFrom'), 'dateFrom', false);
+        $dateToStr = $this->parseDateFilter($request->getParam('dateTo'), 'dateTo', true);
+
         if (!$formHandle && !$formId) {
             return $this->asJson([
                 'success' => false,
@@ -233,17 +268,16 @@ class ApiTestController extends Controller
                 ],
             ]);
         }
-        
+
         try {
             // Get the form
             $formQuery = Form::find()->status('enabled');
-            
+
             if ($formHandle) {
                 $formQuery->handle($formHandle);
             } else {
                 $formQuery->id($formId);
             }
-
 
             /** @var \verbb\formie\elements\Form|null $form */
             $form = $formQuery->one();
@@ -257,35 +291,31 @@ class ApiTestController extends Controller
                     ],
                 ]);
             }
-            
-            // Get submissions with pagination
+
+            // Build query without limit/offset so count reflects the full result set
             $query = Submission::find()
                 ->formId($form->id)
                 ->isIncomplete(false)
                 ->isSpam(false)
-                ->orderBy('dateCreated DESC')
-                ->limit($limit);
-            
-            // Apply date filters — validated before passing to the query builder
-            $dateFromStr = $this->parseDateFilter($dateFrom, 'dateFrom', false);
-            $dateToStr = $this->parseDateFilter($dateTo, 'dateTo', true);
+                ->orderBy('dateCreated DESC');
+
             if ($dateFromStr !== null) {
                 $query->dateCreated('>= ' . $dateFromStr);
             }
             if ($dateToStr !== null) {
                 $query->dateCreated('<= ' . $dateToStr);
             }
-            
-            // Apply status filter
             if ($status) {
                 $query->status($status);
             }
-            
-            $total = $query->count();
+
+            // Count against a clone before applying limit/offset (mirrors 2.3/2.4 fix)
+            $total = (clone $query)->count();
             $offset = ($page - 1) * $limit;
-            
+
             /** @var \verbb\formie\elements\Submission[] $submissions */
             $submissions = $query
+                ->limit($limit)
                 ->offset($offset)
                 ->all();
 
