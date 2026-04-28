@@ -14,12 +14,15 @@
 namespace lindemannrock\formierestapi\controllers;
 
 use Craft;
+use craft\db\Query;
+use craft\db\Table as CraftTable;
 use craft\helpers\Json;
 use craft\web\Controller;
 use lindemannrock\formierestapi\FormieRestApi;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
+use verbb\formie\helpers\Table as FormieTable;
+use yii\db\Expression;
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -109,10 +112,25 @@ class ApiController extends Controller
         $forms = $query->all();
         $total = $query->count();
 
+        // Batch-fetch submission counts for all forms in one query (avoids N+1).
+        // Joins elements to honour ElementQuery's default `dateDeleted IS NULL`.
+        $countMap = [];
+        $formIds = array_map(static fn(Form $f) => $f->id, $forms);
+        if ($formIds) {
+            $rows = (new Query())
+                ->from(['s' => FormieTable::FORMIE_SUBMISSIONS])
+                ->innerJoin(['e' => CraftTable::ELEMENTS], '[[s.id]] = [[e.id]]')
+                ->where(['e.dateDeleted' => null, 's.formId' => $formIds])
+                ->groupBy(['s.formId'])
+                ->select(['s.formId', 'cnt' => new Expression('COUNT(*)')])
+                ->all();
+            $countMap = array_column($rows, 'cnt', 'formId');
+        }
+
         // Format response
         $formData = [];
         foreach ($forms as $form) {
-            $formData[] = $this->transformForm($form);
+            $formData[] = $this->transformForm($form, false, (int) ($countMap[$form->id] ?? 0));
         }
         
         return [
@@ -267,9 +285,12 @@ class ApiController extends Controller
     }
 
     /**
-     * Transform form for API response
+     * Transform form for API response.
+     *
+     * Pass `$submissionCount` when batching across many forms to avoid N+1.
+     * When null (single-form detail endpoints), the count is queried inline.
      */
-    private function transformForm(Form $form, bool $includeFields = false): array
+    private function transformForm(Form $form, bool $includeFields = false, ?int $submissionCount = null): array
     {
         $data = [
             'id' => $form->id,
@@ -279,7 +300,7 @@ class ApiController extends Controller
             'status' => $form->status,
             'dateCreated' => $form->dateCreated->format('c'),
             'dateUpdated' => $form->dateUpdated->format('c'),
-            'submissionCount' => Submission::find()->formId($form->id)->count(),
+            'submissionCount' => $submissionCount ?? Submission::find()->formId($form->id)->count(),
         ];
         
         if ($includeFields) {
