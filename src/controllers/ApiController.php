@@ -160,17 +160,20 @@ class ApiController extends Controller
         
         // Build query
         $query = Form::find();
-        
+
         if ($status !== 'all') {
             $query->status($status);
         }
-        
+
+        // Run COUNT against a clone before applying limit/offset — avoids
+        // re-preparing the (already-executed) main query for the count.
+        $total = (clone $query)->count();
+
         $query->limit($limit)->offset($offset);
 
         // Get forms
         /** @var \verbb\formie\elements\Form[] $forms */
         $forms = $query->all();
-        $total = $query->count();
 
         // Batch-fetch submission counts for all forms in one query (avoids N+1).
         // Joins elements to honour ElementQuery's default `dateDeleted IS NULL`.
@@ -301,16 +304,19 @@ class ApiController extends Controller
             $query->dateCreated('<= ' . $dateToStr);
         }
         
+        // Run COUNT against a clone before applying limit/offset/order — avoids
+        // re-preparing the (already-executed) main query for the count.
+        $total = (clone $query)->count();
+
         // Apply limit and offset
         $query->limit($limit)->offset($offset);
-        
+
         // Order by newest first
         $query->orderBy('dateCreated DESC');
 
         // Get submissions
         /** @var \verbb\formie\elements\Submission[] $submissions */
         $submissions = $query->all();
-        $total = $query->count();
 
         // Format response
         $submissionData = [];
