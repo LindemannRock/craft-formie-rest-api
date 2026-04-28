@@ -18,6 +18,7 @@ use craft\db\Query;
 use craft\db\Table as CraftTable;
 use craft\helpers\Json;
 use craft\web\Controller;
+use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\formierestapi\FormieRestApi;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -115,6 +116,31 @@ class ApiController extends Controller
         if (!FormieRestApi::$plugin->apiKey->hasPermission($this->apiKeyData ?? [], $permission)) {
             throw new ForbiddenHttpException("API key does not have permission: {$permission}");
         }
+    }
+
+    /**
+     * Validate a `dateFrom` / `dateTo` query param and return a `Y-m-d H:i:s`
+     * string ready for use in an element-query date filter, or null if the
+     * param was absent. Throws 400 on unparseable input.
+     *
+     * Date-only inputs (`YYYY-MM-DD`) are pinned to end-of-day when `$endOfDay`
+     * is true, so a `dateTo=2026-04-28` filter is inclusive of the whole day.
+     */
+    private function parseDateFilter(?string $value, string $paramName, bool $endOfDay): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        $dt = DateFormatHelper::toCraftTimezone($value);
+        if ($dt === null) {
+            throw new BadRequestHttpException(
+                "Invalid {$paramName} value — expected YYYY-MM-DD or YYYY-MM-DD HH:MM:SS or ISO 8601"
+            );
+        }
+        if ($endOfDay && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1) {
+            $dt->setTime(23, 59, 59);
+        }
+        return $dt->format('Y-m-d H:i:s');
     }
 
     /**
@@ -265,12 +291,14 @@ class ApiController extends Controller
             $query->status($status);
         }
         
-        // Date filters
-        if ($dateFrom) {
-            $query->dateCreated('>= ' . $dateFrom);
+        // Date filters — validate before passing to the query builder
+        $dateFromStr = $this->parseDateFilter($dateFrom, 'dateFrom', false);
+        $dateToStr = $this->parseDateFilter($dateTo, 'dateTo', true);
+        if ($dateFromStr !== null) {
+            $query->dateCreated('>= ' . $dateFromStr);
         }
-        if ($dateTo) {
-            $query->dateCreated('<= ' . $dateTo);
+        if ($dateToStr !== null) {
+            $query->dateCreated('<= ' . $dateToStr);
         }
         
         // Apply limit and offset

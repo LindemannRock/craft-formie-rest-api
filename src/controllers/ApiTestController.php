@@ -19,11 +19,13 @@ use craft\db\Query;
 use craft\db\Table as CraftTable;
 use craft\helpers\Json;
 use craft\web\Controller;
+use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\formierestapi\FormieRestApi;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\Table as FormieTable;
 use yii\db\Expression;
+use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\web\UnauthorizedHttpException;
@@ -78,6 +80,28 @@ class ApiTestController extends Controller
         if (!FormieRestApi::$plugin->apiKey->hasPermission($this->apiKeyData ?? [], $permission)) {
             throw new ForbiddenHttpException("API key does not have permission: {$permission}");
         }
+    }
+
+    /**
+     * Validate a `dateFrom` / `dateTo` query param and return a `Y-m-d H:i:s`
+     * string ready for use in an element-query date filter, or null if the
+     * param was absent. Throws 400 on unparseable input.
+     */
+    private function parseDateFilter(?string $value, string $paramName, bool $endOfDay): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        $dt = DateFormatHelper::toCraftTimezone($value);
+        if ($dt === null) {
+            throw new BadRequestHttpException(
+                "Invalid {$paramName} value — expected YYYY-MM-DD or YYYY-MM-DD HH:MM:SS or ISO 8601"
+            );
+        }
+        if ($endOfDay && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1) {
+            $dt->setTime(23, 59, 59);
+        }
+        return $dt->format('Y-m-d H:i:s');
     }
 
     /**
@@ -237,12 +261,14 @@ class ApiTestController extends Controller
                 ->orderBy('dateCreated DESC')
                 ->limit($limit);
             
-            // Apply date filters
-            if ($dateFrom) {
-                $query->dateCreated('>= ' . $dateFrom);
+            // Apply date filters — validated before passing to the query builder
+            $dateFromStr = $this->parseDateFilter($dateFrom, 'dateFrom', false);
+            $dateToStr = $this->parseDateFilter($dateTo, 'dateTo', true);
+            if ($dateFromStr !== null) {
+                $query->dateCreated('>= ' . $dateFromStr);
             }
-            if ($dateTo) {
-                $query->dateCreated('<= ' . $dateTo . ' 23:59:59');
+            if ($dateToStr !== null) {
+                $query->dateCreated('<= ' . $dateToStr);
             }
             
             // Apply status filter
