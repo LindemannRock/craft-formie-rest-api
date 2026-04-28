@@ -65,17 +65,7 @@ class FormieRestApi extends Plugin
 
         // Set the alias for this plugin
         Craft::setAlias('@lindemannrock/formierestapi', __DIR__);
-        
-        // Create class alias for backward compatibility
-        class_alias(
-            \lindemannrock\formierestapi\services\ApiKeyService::class,
-            'lindemannrock\modules\formierestapi\services\ApiKeyService'
-        );
-        class_alias(
-            \lindemannrock\formierestapi\services\SecurityService::class,
-            'lindemannrock\modules\formierestapi\services\SecurityService'
-        );
-        
+
         // Set the controllerNamespace based on request type
         if (Craft::$app instanceof \craft\console\Application) {
             $this->controllerNamespace = 'lindemannrock\formierestapi\console\controllers';
