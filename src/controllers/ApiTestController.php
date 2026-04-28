@@ -17,7 +17,6 @@ namespace lindemannrock\formierestapi\controllers;
 use Craft;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
-use craft\helpers\Json;
 use craft\web\Controller;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\formierestapi\FormieRestApi;
@@ -178,7 +177,7 @@ class ApiTestController extends Controller
                     'dateCreated' => $form->dateCreated->format('c'),
                     'dateUpdated' => $form->dateUpdated->format('c'),
                     'submissionCount' => (int) ($countMap[$form->id] ?? 0),
-                    'fields' => $this->getFormFields($form),
+                    'fields' => FormieRestApi::$plugin->transformer->getFormFields($form),
                 ];
             }
             
@@ -292,117 +291,15 @@ class ApiTestController extends Controller
 
             $submissionData = [];
             foreach ($submissions as $submission) {
-                $data = [
+                $submissionData[] = [
                     'id' => $submission->id,
                     'uid' => $submission->uid,
                     'title' => $submission->title,
                     'dateCreated' => $submission->dateCreated->format('c'),
                     'dateUpdated' => $submission->dateUpdated->format('c'),
                     'status' => $submission->getStatus(),
-                    'fields' => [],
+                    'fields' => FormieRestApi::$plugin->transformer->transformSubmissionFields($submission),
                 ];
-                
-                // Get all field values - try direct content access first
-                $content = $submission->getSerializedFieldValues();
-                if (!empty($content)) {
-                    // Get form fields for metadata
-                    $formFields = [];
-                    $form = $submission->getForm();
-                    if ($form && $form->getFieldLayout()) {
-                        foreach ($form->getFieldLayout()->getCustomFields() as $field) {
-                            $formFields[$field->handle] = $field;
-                        }
-                    }
-                    
-                    // Process each field value
-                    foreach ($content as $handle => $value) {
-                        if (isset($formFields[$handle])) {
-                            $field = $formFields[$handle];
-                            $fieldType = basename(str_replace('\\', '/', get_class($field)));
-                            
-                            // Skip non-data fields (HTML, Heading, Section, etc.)
-                            $skipFieldTypes = ['Html', 'Heading', 'Section', 'Summary', 'Paragraph'];
-                            if (in_array($fieldType, $skipFieldTypes)) {
-                                continue;
-                            }
-                            
-                            $label = $handle;
-                            if (property_exists($field, 'label') && isset($field->label)) {
-                                $label = $field->label;
-                            }
-
-                            $fieldData = [
-                                'label' => $label,
-                                'handle' => $handle,
-                                'type' => $fieldType,
-                                'value' => $this->processFieldValue($field, $value),
-                                'required' => $field->required,
-                            ];
-                            
-                            // Add additional context for Rating fields
-                            if ($fieldType === 'Rating' && get_class($field) === 'lindemannrock\formieratingfield\fields\Rating') {
-                                $fieldData['minValue'] = (string)$field->minValue;
-                                $fieldData['maxValue'] = (string)$field->maxValue;
-                                $fieldData['ratingType'] = $field->ratingType; // 'star', 'emoji', or 'nps'
-                            }
-                            
-                            $data['fields'][$handle] = $fieldData;
-                        } else {
-                            // Field not in layout, but has value
-                            $data['fields'][$handle] = [
-                                'label' => $handle,
-                                'handle' => $handle,
-                                'type' => 'unknown',
-                                'value' => $value,
-                                'required' => false,
-                            ];
-                        }
-                    }
-                } else {
-                    // Fallback to field layout approach
-                    $form = $submission->getForm();
-                    if ($form) {
-                        $fieldLayout = $form->getFieldLayout();
-                        if ($fieldLayout) {
-                            $fields = $fieldLayout->getCustomFields();
-                            foreach ($fields as $field) {
-                                $fieldType = basename(str_replace('\\', '/', get_class($field)));
-                                
-                                // Skip non-data fields (HTML, Heading, Section, etc.)
-                                $skipFieldTypes = ['Html', 'Heading', 'Section', 'Summary', 'Paragraph'];
-                                if (in_array($fieldType, $skipFieldTypes)) {
-                                    continue;
-                                }
-                                
-                                $value = $submission->getFieldValue($field->handle);
-
-                                $label = $field->handle;
-                                if (property_exists($field, 'label') && isset($field->label)) {
-                                    $label = $field->label;
-                                }
-
-                                $fieldData = [
-                                    'label' => $label,
-                                    'handle' => $field->handle,
-                                    'type' => $fieldType,
-                                    'value' => $this->processFieldValue($field, $value),
-                                    'required' => $field->required,
-                                ];
-                                
-                                // Add additional context for Rating fields
-                                if ($fieldType === 'Rating' && get_class($field) === 'lindemannrock\formieratingfield\fields\Rating') {
-                                    $fieldData['minValue'] = (string)$field->minValue;
-                                    $fieldData['maxValue'] = (string)$field->maxValue;
-                                    $fieldData['ratingType'] = $field->ratingType; // 'star', 'emoji', or 'nps'
-                                }
-                                
-                                $data['fields'][$field->handle] = $fieldData;
-                            }
-                        }
-                    }
-                }
-                
-                $submissionData[] = $data;
             }
             
             return $this->asJson([
@@ -467,97 +364,5 @@ class ApiTestController extends Controller
                 'endpoint' => 'auth',
             ],
         ]);
-    }
-    
-    /**
-     * Get form fields information
-     */
-    private function getFormFields(Form $form): array
-    {
-        $fields = [];
-        
-        foreach ($form->getCustomFields() as $field) {
-            $fields[] = [
-                'handle' => $field->handle,
-                'label' => $field->label,
-                'type' => basename(str_replace('\\', '/', get_class($field))),
-                'required' => $field->required,
-                'instructions' => $field->instructions,
-            ];
-        }
-        
-        return $fields;
-    }
-    
-    /**
-     * Process field value based on type
-     */
-    private function processFieldValue($field, $value)
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-        
-        // Handle different field types
-        switch (get_class($field)) {
-            case 'verbb\formie\fields\Number':
-                return is_numeric($value) ? (float)$value : null;
-                
-            case 'verbb\formie\fields\Dropdown':
-            case 'verbb\formie\fields\Radio':
-                return is_array($value) ? ($value['value'] ?? $value[0] ?? null) : $value;
-                
-            case 'verbb\formie\fields\Checkboxes':
-                if (is_array($value)) {
-                    return array_map(function($item) {
-                        return is_array($item) ? ($item['value'] ?? $item) : $item;
-                    }, $value);
-                }
-                return $value;
-                
-            case 'verbb\formie\fields\Date':
-                if ($value instanceof \DateTime) {
-                    return $value->format('c');
-                }
-                return $value;
-                
-            case 'verbb\formie\fields\Name':
-                if (is_array($value)) {
-                    return [
-                        'firstName' => $value['firstName'] ?? null,
-                        'lastName' => $value['lastName'] ?? null,
-                        'fullName' => trim(($value['firstName'] ?? '') . ' ' . ($value['lastName'] ?? '')),
-                    ];
-                }
-                return $value;
-                
-            case 'verbb\formie\fields\Phone':
-                if (is_array($value)) {
-                    return $value['phoneNumber'] ?? $value['number'] ?? null;
-                }
-                return $value;
-                
-            case 'verbb\formie\fields\Email':
-                if (is_array($value)) {
-                    return $value['email'] ?? $value[0] ?? null;
-                }
-                return $value;
-                
-            case 'verbb\formie\fields\FileUpload':
-                if ($value) {
-                    $assets = [];
-                    foreach ($value as $asset) {
-                        $assets[] = [
-                            'filename' => $asset->filename,
-                            'url' => $asset->getUrl(),
-                        ];
-                    }
-                    return $assets;
-                }
-                return null;
-                
-            default:
-                return is_string($value) ? $value : Json::encode($value);
-        }
     }
 }

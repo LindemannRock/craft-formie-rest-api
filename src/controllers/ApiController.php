@@ -16,7 +16,6 @@ namespace lindemannrock\formierestapi\controllers;
 use Craft;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
-use craft\helpers\Json;
 use craft\web\Controller;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\formierestapi\FormieRestApi;
@@ -393,7 +392,7 @@ class ApiController extends Controller
         ];
         
         if ($includeFields) {
-            $data['fields'] = $this->getFormFields($form);
+            $data['fields'] = FormieRestApi::$plugin->transformer->getFormFields($form);
             $data['pages'] = $this->getFormPages($form);
         }
         
@@ -406,81 +405,23 @@ class ApiController extends Controller
     private function transformSubmission(Submission $submission, bool $includeForm = false): array
     {
         $form = $submission->getForm();
-        
+
         $data = [
             'id' => $submission->id,
             'uid' => $submission->uid,
-            'formId' => $form->id,
-            'formHandle' => $form->handle,
+            'formId' => $form?->id,
+            'formHandle' => $form?->handle,
             'status' => $submission->status,
             'dateCreated' => $submission->dateCreated->format('c'),
             'dateUpdated' => $submission->dateUpdated->format('c'),
-            'fields' => [],
+            'fields' => FormieRestApi::$plugin->transformer->transformSubmissionFields($submission),
         ];
-        
-        // Get field values
-        $content = $submission->getSerializedFieldValues();
-        if (!empty($content)) {
-            foreach ($content as $handle => $value) {
-                $field = $form->getFieldByHandle($handle);
-                if ($field) {
-                    $fieldType = basename(str_replace('\\', '/', get_class($field)));
-                    
-                    // Skip non-data fields (HTML, Heading, Section, etc.)
-                    $skipFieldTypes = ['Html', 'Heading', 'Section', 'Summary', 'Paragraph'];
-                    if (in_array($fieldType, $skipFieldTypes)) {
-                        continue;
-                    }
-                    
-                    $label = $handle;
-                    if (property_exists($field, 'label') && isset($field->label)) {
-                        $label = $field->label;
-                    }
 
-                    $fieldData = [
-                        'label' => $label,
-                        'handle' => $handle,
-                        'type' => $fieldType,
-                        'value' => $this->processFieldValue($field, $value),
-                    ];
-                    
-                    // Add additional context for Rating fields
-                    if ($fieldType === 'Rating' && get_class($field) === 'lindemannrock\formieratingfield\fields\Rating') {
-                        $fieldData['minValue'] = (string)$field->minValue;
-                        $fieldData['maxValue'] = (string)$field->maxValue;
-                        $fieldData['ratingType'] = $field->ratingType; // 'star', 'emoji', or 'nps'
-                    }
-                    
-                    $data['fields'][$handle] = $fieldData;
-                }
-            }
-        }
-        
-        if ($includeForm) {
+        if ($includeForm && $form !== null) {
             $data['form'] = $this->transformForm($form);
         }
-        
-        return $data;
-    }
 
-    /**
-     * Get form fields
-     */
-    private function getFormFields(Form $form): array
-    {
-        $fields = [];
-        
-        foreach ($form->getCustomFields() as $field) {
-            $fields[] = [
-                'handle' => $field->handle,
-                'label' => $field->label,
-                'type' => basename(str_replace('\\', '/', get_class($field))),
-                'required' => $field->required,
-                'instructions' => $field->instructions,
-            ];
-        }
-        
-        return $fields;
+        return $data;
     }
 
     /**
@@ -510,26 +451,5 @@ class ApiController extends Controller
         }
         
         return $pages;
-    }
-
-    /**
-     * Process field value for output
-     */
-    private function processFieldValue($field, $value)
-    {
-        // Handle different field types
-        if ($field instanceof \verbb\formie\fields\FileUpload && $value) {
-            // Return asset URLs
-            $assets = [];
-            foreach ($value as $asset) {
-                $assets[] = [
-                    'filename' => $asset->filename,
-                    'url' => $asset->getUrl(),
-                ];
-            }
-            return $assets;
-        }
-        
-        return $value;
     }
 }

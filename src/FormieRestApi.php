@@ -20,6 +20,7 @@ use craft\web\UrlManager;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\formierestapi\models\Settings;
 use lindemannrock\formierestapi\services\ApiKeyService;
+use lindemannrock\formierestapi\services\FormieTransformerService;
 use lindemannrock\formierestapi\services\SecurityService;
 use yii\base\Event;
 
@@ -33,6 +34,7 @@ use yii\base\Event;
  * @property-read Settings $settings
  * @property-read ApiKeyService $apiKey
  * @property-read SecurityService $security
+ * @property-read FormieTransformerService $transformer
  * @method Settings getSettings()
  */
 class FormieRestApi extends Plugin
@@ -77,6 +79,7 @@ class FormieRestApi extends Plugin
         $this->setComponents([
             'apiKey' => ApiKeyService::class,
             'security' => SecurityService::class,
+            'transformer' => FormieTransformerService::class,
         ]);
 
         // Register API routes
