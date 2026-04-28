@@ -100,11 +100,13 @@ class FormieRestApi extends Plugin
                 $event->rules['api/v1/formie/forms/<handle:[\w\-]+>'] = 'formie-rest-api/api/form-by-handle';
                 $event->rules['api/v1/formie/submissions'] = 'formie-rest-api/api/submissions';
                 $event->rules['api/v1/formie/submissions/<submissionId:\d+>'] = 'formie-rest-api/api/submission-detail';
-                
-                // Test endpoints (can be disabled in production)
-                $event->rules['api/test/formie/forms'] = 'formie-rest-api/api-test/forms';
-                $event->rules['api/test/formie/submissions'] = 'formie-rest-api/api-test/submissions';
-                $event->rules['api/test/formie/auth'] = 'formie-rest-api/api-test/test-auth';
+
+                // Test endpoints — registered only when devMode is on.
+                if (Craft::$app->getConfig()->getGeneral()->devMode) {
+                    $event->rules['api/test/formie/forms'] = 'formie-rest-api/api-test/forms';
+                    $event->rules['api/test/formie/submissions'] = 'formie-rest-api/api-test/submissions';
+                    $event->rules['api/test/formie/auth'] = 'formie-rest-api/api-test/test-auth';
+                }
             }
         );
 

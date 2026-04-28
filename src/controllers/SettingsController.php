@@ -176,6 +176,12 @@ class SettingsController extends Controller
      */
     private function resolveKey(string $choice): ?string
     {
+        // Test key is only resolvable when devMode is on — defense in depth
+        // even though getAvailableKeys() already hides it from the dropdown.
+        if ($choice === 'test' && !Craft::$app->getConfig()->getGeneral()->devMode) {
+            return null;
+        }
+
         $envVar = match ($choice) {
             'limited' => 'FORMIE_API_KEY_LIMITED',
             'test' => 'FORMIE_API_KEY_TEST',

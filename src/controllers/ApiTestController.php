@@ -20,40 +20,48 @@ use craft\web\Controller;
 use lindemannrock\formierestapi\FormieRestApi;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
+use yii\web\UnauthorizedHttpException;
 
 class ApiTestController extends Controller
 {
     /**
-     * Allow anonymous access for testing
-     * (In production, this should require authentication)
+     * Allow anonymous access — auth is enforced via X-API-Key in beforeAction().
+     * Routes are only registered when devMode is on (see FormieRestApi::init()).
      */
     protected array|int|bool $allowAnonymous = true;
 
     /**
-     * Get the API key service
+     * @var array<string, mixed>|null Resolved API key data for the current request.
      */
-    private function getApiKeyService()
-    {
-        return FormieRestApi::$plugin->apiKey;
-    }
+    private ?array $apiKeyData = null;
 
     /**
-     * Validate API key from request headers
+     * @inheritdoc
      */
-    private function validateApiKey(): array|false
+    public function beforeAction($action): bool
     {
         $apiKey = Craft::$app->request->getHeaders()->get('X-API-Key');
-        return $this->getApiKeyService()->validateApiKey($apiKey);
+        $apiKeyData = FormieRestApi::$plugin->apiKey->validateApiKey($apiKey);
+
+        if (!$apiKeyData) {
+            throw new UnauthorizedHttpException('Invalid or missing API key');
+        }
+
+        $this->apiKeyData = $apiKeyData;
+
+        return parent::beforeAction($action);
     }
 
     /**
-     * Check if API key has required permission
+     * Throw 403 unless the resolved key has the given permission.
      */
-    private function hasPermission(array $apiKeyData, string $permission): bool
+    private function requireApiPermission(string $permission): void
     {
-        return $this->getApiKeyService()->hasPermission($apiKeyData, $permission);
+        if (!FormieRestApi::$plugin->apiKey->hasPermission($this->apiKeyData ?? [], $permission)) {
+            throw new ForbiddenHttpException("API key does not have permission: {$permission}");
+        }
     }
 
     /**
@@ -65,29 +73,8 @@ class ApiTestController extends Controller
      */
     public function actionForms(): Response
     {
-        // Validate API key
-        $apiKeyData = $this->validateApiKey();
-        if (!$apiKeyData) {
-            return $this->asJson([
-                'success' => false,
-                'error' => [
-                    'code' => 'UNAUTHORIZED',
-                    'message' => 'Invalid or missing API key. Please provide X-API-Key header.',
-                ],
-            ]);
-        }
-        
-        // Check permissions
-        if (!$this->hasPermission($apiKeyData, 'read_forms')) {
-            return $this->asJson([
-                'success' => false,
-                'error' => [
-                    'code' => 'FORBIDDEN',
-                    'message' => 'API key does not have permission to read forms.',
-                ],
-            ]);
-        }
-        
+        $this->requireApiPermission('read_forms');
+
         try {
             // Get filter parameters
             $formHandle = Craft::$app->request->getParam('handle');
@@ -172,29 +159,8 @@ class ApiTestController extends Controller
      */
     public function actionSubmissions(): Response
     {
-        // Validate API key
-        $apiKeyData = $this->validateApiKey();
-        if (!$apiKeyData) {
-            return $this->asJson([
-                'success' => false,
-                'error' => [
-                    'code' => 'UNAUTHORIZED',
-                    'message' => 'Invalid or missing API key. Please provide X-API-Key header.',
-                ],
-            ]);
-        }
-        
-        // Check permissions
-        if (!$this->hasPermission($apiKeyData, 'read_submissions')) {
-            return $this->asJson([
-                'success' => false,
-                'error' => [
-                    'code' => 'FORBIDDEN',
-                    'message' => 'API key does not have permission to read submissions.',
-                ],
-            ]);
-        }
-        
+        $this->requireApiPermission('read_submissions');
+
         $formHandle = Craft::$app->request->getParam('formHandle');
         $formId = Craft::$app->request->getParam('formId');
         $limit = Craft::$app->request->getParam('limit', 10);
@@ -425,26 +391,16 @@ class ApiTestController extends Controller
      */
     public function actionTestAuth(): Response
     {
-        $apiKeyData = $this->validateApiKey();
-        
-        if (!$apiKeyData) {
-            return $this->asJson([
-                'success' => false,
-                'error' => [
-                    'code' => 'UNAUTHORIZED',
-                    'message' => 'Invalid or missing API key. Please provide X-API-Key header.',
-                ],
-            ]);
-        }
-        
+        $apiKeyData = $this->apiKeyData ?? [];
+
         return $this->asJson([
             'success' => true,
             'data' => [
                 'authenticated' => true,
                 'apiKeyInfo' => [
-                    'name' => $apiKeyData['name'],
-                    'permissions' => $apiKeyData['permissions'],
-                    'rateLimit' => $apiKeyData['rateLimit'],
+                    'name' => $apiKeyData['name'] ?? null,
+                    'permissions' => $apiKeyData['permissions'] ?? [],
+                    'rateLimit' => $apiKeyData['rateLimit'] ?? null,
                 ],
             ],
             'meta' => [

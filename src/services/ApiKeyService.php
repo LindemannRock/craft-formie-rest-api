@@ -83,15 +83,17 @@ class ApiKeyService extends Component
             ];
         }
         
-        // Test key for development (only in dev mode)
+        // Test key for development (only in dev mode, only if explicitly set in env)
         if (Craft::$app->config->general->devMode) {
-            $testKey = App::env('FORMIE_API_KEY_TEST') ?: 'test_key_dev_only';
-            $keys[$testKey] = [
-                'name' => 'Development Test Key',
-                'permissions' => ['read_forms', 'read_submissions', 'create_submissions'],
-                'rateLimit' => 1000,
-                'environment' => 'development',
-            ];
+            $testKey = App::env('FORMIE_API_KEY_TEST');
+            if (is_string($testKey) && $testKey !== '') {
+                $keys[$testKey] = [
+                    'name' => 'Development Test Key',
+                    'permissions' => ['read_forms', 'read_submissions', 'create_submissions'],
+                    'rateLimit' => 1000,
+                    'environment' => 'development',
+                ];
+            }
         }
         
         // Hook for adding custom keys (e.g., from database)
