@@ -1,4 +1,4 @@
-# Formie REST & GraphQL API Plugin
+# Formie REST API Plugin
 
 [![Latest Version](https://img.shields.io/packagist/v/lindemannrock/craft-formie-rest-api.svg)](https://packagist.org/packages/lindemannrock/craft-formie-rest-api)
 [![Craft CMS](https://img.shields.io/badge/Craft%20CMS-5.0+-orange.svg)](https://craftcms.com/)
@@ -6,7 +6,9 @@
 [![PHP](https://img.shields.io/badge/PHP-8.2+-blue.svg)](https://php.net/)
 [![License](https://img.shields.io/packagist/l/lindemannrock/craft-formie-rest-api.svg)](LICENSE)
 
-A comprehensive API plugin for Craft CMS that provides both REST and GraphQL access to Formie forms and submissions data. This plugin enables external systems (like SAP) to retrieve form data through authenticated endpoints using their preferred API style.
+A REST API plugin for Craft CMS that exposes Formie forms and submissions through authenticated REST endpoints. Designed for external systems (e.g. SAP, BI tools, partner integrations) that need structured form data over HTTP.
+
+> **Note on GraphQL:** Formie ships with its own GraphQL schema at Craft's `/api` endpoint. This plugin does **not** add GraphQL — it adds a separate REST API with its own auth (`X-API-Key`), rate limiting, and access logging. If you want GraphQL, use Formie's built-in support directly.
 
 ## License
 
@@ -25,23 +27,12 @@ This plugin is in active development and not yet available on the Craft Plugin S
 ## Overview
 
 The Formie REST API plugin provides:
-- **REST API**: Custom RESTful endpoints for forms and submissions
-- **GraphQL API**: Full access to Formie's native GraphQL schema
-- **Dual Authentication**: API key (REST) and token-based (GraphQL) authentication
-- **Flexible Querying**: Simple REST calls or powerful GraphQL queries
-- **Complete Documentation**: Examples for both API styles
-- **Test Endpoints**: Development-friendly test endpoints
-
-## Quick Comparison: REST vs GraphQL
-
-| Feature | REST API | GraphQL API |
-|---------|----------|-------------|
-| **Best For** | Simple integrations, fixed data needs | Complex queries, flexible data needs |
-| **Authentication** | X-API-Key header | Bearer token |
-| **Data Format** | Fixed JSON structure | Request exactly what you need |
-| **Learning Curve** | Familiar to most developers | Requires GraphQL knowledge |
-| **Endpoints** | Multiple endpoints | Single endpoint |
-| **Over/Under-fetching** | May get too much/little data | Get exactly what you need |
+- **REST endpoints** for forms and submissions
+- **API-key authentication** via `X-API-Key` header (Primary, Limited, Test)
+- **Rate limiting** with `X-RateLimit-*` response headers and 429 on exceed
+- **Access logging** for every request (partial key fingerprint, endpoint, IP, status)
+- **CLI key generator** (`ddev craft formie-rest-api/security/generate-key`)
+- **In-CP test page** for verifying keys, endpoints, and filters without leaving Craft
 
 ## Installation
 
@@ -79,18 +70,43 @@ In the Control Panel, go to Settings → Plugins and click "Install" for Formie 
 
 ## Environment Configuration
 
-Add API keys to your `.env` file:
+The plugin reads API keys from environment variables (or, optionally, `config/general.php`):
 
 ```bash
-# Primary API key with full access
-FORMIE_API_KEY="your_primary_api_key_here"
+# Primary API key — full read/write access
+FORMIE_API_KEY="..."
 
-# Limited access key (read forms only)
-FORMIE_API_KEY_LIMITED="your_limited_api_key_here"
+# Limited access key — read forms only (optional)
+FORMIE_API_KEY_LIMITED="..."
 
-# Development test key (dev mode only)
-FORMIE_API_KEY_TEST="your_test_api_key_here"
+# Test key — only valid when devMode=true (optional, local only)
+FORMIE_API_KEY_TEST="..."
 ```
+
+Use **different values per environment** (local, staging, production). Never share keys across environments.
+
+### Generating keys
+
+A console command generates secure keys and (optionally) writes them to `.env`:
+
+```bash
+# Local
+ddev craft formie-rest-api/security/generate-key
+
+# Staging / production (run on the server)
+php craft formie-rest-api/security/generate-key
+```
+
+The command:
+
+1. Asks which key to generate (Primary / Limited / Test)
+2. Asks for a prefix — defaults to `fra_`, type `-` for none, or supply a custom prefix
+3. Prints the generated key (`prefix + 64 hex chars`)
+4. Asks whether to write to `.env`:
+   - **Yes** → adds or replaces the variable in the local `.env` (with a confirmation prompt before overwriting an existing key)
+   - **No** → leaves the file untouched so you can paste the key into a hosting panel (Servd, Forge, Cloudways, etc.) or a secrets store
+
+Test keys are refused unless `devMode=true`.
 
 ## Authentication
 
@@ -98,15 +114,6 @@ FORMIE_API_KEY_TEST="your_test_api_key_here"
 Include API key in request headers:
 ```bash
 curl -H "X-API-Key: your-api-key-here" https://yoursite.com/api/v1/formie/forms
-```
-
-### GraphQL Authentication
-Create a token in **GraphQL → Tokens** and use Bearer authentication:
-```bash
-curl -H "Authorization: Bearer YOUR_GRAPHQL_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"query": "{ formieForm(handle: \"contact\") { title } }"}' \
-     https://yoursite.com/api
 ```
 
 ## REST API Endpoints
@@ -128,8 +135,6 @@ curl -H "Authorization: Bearer YOUR_GRAPHQL_TOKEN" \
 | GET | `/api/test/formie/forms` | Test forms endpoint |
 | GET | `/api/test/formie/submissions` | Test submissions endpoint |
 | GET | `/api/test/formie/auth` | Test authentication |
-| GET | `/api/test/graphql/info` | GraphQL API information |
-| GET | `/api/test/graphql/examples` | Example GraphQL queries |
 
 ## Example Usage
 
@@ -149,22 +154,9 @@ curl -H "X-API-Key: your-api-key" \
      "https://yoursite.com/api/v1/formie/submissions?form=contactForm&limit=10"
 ```
 
-### GraphQL Examples
-
-See [GRAPHQL_EXAMPLES.md](GRAPHQL_EXAMPLES.md) for comprehensive GraphQL usage examples.
-
-```bash
-# Basic form query
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"query": "{ formieForm(handle: \"contact\") { id title fields { handle name } } }"}' \
-     https://yoursite.com/api
-```
-
 ## API Documentation
 
 - **[API_TEST_GUIDE.md](API_TEST_GUIDE.md)** - Complete REST API testing guide
-- **[GRAPHQL_EXAMPLES.md](GRAPHQL_EXAMPLES.md)** - GraphQL query examples and patterns
 - **[.env.example](.env.example)** - Environment variable configuration
 
 ## API Key Permissions

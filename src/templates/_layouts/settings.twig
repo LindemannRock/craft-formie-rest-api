@@ -1,0 +1,39 @@
+{% extends "_layouts/cp" %}
+
+{% set title = title ?? 'Settings'|t('formie-rest-api') %}
+{% set selectedSettingsItem = selectedSettingsItem ?? 'general' %}
+{% set selectedSubnavItem = 'settings' %}
+{% set errorSummary = '' %}
+{% if settings is defined and settings.hasErrors() %}
+    {% set errorSummary = include('lindemannrock-base/_partials/error-summary', {
+        errors: settings.getErrors(),
+        linkMode: 'field-id',
+        translationCategory: 'formie-rest-api'
+    })|trim %}
+{% endif %}
+
+{% block sidebar %}
+    <nav id="settings-nav">
+        <ul>
+            <li>
+                <a href="{{ url('formie-rest-api/settings/general') }}" {% if selectedSettingsItem == 'general' %}class="sel"{% endif %} data-nav-item="general">
+                    {{ 'General'|t('formie-rest-api') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ url('formie-rest-api/settings/test') }}" {% if selectedSettingsItem == 'test' %}class="sel"{% endif %} data-nav-item="test">
+                    {{ 'Test'|t('formie-rest-api') }}
+                </a>
+            </li>
+        </ul>
+    </nav>
+{% endblock %}
+
+{% css %}
+    #settings-nav a {
+        transition: none;
+    }
+    #settings-nav a.sel {
+        cursor: default;
+    }
+{% endcss %}

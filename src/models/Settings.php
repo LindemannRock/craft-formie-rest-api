@@ -24,6 +24,7 @@ class Settings extends Model
 {
     use SettingsConfigTrait;
     use SettingsDisplayNameTrait;
+
     /**
      * @var string The public-facing name of the plugin
      */

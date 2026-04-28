@@ -48,12 +48,16 @@ This guide outlines the security measures implemented in the Formie API module a
 
 ### API Key Security
 
-```php
-// Keys stored in environment variables
-FORMIE_API_KEY=sk_live_[64-character-hex]
-FORMIE_API_KEY_LIMITED=sk_limited_[64-character-hex]
-FORMIE_API_KEY_TEST=sk_test_[64-character-hex]  // Dev only
+```bash
+# Keys stored in environment variables (one set per environment)
+FORMIE_API_KEY=fra_[64-character-hex]
+FORMIE_API_KEY_LIMITED=fra_[64-character-hex]   # Optional, read_forms only
+FORMIE_API_KEY_TEST=fra_[64-character-hex]      # Optional, devMode only
 ```
+
+The `fra_` prefix is the default produced by the generator CLI; it is configurable
+(any alphanumeric/underscore prefix up to 16 chars, or no prefix at all). The prefix
+is just a label — it has no functional effect on validation.
 
 ### Rate Limiting
 
@@ -67,7 +71,7 @@ FORMIE_API_KEY_TEST=sk_test_[64-character-hex]  // Dev only
 
 Required headers for production:
 ```
-X-API-Key: sk_live_your-key
+X-API-Key: fra_your-key
 X-Timestamp: 1642694400
 X-Signature: sha256-hash-of-request
 ```
@@ -116,13 +120,23 @@ private function getIpWhitelistForEnvironment(): array
 ### For Developers
 
 1. **Environment Configuration**
+
+   Use the built-in CLI to generate secure keys (recommended):
    ```bash
-   # Generate secure keys
-   openssl rand -hex 32
-   
-   # Set environment variables
-   export FORMIE_API_KEY="sk_live_$(openssl rand -hex 32)"
-   export FORMIE_API_KEY_LIMITED="sk_limited_$(openssl rand -hex 32)"
+   # Local
+   ddev craft formie-rest-api/security/generate-key
+
+   # Staging / production (run on the server)
+   php craft formie-rest-api/security/generate-key
+   ```
+
+   The CLI prints the key and asks whether to write it to `.env`. Choose **No**
+   when working on a hosted environment that uses a panel/secrets store
+   (Servd, Forge, Cloudways, GitHub Actions, etc.) and paste it there instead.
+
+   Or generate one manually:
+   ```bash
+   echo "fra_$(openssl rand -hex 32)"
    ```
 
 2. **Request Implementation**

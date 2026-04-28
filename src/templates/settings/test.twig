@@ -1,0 +1,200 @@
+{% extends "formie-rest-api/_layouts/settings" %}
+{% import "_includes/forms" as forms %}
+
+{% set title = 'Test API'|t('formie-rest-api') %}
+{% set selectedSettingsItem = 'test' %}
+
+{% set crumbs = [
+    {
+        label: 'Settings'|t('formie-rest-api'),
+        url: url('formie-rest-api/settings'),
+    },
+    {
+        label: 'Test'|t('formie-rest-api'),
+        url: url('formie-rest-api/settings/test'),
+    },
+] %}
+
+{% block content %}
+    <h2 style="margin-top: 0;">{{ 'Test API Endpoints'|t('formie-rest-api') }}</h2>
+    <p>{{ 'Send a request to the local API using one of the configured keys, and inspect the response.'|t('formie-rest-api') }}</p>
+
+    {% if availableKeys|length == 0 %}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            type: 'warning',
+            message: 'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or use <code>ddev craft formie-rest-api/security/generate-key</code>.'|t('formie-rest-api')|raw,
+        } %}
+    {% else %}
+        <div class="pane" style="margin-bottom: 24px;">
+            {{ forms.selectField({
+                label: 'API Key'|t('formie-rest-api'),
+                instructions: 'Which configured key to send.'|t('formie-rest-api'),
+                id: 'testKey',
+                name: 'testKey',
+                options: keyOptions,
+                value: keyOptions[0].value ?? '',
+            }) }}
+
+            {{ forms.selectField({
+                label: 'Endpoint'|t('formie-rest-api'),
+                instructions: 'Which REST endpoint to call.'|t('formie-rest-api'),
+                id: 'testEndpoint',
+                name: 'testEndpoint',
+                options: [
+                    {label: 'GET /api/v1/formie/forms', value: 'forms'},
+                    {label: 'GET /api/v1/formie/forms/{id}', value: 'form-id'},
+                    {label: 'GET /api/v1/formie/forms/{handle}', value: 'form-handle'},
+                    {label: 'GET /api/v1/formie/submissions', value: 'submissions'},
+                    {label: 'GET /api/v1/formie/submissions/{id}', value: 'submission-id'},
+                ],
+                value: 'forms',
+            }) }}
+
+            <div class="endpoint-fields" data-for="form-id submission-id">
+                {{ forms.textField({
+                    label: 'ID'|t('formie-rest-api'),
+                    id: 'testId',
+                    name: 'testId',
+                    type: 'number',
+                    instructions: 'Numeric form / submission ID.'|t('formie-rest-api'),
+                }) }}
+            </div>
+
+            <div class="endpoint-fields" data-for="form-handle">
+                {{ forms.textField({
+                    label: 'Form handle'|t('formie-rest-api'),
+                    id: 'testHandle',
+                    name: 'testHandle',
+                    instructions: 'Form handle (the slug, not the title).'|t('formie-rest-api'),
+                }) }}
+            </div>
+
+            <div class="endpoint-fields" data-for="submissions">
+                {{ forms.textField({
+                    label: 'formHandle (optional)'|t('formie-rest-api'),
+                    id: 'testFormHandle',
+                    name: 'testFormHandle',
+                    instructions: 'Filter submissions to one form.'|t('formie-rest-api'),
+                }) }}
+                {{ forms.textField({
+                    label: 'dateFrom (optional)'|t('formie-rest-api'),
+                    id: 'testDateFrom',
+                    name: 'testDateFrom',
+                    placeholder: '2026-01-01',
+                }) }}
+                {{ forms.textField({
+                    label: 'dateTo (optional)'|t('formie-rest-api'),
+                    id: 'testDateTo',
+                    name: 'testDateTo',
+                    placeholder: '2026-04-27',
+                }) }}
+            </div>
+
+            <div class="endpoint-fields" data-for="forms submissions">
+                {{ forms.textField({
+                    label: 'limit'|t('formie-rest-api'),
+                    id: 'testLimit',
+                    name: 'testLimit',
+                    type: 'number',
+                    value: 10,
+                }) }}
+                {{ forms.textField({
+                    label: 'offset'|t('formie-rest-api'),
+                    id: 'testOffset',
+                    name: 'testOffset',
+                    type: 'number',
+                    value: 0,
+                }) }}
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 16px;">
+                <button type="button" id="testButton" class="btn submit">{{ 'Run Test'|t('formie-rest-api') }}</button>
+                <span id="testStatus" class="light"></span>
+            </div>
+        </div>
+
+        <div id="testResults" style="display: none;">
+            <div class="pane">
+                <h3 style="margin-top: 0;">{{ 'Result'|t('formie-rest-api') }}</h3>
+                <p>
+                    <strong>{{ 'Status:'|t('formie-rest-api') }}</strong> <span id="resultStatus"></span>
+                    <span class="light" style="margin-left: 16px;"><strong>{{ 'Time:'|t('formie-rest-api') }}</strong> <span id="resultTime"></span> ms</span>
+                </p>
+
+                <h4>{{ 'Equivalent curl'|t('formie-rest-api') }}</h4>
+                <pre id="resultCurl" style="background:#f3f4f6;padding:12px;border-radius:4px;white-space:pre-wrap;word-break:break-all;"></pre>
+
+                <h4>{{ 'Response headers'|t('formie-rest-api') }}</h4>
+                <pre id="resultHeaders" style="background:#f3f4f6;padding:12px;border-radius:4px;max-height:200px;overflow:auto;"></pre>
+
+                <h4>{{ 'Response body'|t('formie-rest-api') }}</h4>
+                <pre id="resultBody" style="background:#f3f4f6;padding:12px;border-radius:4px;max-height:400px;overflow:auto;"></pre>
+            </div>
+        </div>
+    {% endif %}
+
+    {% include 'lindemannrock-base/_components/plugin-credit' %}
+{% endblock %}
+
+{% css %}
+    .endpoint-fields { display: none; }
+    .endpoint-fields.visible { display: block; }
+{% endcss %}
+
+{% js %}
+const endpointSelect = document.getElementById('testEndpoint');
+const fieldGroups = document.querySelectorAll('.endpoint-fields');
+const testButton = document.getElementById('testButton');
+const testStatus = document.getElementById('testStatus');
+const testResults = document.getElementById('testResults');
+
+function updateFields() {
+    const value = endpointSelect.value;
+    fieldGroups.forEach(group => {
+        const matchList = (group.dataset.for || '').split(' ');
+        group.classList.toggle('visible', matchList.includes(value));
+    });
+}
+endpointSelect.addEventListener('change', updateFields);
+updateFields();
+
+testButton.addEventListener('click', async () => {
+    testButton.disabled = true;
+    testStatus.textContent = 'Running…';
+    testResults.style.display = 'none';
+
+    const payload = {
+        testKey: document.getElementById('testKey').value,
+        testEndpoint: document.getElementById('testEndpoint').value,
+        testId: document.getElementById('testId').value,
+        testHandle: document.getElementById('testHandle').value,
+        testFormHandle: document.getElementById('testFormHandle').value,
+        testDateFrom: document.getElementById('testDateFrom').value,
+        testDateTo: document.getElementById('testDateTo').value,
+        testLimit: document.getElementById('testLimit').value,
+        testOffset: document.getElementById('testOffset').value,
+    };
+
+    try {
+        const response = await Craft.sendActionRequest('POST', 'formie-rest-api/settings/run-test', { data: payload });
+        const data = response.data;
+
+        document.getElementById('resultStatus').textContent = data.status;
+        document.getElementById('resultStatus').style.color = data.status >= 200 && data.status < 300 ? 'green' : 'red';
+        document.getElementById('resultTime').textContent = data.timeMs;
+        document.getElementById('resultCurl').textContent = data.curl;
+        document.getElementById('resultHeaders').textContent = Object.entries(data.headers)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join('\n');
+        document.getElementById('resultBody').textContent = data.body;
+
+        testResults.style.display = 'block';
+        testStatus.textContent = '';
+    } catch (e) {
+        testStatus.textContent = 'Error: ' + (e.response?.data?.error || e.message || 'Unknown');
+        testStatus.style.color = 'red';
+    } finally {
+        testButton.disabled = false;
+    }
+});
+{% endjs %}

@@ -15,80 +15,81 @@ namespace lindemannrock\formierestapi\services;
 
 use Craft;
 use craft\base\Component;
+use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
+use lindemannrock\base\helpers\PluginHelper;
 
 class SecurityService extends Component
 {
     /**
-     * Rate limiting tracking
-     * In production, use Redis or database
+     * Length of the rate-limit window in seconds.
      */
-    private static array $rateLimitCache = [];
-    
+    private const RATE_LIMIT_WINDOW = 3600;
+
     /**
-     * Check rate limit for API key
+     * Build the cache key for the current rate-limit window.
+     */
+    private function rateLimitCacheKey(string $apiKey): string
+    {
+        $bucket = (int) (time() / self::RATE_LIMIT_WINDOW);
+        return PluginHelper::getCacheKeyPrefix('formie-rest-api', 'ratelimit')
+            . hash('sha256', $apiKey)
+            . ':' . $bucket;
+    }
+
+    /**
+     * Check whether the request is within the rate-limit budget. Increments the
+     * counter on success. Fails open (returns true) if the kill-switch env var
+     * FORMIE_API_RATE_LIMIT_DISABLED=1 is set or if the cache backend errors.
      *
-     * @param string $apiKey
-     * @param array $apiKeyData
-     * @return bool
+     * @since 3.4.0
      */
     public function checkRateLimit(string $apiKey, array $apiKeyData): bool
     {
-        $limit = $apiKeyData['rateLimit'] ?? 100;
-        $window = 3600; // 1 hour window
-        
-        // In production, use Redis:
-        // $redis = Craft::$app->redis;
-        // $key = "rate_limit:{$apiKey}";
-        // $current = $redis->incr($key);
-        // if ($current === 1) {
-        //     $redis->expire($key, $window);
-        // }
-        // return $current <= $limit;
-        
-        // Simple in-memory implementation for demo
-        $now = time();
-        $windowStart = $now - $window;
-        
-        if (!isset(self::$rateLimitCache[$apiKey])) {
-            self::$rateLimitCache[$apiKey] = [];
+        if ((bool) App::env('FORMIE_API_RATE_LIMIT_DISABLED')) {
+            return true;
         }
-        
-        // Clean old entries
-        self::$rateLimitCache[$apiKey] = array_filter(
-            self::$rateLimitCache[$apiKey],
-            fn($timestamp) => $timestamp > $windowStart
-        );
-        
-        // Check limit
-        if (count(self::$rateLimitCache[$apiKey]) >= $limit) {
-            return false;
+
+        $limit = (int) ($apiKeyData['rateLimit'] ?? 100);
+        $cacheKey = $this->rateLimitCacheKey($apiKey);
+
+        try {
+            $current = (int) Craft::$app->cache->get($cacheKey);
+
+            if ($current >= $limit) {
+                return false;
+            }
+
+            Craft::$app->cache->set($cacheKey, $current + 1, self::RATE_LIMIT_WINDOW);
+            return true;
+        } catch (\Throwable $e) {
+            Craft::warning('Rate-limit cache error (failing open): ' . $e->getMessage(), 'formie-rest-api');
+            return true;
         }
-        
-        // Add current request
-        self::$rateLimitCache[$apiKey][] = $now;
-        
-        return true;
     }
-    
+
     /**
-     * Get rate limit headers
+     * Get rate-limit response headers for the current window.
      *
-     * @param string $apiKey
-     * @param array $apiKeyData
-     * @return array
+     * @since 3.4.0
      */
     public function getRateLimitHeaders(string $apiKey, array $apiKeyData): array
     {
-        $limit = $apiKeyData['rateLimit'] ?? 100;
-        $used = count(self::$rateLimitCache[$apiKey] ?? []);
+        $limit = (int) ($apiKeyData['rateLimit'] ?? 100);
+
+        try {
+            $used = (int) Craft::$app->cache->get($this->rateLimitCacheKey($apiKey));
+        } catch (\Throwable) {
+            $used = 0;
+        }
+
         $remaining = max(0, $limit - $used);
-        $reset = time() + 3600;
-        
+        $reset = (((int) (time() / self::RATE_LIMIT_WINDOW)) + 1) * self::RATE_LIMIT_WINDOW;
+
         return [
-            'X-RateLimit-Limit' => $limit,
-            'X-RateLimit-Remaining' => $remaining,
-            'X-RateLimit-Reset' => $reset,
+            'X-RateLimit-Limit' => (string) $limit,
+            'X-RateLimit-Remaining' => (string) $remaining,
+            'X-RateLimit-Reset' => (string) $reset,
         ];
     }
     

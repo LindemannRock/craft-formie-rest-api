@@ -1,6 +1,6 @@
 {
 	"name": "lindemannrock/craft-formie-rest-api",
-	"description": "REST and GraphQL API for Formie - Provides API endpoints for accessing Formie forms and submissions",
+	"description": "REST API for Formie - Provides REST endpoints for accessing Formie forms and submissions",
 	"type": "craft-plugin",
 	"version": "3.3.0",
 	"keywords": [
@@ -10,7 +10,6 @@
 		"craft-plugin",
 		"formie",
 		"rest api",
-		"graphql",
 		"api"
 	],
 	"license": "proprietary",

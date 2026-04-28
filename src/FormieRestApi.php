@@ -2,7 +2,7 @@
 /**
  * Formie REST API plugin for Craft CMS 5.x
  *
- * REST and GraphQL API for Formie - Provides API endpoints for accessing Formie forms and submissions
+ * REST API for Formie - REST endpoints for accessing Formie forms and submissions
  *
  * @link      https://lindemannrock.com
  * @copyright Copyright (c) 2025 LindemannRock
@@ -14,6 +14,8 @@ use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\events\RegisterUrlRulesEvent;
+use craft\events\RegisterUserPermissionsEvent;
+use craft\services\UserPermissions;
 use craft\web\UrlManager;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\formierestapi\models\Settings;
@@ -103,13 +105,35 @@ class FormieRestApi extends Plugin
                 $event->rules['api/test/formie/forms'] = 'formie-rest-api/api-test/forms';
                 $event->rules['api/test/formie/submissions'] = 'formie-rest-api/api-test/submissions';
                 $event->rules['api/test/formie/auth'] = 'formie-rest-api/api-test/test-auth';
-                
-                // GraphQL test endpoints
-                $event->rules['api/test/graphql/info'] = 'formie-rest-api/graphql-test/info';
-                $event->rules['api/test/graphql/examples'] = 'formie-rest-api/graphql-test/examples';
-                $event->rules['api/test/graphql/query'] = 'formie-rest-api/graphql-test/query';
-                $event->rules['api/test/graphql/compare'] = 'formie-rest-api/graphql-test/compare';
-                $event->rules['api/test/graphql/schema'] = 'formie-rest-api/graphql-test/schema';
+            }
+        );
+
+        // Register CP URL rules for the multi-page settings UI
+        Event::on(
+            UrlManager::class,
+            UrlManager::EVENT_REGISTER_CP_URL_RULES,
+            function(RegisterUrlRulesEvent $event) {
+                $event->rules['formie-rest-api/settings'] = 'formie-rest-api/settings/index';
+                $event->rules['formie-rest-api/settings/general'] = 'formie-rest-api/settings/general';
+                $event->rules['formie-rest-api/settings/test'] = 'formie-rest-api/settings/test';
+                $event->rules['formie-rest-api/settings/run-test'] = 'formie-rest-api/settings/run-test';
+                $event->rules['formie-rest-api/settings/save'] = 'formie-rest-api/settings/save';
+            }
+        );
+
+        // Register permissions
+        Event::on(
+            UserPermissions::class,
+            UserPermissions::EVENT_REGISTER_PERMISSIONS,
+            function(RegisterUserPermissionsEvent $event) {
+                $event->permissions[] = [
+                    'heading' => $this->getSettings()->getFullName(),
+                    'permissions' => [
+                        'formieRestApi:manageSettings' => [
+                            'label' => Craft::t('formie-rest-api', 'Manage settings'),
+                        ],
+                    ],
+                ];
             }
         );
         
@@ -136,14 +160,16 @@ class FormieRestApi extends Plugin
     /**
      * @inheritdoc
      */
-    protected function settingsHtml(): ?string
+    public function getSettingsResponse(): mixed
     {
-        return Craft::$app->view->renderTemplate(
-            'formie-rest-api/settings',
-            [
-                'settings' => $this->getSettings(),
-                'plugin' => $this,
-            ]
-        );
+        return Craft::$app->controller->redirect('formie-rest-api/settings');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getReadOnlySettingsResponse(): mixed
+    {
+        return Craft::$app->controller->redirect('formie-rest-api/settings');
     }
 }
