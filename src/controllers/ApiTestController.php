@@ -53,6 +53,13 @@ class ApiTestController extends Controller
             throw new UnauthorizedHttpException('Invalid or missing API key');
         }
 
+        // Enforce HMAC signing if the resolved key opted in via FORMIE_API_SIGNING_SECRET[_*].
+        if (!empty($apiKeyData['requireSignature'])
+            && !FormieRestApi::$plugin->security->validateRequestSignature($apiKeyData)
+        ) {
+            throw new UnauthorizedHttpException('Missing or invalid request signature');
+        }
+
         $this->apiKeyData = $apiKeyData;
 
         return parent::beforeAction($action);
