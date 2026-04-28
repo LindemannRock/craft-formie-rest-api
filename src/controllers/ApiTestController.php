@@ -15,11 +15,15 @@
 namespace lindemannrock\formierestapi\controllers;
 
 use Craft;
+use craft\db\Query;
+use craft\db\Table as CraftTable;
 use craft\helpers\Json;
 use craft\web\Controller;
 use lindemannrock\formierestapi\FormieRestApi;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\Table as FormieTable;
+use yii\db\Expression;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\web\UnauthorizedHttpException;
@@ -107,13 +111,23 @@ class ApiTestController extends Controller
                 ]);
             }
             
+            // Batch-fetch submission counts to avoid N+1 (one grouped query, joined
+            // with elements to honour ElementQuery's default `dateDeleted IS NULL`).
+            $countMap = [];
+            $formIds = array_map(static fn(Form $f) => $f->id, $forms);
+            if ($formIds) {
+                $rows = (new Query())
+                    ->from(['s' => FormieTable::FORMIE_SUBMISSIONS])
+                    ->innerJoin(['e' => CraftTable::ELEMENTS], '[[s.id]] = [[e.id]]')
+                    ->where(['e.dateDeleted' => null, 's.formId' => $formIds])
+                    ->groupBy(['s.formId'])
+                    ->select(['s.formId', 'cnt' => new Expression('COUNT(*)')])
+                    ->all();
+                $countMap = array_column($rows, 'cnt', 'formId');
+            }
+
             $formData = [];
             foreach ($forms as $form) {
-                // Get submission count for each form
-                $submissionCount = Submission::find()
-                    ->formId($form->id)
-                    ->count();
-                
                 $formData[] = [
                     'id' => $form->id,
                     'uid' => $form->uid,
@@ -121,7 +135,7 @@ class ApiTestController extends Controller
                     'title' => $form->title,
                     'dateCreated' => $form->dateCreated->format('c'),
                     'dateUpdated' => $form->dateUpdated->format('c'),
-                    'submissionCount' => $submissionCount,
+                    'submissionCount' => (int) ($countMap[$form->id] ?? 0),
                     'fields' => $this->getFormFields($form),
                 ];
             }
