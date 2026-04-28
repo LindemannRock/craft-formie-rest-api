@@ -63,6 +63,12 @@ class ApiController extends Controller
             throw new UnauthorizedHttpException('Missing or invalid request signature');
         }
 
+        // Enforce IP whitelist if this key has one configured
+        // (FORMIE_API_IP_WHITELIST[_LIMITED|_TEST]). Opt-in per key.
+        if (!FormieRestApi::$plugin->security->validateIpWhitelist($apiKeyData)) {
+            throw new UnauthorizedHttpException('Request originates from an IP not allowed for this key');
+        }
+
         $this->apiKeyData = $apiKeyData;
 
         // Set response format to JSON

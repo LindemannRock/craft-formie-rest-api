@@ -66,7 +66,7 @@ class ApiKeyService extends Component
                 'permissions' => ['read_forms', 'read_submissions', 'create_submissions'],
                 'rateLimit' => $this->getRateLimitForEnvironment('primary'),
                 'environment' => Craft::$app->env,
-                'ipWhitelist' => $this->getIpWhitelistForEnvironment(),
+                'ipWhitelist' => $this->resolveIpWhitelist('FORMIE_API_IP_WHITELIST'),
                 'signingSecret' => $primarySecret,
                 'requireSignature' => $primarySecret !== null,
             ];
@@ -81,7 +81,7 @@ class ApiKeyService extends Component
                 'permissions' => ['read_forms'],
                 'rateLimit' => $this->getRateLimitForEnvironment('limited'),
                 'environment' => Craft::$app->env,
-                'ipWhitelist' => $this->getIpWhitelistForEnvironment(),
+                'ipWhitelist' => $this->resolveIpWhitelist('FORMIE_API_IP_WHITELIST_LIMITED'),
                 'signingSecret' => $limitedSecret,
                 'requireSignature' => $limitedSecret !== null,
             ];
@@ -97,6 +97,7 @@ class ApiKeyService extends Component
                     'permissions' => ['read_forms', 'read_submissions', 'create_submissions'],
                     'rateLimit' => 1000,
                     'environment' => 'development',
+                    'ipWhitelist' => $this->resolveIpWhitelist('FORMIE_API_IP_WHITELIST_TEST'),
                     'signingSecret' => $testSecret,
                     'requireSignature' => $testSecret !== null,
                 ];
@@ -172,6 +173,25 @@ class ApiKeyService extends Component
         $value = App::env($envVar);
         return is_string($value) && $value !== '' ? $value : null;
     }
+
+    /**
+     * Parse an IP-whitelist env var into a list of CIDR/IP entries. Empty/unset
+     * env returns an empty array (= no restriction). Whitespace-trimmed,
+     * empty entries dropped.
+     *
+     * Example value: `"203.0.113.5,192.168.1.0/24,2001:db8::/32"`
+     *
+     * @return array<int, string>
+     * @since 3.4.0
+     */
+    private function resolveIpWhitelist(string $envVar): array
+    {
+        $value = App::env($envVar);
+        if (!is_string($value) || $value === '') {
+            return [];
+        }
+        return array_values(array_filter(array_map('trim', explode(',', $value)), static fn(string $e) => $e !== ''));
+    }
     
     /**
      * Get rate limit based on environment and key type
@@ -188,22 +208,5 @@ class ApiKeyService extends Component
             ['staging', 'limited'] => 50,
             default => 1000, // Development
         };
-    }
-    
-    /**
-     * Get IP whitelist for environment
-     *
-     * @return array
-     */
-    private function getIpWhitelistForEnvironment(): array
-    {
-        // In production, you might want to restrict to specific IPs
-        // return match(Craft::$app->env) {
-        //     'production' => ['192.168.1.0/24', '10.0.0.0/8'],
-        //     'staging' => ['192.168.1.0/24'],
-        //     default => [], // No restrictions in dev
-        // };
-        
-        return []; // No IP restrictions for now
     }
 }

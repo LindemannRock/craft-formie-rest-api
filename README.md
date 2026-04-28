@@ -181,6 +181,27 @@ $sig = hash_hmac('sha256', "GET\n{$path}\n{$ts}\n", $secret);
 // Send X-API-Key, X-Timestamp, X-Signature headers
 ```
 
+> A signed Postman collection (with environment template and verified pre-request script) will ship alongside the plugin — see the project changelog for the release that introduces it.
+
+### IP Whitelist (optional, defence-in-depth)
+
+Restrict which client IPs can use a given API key. Useful for server-to-server integrations on stable infrastructure (SAP, ERP, internal networks).
+
+**Enable per key** by setting the matching env var to a comma-separated list of IPs and/or CIDR ranges (presence of the env var auto-enables the restriction):
+
+```bash
+FORMIE_API_IP_WHITELIST="203.0.113.5,192.168.1.0/24,2001:db8::/32"
+FORMIE_API_IP_WHITELIST_LIMITED="..."
+FORMIE_API_IP_WHITELIST_TEST="..."
+```
+
+Empty/unset env → no IP restriction (request accepted from any IP).
+Non-matching IP → `401 Unauthorized` with message `Request originates from an IP not allowed for this key`.
+
+**Supports IPv4 and IPv6.** Single IPs (`203.0.113.5`, `2001:db8::1`) and CIDR ranges (`192.168.1.0/24`, `2001:db8::/32`).
+
+> **CDN / reverse-proxy caveat:** `Craft::$app->request->getUserIP()` returns whatever sent the request to PHP. Behind a CDN or reverse proxy you'll need to configure Craft's `trustedHosts` and proxy headers correctly — otherwise the whitelist matches the proxy IP, not the real client. See [Craft's request docs](https://craftcms.com/docs/5.x/reference/config/general.html#trustedhosts) for `trustedHosts` setup.
+
 ## REST API Endpoints
 
 ### Production Endpoints
@@ -231,6 +252,27 @@ curl -H "X-API-Key: your-api-key" \
 | **Primary** | Read forms, Read submissions | 1000/hour |
 | **Limited** | Read forms only | 100/hour |
 | **Test** | Full access (dev mode only) | Unlimited |
+
+### Two permission systems — don't confuse them
+
+The plugin has **two separate permission systems** with different audiences. Both are called "permissions" but they don't overlap.
+
+| | Craft user permissions | API key scopes |
+|---|---|---|
+| **Audience** | Logged-in CP users (humans) | External clients with `X-API-Key` |
+| **Where defined** | Code → `EVENT_REGISTER_PERMISSIONS` | Code → `ApiKeyService::getValidApiKeys()` |
+| **Where assigned** | CP → Settings → Users → User Groups → "Formie REST API" section | Hardcoded per env-var (Primary / Limited / Test) |
+| **What's enforced** | `Manage settings` (gates the CP settings page) | `read_forms`, `read_submissions`, `create_submissions` (gates each REST endpoint) |
+| **Failure status** | 403 from CP redirect / login | 403 `ForbiddenHttpException` from API |
+
+**In practice:**
+- A CP user with `Manage settings` can edit the plugin's settings page. That's all the CP grants.
+- An external API consumer's access is determined entirely by **which env-var slot** their API key was generated into:
+  - `FORMIE_API_KEY` → Primary scope (full read)
+  - `FORMIE_API_KEY_LIMITED` → Limited scope (forms only)
+  - `FORMIE_API_KEY_TEST` → Test scope (full read, devMode only)
+
+If you give a partner a Limited key thinking they can't read submissions — they can't. The scope is enforced server-side.
 
 ## Security Features
 

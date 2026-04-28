@@ -106,52 +106,89 @@ class SecurityService extends Component
     }
     
     /**
-     * Validate IP whitelist
+     * Validate that the current request's client IP is allowed by the resolved
+     * key's whitelist. Empty whitelist = no restriction (returns true).
      *
-     * @param array $whitelist
-     * @return bool
+     * **Caveat:** `Craft::$app->request->getUserIP()` returns the address of
+     * whatever sent the request to PHP. Behind a CDN or reverse proxy you must
+     * configure Craft's `trustedHosts` / proxy headers correctly, otherwise this
+     * matches the proxy IP (single-address whitelist) rather than the real
+     * client. See README → "IP whitelist".
+     *
+     * @param array<string, mixed> $apiKeyData
+     * @since 3.4.0
      */
-    public function validateIpWhitelist(array $whitelist): bool
+    public function validateIpWhitelist(array $apiKeyData): bool
     {
-        if (empty($whitelist)) {
-            return true; // No whitelist means all IPs allowed
+        $whitelist = $apiKeyData['ipWhitelist'] ?? [];
+        if (!is_array($whitelist) || $whitelist === []) {
+            return true;
         }
-        
+
         $clientIp = Craft::$app->request->getUserIP();
-        
-        foreach ($whitelist as $allowedIp) {
-            if ($this->ipMatches($clientIp, $allowedIp)) {
+        if (!is_string($clientIp) || $clientIp === '') {
+            return false;
+        }
+
+        foreach ($whitelist as $entry) {
+            if (is_string($entry) && $this->ipMatches($clientIp, $entry)) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     /**
-     * Check if IP matches pattern (supports CIDR)
+     * Check whether `$ip` matches `$pattern`. Supports IPv4, IPv6, and CIDR
+     * notation for either family. Address families must match (an IPv4 client
+     * never matches an IPv6 CIDR).
      *
-     * @param string $ip
-     * @param string $pattern
-     * @return bool
+     * Returns false on any unparseable input — callers fail-closed.
      */
     private function ipMatches(string $ip, string $pattern): bool
     {
         if ($ip === $pattern) {
             return true;
         }
-        
-        // CIDR notation support
-        if (strpos($pattern, '/') !== false) {
-            list($subnet, $maskStr) = explode('/', $pattern);
-            $subnet = ip2long($subnet);
-            $ip = ip2long($ip);
-            $mask = -1 << (32 - (int)$maskStr);
-            $subnet &= $mask;
-            return ($ip & $mask) == $subnet;
+
+        // Single-IP entry that didn't match exactly above
+        if (!str_contains($pattern, '/')) {
+            return false;
         }
-        
-        return false;
+
+        [$subnet, $maskStr] = explode('/', $pattern, 2);
+
+        $ipBin = @inet_pton($ip);
+        $subnetBin = @inet_pton($subnet);
+        if ($ipBin === false || $subnetBin === false) {
+            return false;
+        }
+
+        // Address families must match (4 bytes for IPv4, 16 bytes for IPv6)
+        if (strlen($ipBin) !== strlen($subnetBin)) {
+            return false;
+        }
+
+        $maskBits = filter_var($maskStr, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => strlen($ipBin) * 8]]);
+        if ($maskBits === false) {
+            return false;
+        }
+
+        // Compare leading $maskBits bits — full bytes first, then remainder
+        $fullBytes = intdiv($maskBits, 8);
+        $remBits = $maskBits % 8;
+
+        if ($fullBytes > 0 && substr($ipBin, 0, $fullBytes) !== substr($subnetBin, 0, $fullBytes)) {
+            return false;
+        }
+
+        if ($remBits === 0) {
+            return true;
+        }
+
+        $maskByte = ~((1 << (8 - $remBits)) - 1) & 0xFF;
+        return (ord($ipBin[$fullBytes]) & $maskByte) === (ord($subnetBin[$fullBytes]) & $maskByte);
     }
     
     /**
