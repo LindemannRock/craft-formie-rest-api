@@ -17,6 +17,7 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Json;
 use lindemannrock\base\helpers\PluginHelper;
 
 class SecurityService extends Component
@@ -213,11 +214,9 @@ class SecurityService extends Component
             'user_agent' => Craft::$app->request->getUserAgent(),
             'params' => $params,
             'response_code' => $responseCode,
-            'environment' => Craft::$app->env,
         ];
-        
-        // In production, send to logging service
-        Craft::info(json_encode($log), 'formie-rest-api');
+
+        Craft::info(Json::encode($log), 'formie-rest-api');
     }
     
     /**
