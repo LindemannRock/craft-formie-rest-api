@@ -24,6 +24,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\Table as FormieTable;
 use yii\db\Expression;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\web\TooManyRequestsHttpException;
@@ -35,6 +36,11 @@ class ApiController extends Controller
      * Allow anonymous access with API key authentication
      */
     protected array|int|bool $allowAnonymous = true;
+
+    /**
+     * @var array<string, mixed>|null Resolved API key data for the current request.
+     */
+    private ?array $apiKeyData = null;
 
     /**
      * @inheritdoc
@@ -56,6 +62,8 @@ class ApiController extends Controller
         ) {
             throw new UnauthorizedHttpException('Missing or invalid request signature');
         }
+
+        $this->apiKeyData = $apiKeyData;
 
         // Set response format to JSON
         Craft::$app->response->format = Response::FORMAT_JSON;
@@ -94,11 +102,23 @@ class ApiController extends Controller
     }
 
     /**
+     * Throw 403 unless the resolved key has the given permission scope.
+     */
+    private function requireApiPermission(string $permission): void
+    {
+        if (!FormieRestApi::$plugin->apiKey->hasPermission($this->apiKeyData ?? [], $permission)) {
+            throw new ForbiddenHttpException("API key does not have permission: {$permission}");
+        }
+    }
+
+    /**
      * Get all forms
      * GET /api/v1/formie/forms
      */
     public function actionForms(): array
     {
+        $this->requireApiPermission('read_forms');
+
         $request = Craft::$app->request;
         
         // Get query parameters
@@ -159,6 +179,8 @@ class ApiController extends Controller
      */
     public function actionFormDetail(int $formId): array
     {
+        $this->requireApiPermission('read_forms');
+
         /** @var \verbb\formie\elements\Form|null $form */
         $form = Form::find()->id($formId)->one();
 
@@ -181,6 +203,8 @@ class ApiController extends Controller
      */
     public function actionFormByHandle(string $handle): array
     {
+        $this->requireApiPermission('read_forms');
+
         /** @var \verbb\formie\elements\Form|null $form */
         $form = Form::find()->handle($handle)->one();
 
@@ -203,6 +227,8 @@ class ApiController extends Controller
      */
     public function actionSubmissions(): array
     {
+        $this->requireApiPermission('read_submissions');
+
         $request = Craft::$app->request;
         
         // Get query parameters
@@ -276,6 +302,8 @@ class ApiController extends Controller
      */
     public function actionSubmissionDetail(int $submissionId): array
     {
+        $this->requireApiPermission('read_submissions');
+
         /** @var \verbb\formie\elements\Submission|null $submission */
         $submission = Submission::find()->id($submissionId)->one();
 
