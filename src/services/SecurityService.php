@@ -52,6 +52,16 @@ class SecurityService extends Component
 
         $limit = (int) ($apiKeyData['rateLimit'] ?? 100);
         $cacheKey = $this->rateLimitCacheKey($apiKey);
+        $lockName = 'formie-rest-api:ratelimit:' . hash('sha256', $apiKey);
+        $mutex = Craft::$app->getMutex();
+
+        // Serialize the read/check/write so concurrent requests can't all pass
+        // the limit check before any of them writes. Fail open if we can't
+        // acquire the lock within 2s — consistent with the cache-error path.
+        if (!$mutex->acquire($lockName, 2)) {
+            Craft::warning('Rate-limit mutex acquire failed (failing open)', 'formie-rest-api');
+            return true;
+        }
 
         try {
             $current = (int) Craft::$app->cache->get($cacheKey);
@@ -65,6 +75,8 @@ class SecurityService extends Component
         } catch (\Throwable $e) {
             Craft::warning('Rate-limit cache error (failing open): ' . $e->getMessage(), 'formie-rest-api');
             return true;
+        } finally {
+            $mutex->release($lockName);
         }
     }
 
