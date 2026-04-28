@@ -99,14 +99,18 @@ php craft formie-rest-api/security/generate-key
 
 The command:
 
-1. Asks which key to generate (Primary / Limited / Test)
+1. Asks which key to generate — `primary`, `limited`, `test`, or `all` (generates all three in turn, sharing the same prefix; `test` is auto-skipped if `devMode` is off)
 2. Asks for a prefix — defaults to `fra_`, type `-` for none, or supply a custom prefix
 3. Prints the generated key (`prefix + 64 hex chars`)
-4. Asks whether to write to `.env`:
-   - **Yes** → adds or replaces the variable in the local `.env` (with a confirmation prompt before overwriting an existing key)
-   - **No** → leaves the file untouched so you can paste the key into a hosting panel (Servd, Forge, Cloudways, etc.) or a secrets store
+4. Warns and confirms before replacing an existing key (avoids surprise 401s for live consumers)
+5. Offers to also generate a paired HMAC **signing secret** (presence of the matching `FORMIE_API_SIGNING_SECRET[_*]` env var auto-enables required-signature mode for that key — see [HMAC Request Signing](#hmac-request-signing-optional-recommended-for-production))
+6. Asks whether to write to `.env`:
+   - **Yes** → writes one consolidated block per key type (`# Formie REST API — Primary` / `Limited` / `Test`, key + secret co-located). Re-running the command for the same key cleans up any legacy scattered entries it owns and replaces them with the fresh block.
+   - **No** → prints the block so you can paste it into a hosting panel (Servd, Forge, Cloudways, etc.) or a secrets store
 
-Test keys are refused unless `devMode=true`.
+Test keys are refused (when chosen explicitly) or skipped (in `all` mode) unless `devMode=true`.
+
+When an existing signing secret is detected, the command asks whether to **rotate** it or **keep** it — so you can rotate just the API key without invalidating signed clients.
 
 ## Authentication
 
@@ -114,6 +118,67 @@ Test keys are refused unless `devMode=true`.
 Include API key in request headers:
 ```bash
 curl -H "X-API-Key: your-api-key-here" https://yoursite.com/api/v1/formie/forms
+```
+
+### HMAC Request Signing (optional, recommended for production)
+
+For production keys, the plugin supports HMAC-SHA256 request signing. Signing adds:
+
+- **Replay protection** — captured requests expire after a 5-minute timestamp window
+- **Tamper detection** — the signature covers method, path, timestamp, and body
+- **Defence-in-depth** — a leaked API key alone is no longer sufficient; the attacker also needs the separate signing secret
+
+**Enable per key** by setting the matching env var (presence of the env var auto-enables the requirement on that key):
+
+```bash
+FORMIE_API_SIGNING_SECRET="..."           # paired with FORMIE_API_KEY
+FORMIE_API_SIGNING_SECRET_LIMITED="..."   # paired with FORMIE_API_KEY_LIMITED
+FORMIE_API_SIGNING_SECRET_TEST="..."      # paired with FORMIE_API_KEY_TEST (devMode only)
+```
+
+`ddev craft formie-rest-api/security/generate-key` offers to generate the paired signing secret at the end of the key-generation flow.
+
+**Required headers when signing is enabled:**
+
+| Header | Value |
+|---|---|
+| `X-API-Key` | The API key (as before) |
+| `X-Timestamp` | Current Unix epoch seconds |
+| `X-Signature` | Hex HMAC-SHA256 of the signature base, keyed by the signing secret |
+
+**Signature base** (joined with literal `\n`):
+
+```
+METHOD\nPATH_WITH_QUERY\nTIMESTAMP\nBODY
+```
+
+For a `GET /api/v1/formie/forms` request the body is empty.
+
+**Example client (bash):**
+
+```bash
+KEY="fra_..."
+SECRET="..."
+TS=$(date +%s)
+PATH_Q="/api/v1/formie/forms"
+SIG=$(printf "GET\n%s\n%s\n" "$PATH_Q" "$TS" | openssl dgst -sha256 -hmac "$SECRET" -hex | awk '{print $NF}')
+
+curl -H "X-API-Key: $KEY" \
+     -H "X-Timestamp: $TS" \
+     -H "X-Signature: $SIG" \
+     "https://yoursite.com$PATH_Q"
+```
+
+**Example client (PHP):**
+
+```php
+$key = getenv('FORMIE_API_KEY');
+$secret = getenv('FORMIE_API_SIGNING_SECRET');
+$path = '/api/v1/formie/forms';
+$ts = (string) time();
+$sig = hash_hmac('sha256', "GET\n{$path}\n{$ts}\n", $secret);
+
+// Send X-API-Key, X-Timestamp, X-Signature headers
 ```
 
 ## REST API Endpoints

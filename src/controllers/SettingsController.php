@@ -82,13 +82,26 @@ class SettingsController extends Controller
         [$path, $query] = $this->buildEndpoint($endpoint, $request);
         $baseUrl = rtrim(Craft::$app->getSites()->getCurrentSite()->getBaseUrl() ?? '', '/');
         $url = $baseUrl . $path . ($query !== '' ? '?' . $query : '');
+        $pathWithQuery = $path . ($query !== '' ? '?' . $query : '');
+
+        $headers = ['X-API-Key' => $apiKey, 'Accept' => 'application/json'];
+
+        // If the resolved key has a signing secret configured, sign the request
+        // server-side so the test page works against keys that require HMAC.
+        $signingSecret = $this->resolveSigningSecret($keyChoice);
+        if ($signingSecret !== null) {
+            $timestamp = (string) time();
+            $signatureBase = implode("\n", ['GET', $pathWithQuery, $timestamp, '']);
+            $headers['X-Timestamp'] = $timestamp;
+            $headers['X-Signature'] = hash_hmac('sha256', $signatureBase, $signingSecret);
+        }
 
         $client = Craft::createGuzzleClient(['http_errors' => false, 'timeout' => 15]);
         $start = microtime(true);
 
         try {
             $response = $client->request('GET', $url, [
-                'headers' => ['X-API-Key' => $apiKey, 'Accept' => 'application/json'],
+                'headers' => $headers,
             ]);
             $timeMs = (int) ((microtime(true) - $start) * 1000);
 
@@ -186,6 +199,22 @@ class SettingsController extends Controller
             'limited' => 'FORMIE_API_KEY_LIMITED',
             'test' => 'FORMIE_API_KEY_TEST',
             default => 'FORMIE_API_KEY',
+        };
+
+        $value = App::env($envVar);
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    /**
+     * Resolve the HMAC signing secret paired with the given key choice.
+     * Returns null when the secret env var is unset (signing not enabled for this key).
+     */
+    private function resolveSigningSecret(string $choice): ?string
+    {
+        $envVar = match ($choice) {
+            'limited' => 'FORMIE_API_SIGNING_SECRET_LIMITED',
+            'test' => 'FORMIE_API_SIGNING_SECRET_TEST',
+            default => 'FORMIE_API_SIGNING_SECRET',
         };
 
         $value = App::env($envVar);

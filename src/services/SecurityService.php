@@ -184,34 +184,51 @@ class SecurityService extends Component
     }
     
     /**
-     * Validate request signature (HMAC)
-     *
-     * @param string $apiKey
-     * @param string $secret
-     * @return bool
+     * Maximum clock skew between client and server, in seconds. Requests with a
+     * timestamp older than this (or that far in the future) are rejected.
      */
-    public function validateRequestSignature(string $apiKey, string $secret): bool
+    private const SIGNATURE_TIMESTAMP_WINDOW = 300;
+
+    /**
+     * Validate request HMAC signature against the resolved API key data.
+     *
+     * Expects two request headers from the client:
+     *  - `X-Timestamp`: unix epoch seconds
+     *  - `X-Signature`: hex-encoded HMAC-SHA256 of `method\npath\ntimestamp\nbody`,
+     *    keyed by the per-key signing secret (env var `FORMIE_API_SIGNING_SECRET[_*]`).
+     *
+     * Returns false on any of: missing headers, missing signing secret, expired
+     * timestamp (> 5 min skew), or signature mismatch.
+     *
+     * @param array<string, mixed> $apiKeyData
+     * @since 3.4.0
+     */
+    public function validateRequestSignature(array $apiKeyData): bool
     {
+        $secret = $apiKeyData['signingSecret'] ?? null;
+        if (!is_string($secret) || $secret === '') {
+            return false;
+        }
+
         $signature = Craft::$app->request->getHeaders()->get('X-Signature');
-        if (!$signature) {
-            return false;
-        }
-        
-        // Build signature base
-        $method = Craft::$app->request->getMethod();
-        $path = Craft::$app->request->getUrl();
         $timestamp = Craft::$app->request->getHeaders()->get('X-Timestamp');
-        $body = Craft::$app->request->getRawBody();
-
-        // Check timestamp to prevent replay attacks
-        if (!$timestamp || abs(time() - (int)$timestamp) > 300) { // 5 minute window
+        if (!is_string($signature) || $signature === '' || !is_string($timestamp) || $timestamp === '') {
             return false;
         }
 
-        $signatureBase = implode("\n", [(string)$method, (string)$path, (string)$timestamp, (string)$body]);
-        $expectedSignature = hash_hmac('sha256', $signatureBase, $secret);
-        
-        return hash_equals($expectedSignature, $signature);
+        // Reject expired or far-future timestamps to defeat replay.
+        if (abs(time() - (int) $timestamp) > self::SIGNATURE_TIMESTAMP_WINDOW) {
+            return false;
+        }
+
+        $signatureBase = implode("\n", [
+            Craft::$app->request->getMethod(),
+            Craft::$app->request->getUrl(),
+            $timestamp,
+            Craft::$app->request->getRawBody(),
+        ]);
+
+        return hash_equals(hash_hmac('sha256', $signatureBase, $secret), $signature);
     }
     
     /**

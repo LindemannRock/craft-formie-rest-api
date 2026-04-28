@@ -49,6 +49,14 @@ class ApiController extends Controller
             throw new UnauthorizedHttpException('Invalid or missing API key');
         }
 
+        // Enforce HMAC signing if this key has a signing secret configured
+        // (FORMIE_API_SIGNING_SECRET[_LIMITED|_TEST]). Opt-in per key.
+        if (!empty($apiKeyData['requireSignature'])
+            && !FormieRestApi::$plugin->security->validateRequestSignature($apiKeyData)
+        ) {
+            throw new UnauthorizedHttpException('Missing or invalid request signature');
+        }
+
         // Set response format to JSON
         Craft::$app->response->format = Response::FORMAT_JSON;
 

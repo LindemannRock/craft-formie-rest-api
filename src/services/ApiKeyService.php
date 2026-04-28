@@ -60,38 +60,45 @@ class ApiKeyService extends Component
         // Primary API key with full access
         $primaryKey = Craft::$app->config->general->formieApiKey ?? App::env('FORMIE_API_KEY');
         if ($primaryKey) {
+            $primarySecret = $this->resolveSigningSecret('FORMIE_API_SIGNING_SECRET');
             $keys[$primaryKey] = [
                 'name' => 'Primary API Key',
                 'permissions' => ['read_forms', 'read_submissions', 'create_submissions'],
                 'rateLimit' => $this->getRateLimitForEnvironment('primary'),
                 'environment' => Craft::$app->env,
                 'ipWhitelist' => $this->getIpWhitelistForEnvironment(),
-                'requireSignature' => Craft::$app->env === 'production',
+                'signingSecret' => $primarySecret,
+                'requireSignature' => $primarySecret !== null,
             ];
         }
-        
+
         // Secondary API key with limited access
         $secondaryKey = Craft::$app->config->general->formieApiKeyLimited ?? App::env('FORMIE_API_KEY_LIMITED');
         if ($secondaryKey) {
+            $limitedSecret = $this->resolveSigningSecret('FORMIE_API_SIGNING_SECRET_LIMITED');
             $keys[$secondaryKey] = [
                 'name' => 'Limited Access Key',
                 'permissions' => ['read_forms'],
                 'rateLimit' => $this->getRateLimitForEnvironment('limited'),
                 'environment' => Craft::$app->env,
                 'ipWhitelist' => $this->getIpWhitelistForEnvironment(),
-                'requireSignature' => Craft::$app->env === 'production',
+                'signingSecret' => $limitedSecret,
+                'requireSignature' => $limitedSecret !== null,
             ];
         }
-        
+
         // Test key for development (only in dev mode, only if explicitly set in env)
         if (Craft::$app->config->general->devMode) {
             $testKey = App::env('FORMIE_API_KEY_TEST');
             if (is_string($testKey) && $testKey !== '') {
+                $testSecret = $this->resolveSigningSecret('FORMIE_API_SIGNING_SECRET_TEST');
                 $keys[$testKey] = [
                     'name' => 'Development Test Key',
                     'permissions' => ['read_forms', 'read_submissions', 'create_submissions'],
                     'rateLimit' => 1000,
                     'environment' => 'development',
+                    'signingSecret' => $testSecret,
+                    'requireSignature' => $testSecret !== null,
                 ];
             }
         }
@@ -143,6 +150,27 @@ class ApiKeyService extends Component
     public function generateApiKey(string $prefix = 'fra_'): string
     {
         return $prefix . bin2hex(random_bytes(32));
+    }
+
+    /**
+     * Generate a secure HMAC signing secret (no prefix, 64 hex chars).
+     *
+     * @since 3.4.0
+     */
+    public function generateSigningSecret(): string
+    {
+        return bin2hex(random_bytes(32));
+    }
+
+    /**
+     * Read a signing-secret env var. Returns null if unset/empty.
+     *
+     * @since 3.4.0
+     */
+    private function resolveSigningSecret(string $envVar): ?string
+    {
+        $value = App::env($envVar);
+        return is_string($value) && $value !== '' ? $value : null;
     }
     
     /**
