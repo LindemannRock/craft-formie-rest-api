@@ -266,17 +266,4 @@ class SecurityService extends Component
 
         return hash_equals(hash_hmac('sha256', $signatureBase, $secret), $signature);
     }
-    
-    /**
-     * Sanitize output to prevent data leakage
-     *
-     * @param array $data
-     * @param array $allowedFields
-     * @return array
-     */
-    public function sanitizeOutput(array $data, array $allowedFields): array
-    {
-        // Remove any fields not explicitly allowed
-        return array_intersect_key($data, array_flip($allowedFields));
-    }
 }

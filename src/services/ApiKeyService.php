@@ -20,6 +20,12 @@ use craft\helpers\App;
 class ApiKeyService extends Component
 {
     /**
+     * @var array<string, array<string, mixed>>|null Memoized key map for the
+     * current request. Populated on first call to `getValidApiKeys()`.
+     */
+    private ?array $cachedKeys = null;
+
+    /**
      * Validate API key and return key data if valid
      *
      * @param string|null $apiKey
@@ -55,6 +61,10 @@ class ApiKeyService extends Component
      */
     public function getValidApiKeys(): array
     {
+        if ($this->cachedKeys !== null) {
+            return $this->cachedKeys;
+        }
+
         $keys = [];
         
         // Primary API key with full access
@@ -107,7 +117,8 @@ class ApiKeyService extends Component
         // Hook for adding custom keys (e.g., from database)
         $customKeys = $this->getCustomApiKeys();
         $keys = array_merge($keys, $customKeys);
-        
+
+        $this->cachedKeys = $keys;
         return $keys;
     }
     
