@@ -176,14 +176,20 @@ class ApiController extends Controller
         $forms = $query->all();
 
         // Batch-fetch submission counts for all forms in one query (avoids N+1).
-        // Joins elements to honour ElementQuery's default `dateDeleted IS NULL`.
+        // Joins elements to honour ElementQuery's default `dateDeleted IS NULL`,
+        // and excludes drafts + spam to match the /submissions endpoint contract.
         $countMap = [];
         $formIds = array_map(static fn(Form $f) => $f->id, $forms);
         if ($formIds) {
             $rows = (new Query())
                 ->from(['s' => FormieTable::FORMIE_SUBMISSIONS])
                 ->innerJoin(['e' => CraftTable::ELEMENTS], '[[s.id]] = [[e.id]]')
-                ->where(['e.dateDeleted' => null, 's.formId' => $formIds])
+                ->where([
+                    'e.dateDeleted' => null,
+                    's.isIncomplete' => false,
+                    's.isSpam' => false,
+                    's.formId' => $formIds,
+                ])
                 ->groupBy(['s.formId'])
                 ->select(['s.formId', 'cnt' => new Expression('COUNT(*)')])
                 ->all();
@@ -275,9 +281,12 @@ class ApiController extends Controller
         $dateFrom = $request->getParam('dateFrom');
         $dateTo = $request->getParam('dateTo');
         
-        // Build query
-        $query = Submission::find();
-        
+        // Build query — exclude abandoned drafts and Akismet-flagged spam
+        // (matches the test-endpoint behaviour and the documented API contract)
+        $query = Submission::find()
+            ->isIncomplete(false)
+            ->isSpam(false);
+
         // Filter by form
         if ($formHandle) {
             $form = Form::find()->handle($formHandle)->one();
@@ -376,7 +385,11 @@ class ApiController extends Controller
             'status' => $form->status,
             'dateCreated' => $form->dateCreated->format('c'),
             'dateUpdated' => $form->dateUpdated->format('c'),
-            'submissionCount' => $submissionCount ?? Submission::find()->formId($form->id)->count(),
+            'submissionCount' => $submissionCount ?? Submission::find()
+                ->formId($form->id)
+                ->isIncomplete(false)
+                ->isSpam(false)
+                ->count(),
         ];
         
         if ($includeFields) {

@@ -202,6 +202,15 @@ Non-matching IP → `401 Unauthorized` with message `Request originates from an 
 
 > **CDN / reverse-proxy caveat:** `Craft::$app->request->getUserIP()` returns whatever sent the request to PHP. Behind a CDN or reverse proxy you'll need to configure Craft's `trustedHosts` and proxy headers correctly — otherwise the whitelist matches the proxy IP, not the real client. See [Craft's request docs](https://craftcms.com/docs/5.x/reference/config/general.html#trustedhosts) for `trustedHosts` setup.
 
+### Submission filtering (default behaviour)
+
+Both production (`/api/v1/formie/submissions`) and test (`/api/test/formie/submissions`) endpoints **automatically exclude**:
+
+- **Incomplete submissions** — abandoned drafts that were never finalised (`isIncomplete = true`)
+- **Spam submissions** — anything Akismet or another captcha integration flagged (`isSpam = true`)
+
+This is hardcoded — the API contract is "completed, non-spam form submissions". There is currently no opt-in flag to include drafts or spam. If your integration needs them, open an issue describing the use case.
+
 ## REST API Endpoints
 
 ### Production Endpoints

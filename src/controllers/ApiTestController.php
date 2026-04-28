@@ -148,14 +148,20 @@ class ApiTestController extends Controller
             }
             
             // Batch-fetch submission counts to avoid N+1 (one grouped query, joined
-            // with elements to honour ElementQuery's default `dateDeleted IS NULL`).
+            // with elements to honour ElementQuery's default `dateDeleted IS NULL`,
+            // and excluding drafts + spam to match the /submissions endpoint contract).
             $countMap = [];
             $formIds = array_map(static fn(Form $f) => $f->id, $forms);
             if ($formIds) {
                 $rows = (new Query())
                     ->from(['s' => FormieTable::FORMIE_SUBMISSIONS])
                     ->innerJoin(['e' => CraftTable::ELEMENTS], '[[s.id]] = [[e.id]]')
-                    ->where(['e.dateDeleted' => null, 's.formId' => $formIds])
+                    ->where([
+                        'e.dateDeleted' => null,
+                        's.isIncomplete' => false,
+                        's.isSpam' => false,
+                        's.formId' => $formIds,
+                    ])
                     ->groupBy(['s.formId'])
                     ->select(['s.formId', 'cnt' => new Expression('COUNT(*)')])
                     ->all();
