@@ -203,34 +203,6 @@ class SecurityService extends Component
     }
     
     /**
-     * Get CORS headers based on environment
-     *
-     * @return array
-     */
-    public function getCorsHeaders(): array
-    {
-        $headers = [];
-        
-        // Configure allowed origins per environment
-        $allowedOrigins = match (Craft::$app->env) {
-            'production' => ['https://alhatab.com.sa', 'https://sap.alhatab.com'],
-            'staging' => ['https://staging.alhatab.com.sa'],
-            'dev' => ['http://localhost:3000', 'https://ahf.ddev.site'],
-            default => ['*'],
-        };
-        
-        $origin = Craft::$app->request->getHeaders()->get('Origin');
-        if (in_array($origin, $allowedOrigins) || in_array('*', $allowedOrigins)) {
-            $headers['Access-Control-Allow-Origin'] = $origin ?: '*';
-            $headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS';
-            $headers['Access-Control-Allow-Headers'] = 'X-API-Key, Content-Type, X-Timestamp, X-Signature';
-            $headers['Access-Control-Max-Age'] = '86400';
-        }
-        
-        return $headers;
-    }
-    
-    /**
      * Sanitize output to prevent data leakage
      *
      * @param array $data
