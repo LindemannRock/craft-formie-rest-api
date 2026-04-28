@@ -404,7 +404,7 @@ class ApiController extends Controller
         foreach ($form->getPages() as $page) {
             $pageData = [
                 'id' => $page->id,
-                'name' => $page->name,
+                'label' => $page->label,
                 'sortOrder' => $page->sortOrder,
                 'fields' => [],
             ];
