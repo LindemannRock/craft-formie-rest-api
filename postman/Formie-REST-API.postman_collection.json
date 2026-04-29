@@ -1,0 +1,230 @@
+{
+  "info": {
+    "_postman_id": "fra-collection-2026-04-29",
+    "name": "Formie REST API",
+    "description": "REST API endpoints for the LindemannRock Formie REST API plugin.\n\n**Setup:**\n1. Import this collection.\n2. Import one or more of the matching environment files: `Primary`, `Limited`, `Test`.\n3. Set `base_url` in your active environment to the site URL (e.g. `https://yoursite.com`).\n4. Set `api_key` (and `signing_secret` if your key has HMAC signing enabled).\n5. Pick the environment from Postman's top-right dropdown and run any request.\n\n**HMAC signing:** the collection-level pre-request script signs every request automatically and stores the timestamp + signature as collection variables (`hmac_ts`, `hmac_sig`) which the request headers reference. If `signing_secret` is empty, both vars are set to empty strings (server ignores them when the key doesn't require signing).\n\n**Test endpoints** are only accessible when `devMode = true` on the server.\n\nSee the plugin README for endpoint reference and signing details.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "X-API-Key", "type": "string" },
+      { "key": "value", "value": "{{api_key}}", "type": "string" },
+      { "key": "in", "value": "header", "type": "string" }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Collection-level HMAC signing — runs before every request.",
+          "// If `signing_secret` is set on the active environment, computes",
+          "// X-Timestamp + X-Signature and stores them as collection variables",
+          "// (referenced by each request's Headers tab). If `signing_secret` is",
+          "// empty, sets empty strings — the server ignores these headers for",
+          "// keys that don't require signing.",
+          "",
+          "const secret = pm.environment.get('signing_secret') || '';",
+          "",
+          "if (!secret) {",
+          "    pm.collectionVariables.set('hmac_ts', '');",
+          "    pm.collectionVariables.set('hmac_sig', '');",
+          "    return;",
+          "}",
+          "",
+          "const lib = require('crypto-js');",
+          "const ts = Math.floor(Date.now() / 1000).toString();",
+          "",
+          "// Build path+query directly from the Postman Url object — avoids",
+          "// `new URL(pm.request.url.toString())` which throws because toString()",
+          "// returns the raw template ({{base_url}}/...) before variable resolution.",
+          "const rawPath = pm.request.url.getPath() || '/';",
+          "const rawQuery = pm.request.url.getQueryString() || '';",
+          "// Resolve any {{vars}} the user put inside path or query (e.g. {{form_id}})",
+          "const path = pm.variables.replaceIn(rawPath);",
+          "const query = pm.variables.replaceIn(rawQuery);",
+          "const pathQ = path + (query ? '?' + query : '');",
+          "",
+          "const body = pm.request.body && pm.request.body.raw ? pm.request.body.raw : '';",
+          "const base = `${pm.request.method}\\n${pathQ}\\n${ts}\\n${body}`;",
+          "const sig = lib.HmacSHA256(base, secret).toString(lib.enc.Hex);",
+          "",
+          "pm.collectionVariables.set('hmac_ts', ts);",
+          "pm.collectionVariables.set('hmac_sig', sig);"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "hmac_ts", "value": "" },
+    { "key": "hmac_sig", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Production API",
+      "description": "Public REST endpoints (`/api/v1/formie/*`). Require any valid API key. The server filters out incomplete and spam submissions automatically.",
+      "item": [
+        {
+          "name": "List forms",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Timestamp", "value": "{{hmac_ts}}" },
+              { "key": "X-Signature", "value": "{{hmac_sig}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/formie/forms?limit=100&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "formie", "forms"],
+              "query": [
+                { "key": "limit", "value": "100" },
+                { "key": "offset", "value": "0" },
+                { "key": "status", "value": "enabled", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get form by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Timestamp", "value": "{{hmac_ts}}" },
+              { "key": "X-Signature", "value": "{{hmac_sig}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/formie/forms/{{form_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "formie", "forms", "{{form_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get form by handle",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Timestamp", "value": "{{hmac_ts}}" },
+              { "key": "X-Signature", "value": "{{hmac_sig}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/formie/forms/{{form_handle}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "formie", "forms", "{{form_handle}}"]
+            }
+          }
+        },
+        {
+          "name": "List submissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Timestamp", "value": "{{hmac_ts}}" },
+              { "key": "X-Signature", "value": "{{hmac_sig}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/formie/submissions?limit=100&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "formie", "submissions"],
+              "query": [
+                { "key": "limit", "value": "100" },
+                { "key": "offset", "value": "0" },
+                { "key": "formHandle", "value": "{{form_handle}}", "disabled": true },
+                { "key": "formId", "value": "{{form_id}}", "disabled": true },
+                { "key": "dateFrom", "value": "2026-01-01", "disabled": true },
+                { "key": "dateTo", "value": "2026-12-31", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get submission by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Timestamp", "value": "{{hmac_ts}}" },
+              { "key": "X-Signature", "value": "{{hmac_sig}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/formie/submissions/{{submission_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "formie", "submissions", "{{submission_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test API (devMode only)",
+      "description": "Diagnostic endpoints (`/api/test/formie/*`) exposed only when `devMode = true` on the server. Useful for verifying key/scope/signing behaviour during integration.",
+      "item": [
+        {
+          "name": "Test auth",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Timestamp", "value": "{{hmac_ts}}" },
+              { "key": "X-Signature", "value": "{{hmac_sig}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/test/formie/auth",
+              "host": ["{{base_url}}"],
+              "path": ["api", "test", "formie", "auth"]
+            }
+          }
+        },
+        {
+          "name": "Test list forms",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Timestamp", "value": "{{hmac_ts}}" },
+              { "key": "X-Signature", "value": "{{hmac_sig}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/test/formie/forms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "test", "formie", "forms"],
+              "query": [
+                { "key": "handle", "value": "{{form_handle}}", "disabled": true },
+                { "key": "id", "value": "{{form_id}}", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Test list submissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Timestamp", "value": "{{hmac_ts}}" },
+              { "key": "X-Signature", "value": "{{hmac_sig}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/test/formie/submissions?formHandle={{form_handle}}&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "test", "formie", "submissions"],
+              "query": [
+                { "key": "formHandle", "value": "{{form_handle}}" },
+                { "key": "limit", "value": "10" },
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "dateFrom", "value": "2026-01-01", "disabled": true },
+                { "key": "dateTo", "value": "2026-12-31", "disabled": true }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

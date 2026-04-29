@@ -181,7 +181,9 @@ $sig = hash_hmac('sha256', "GET\n{$path}\n{$ts}\n", $secret);
 // Send X-API-Key, X-Timestamp, X-Signature headers
 ```
 
-> A signed Postman collection (with environment template and verified pre-request script) will ship alongside the plugin — see the project changelog for the release that introduces it.
+### Postman collection
+
+A ready-to-use Postman collection lives in [`postman/`](postman/) — collection plus three environment templates (Primary, Limited, Test). The collection-level pre-request script computes the HMAC signature automatically when `signing_secret` is set on the active environment, and skips it when empty (for keys without signing). See [`postman/README.md`](postman/README.md) for setup.
 
 ### IP Whitelist (optional, defence-in-depth)
 
