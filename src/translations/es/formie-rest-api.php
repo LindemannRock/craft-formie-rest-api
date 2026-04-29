@@ -12,7 +12,7 @@ return [
     'The public-facing name of the plugin' => 'El nombre público del plugin',
 
     // Navigation
-    'Settings' => 'Ajustes',
+    'Settings' => 'Configuración',
     'General' => 'General',
     'Test' => 'Prueba',
 

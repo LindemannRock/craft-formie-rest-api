@@ -8,7 +8,7 @@
 
 return [
     // Plugin meta
-    'Plugin Name' => 'Pluginnamn',
+    'Plugin Name' => 'Plugin-namn',
     'The public-facing name of the plugin' => 'Pluginets offentliga namn',
 
     // Navigation
