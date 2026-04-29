@@ -310,7 +310,7 @@ class ApiTestController extends Controller
             }
 
             // Count against a clone before applying limit/offset (mirrors 2.3/2.4 fix)
-            $total = (clone $query)->count();
+            $total = (int) (clone $query)->count();
             $offset = ($page - 1) * $limit;
 
             /** @var \verbb\formie\elements\Submission[] $submissions */
@@ -345,7 +345,7 @@ class ApiTestController extends Controller
                         'total' => $total,
                         'perPage' => $limit,
                         'currentPage' => $page,
-                        'totalPages' => ceil($total / $limit),
+                        'totalPages' => (int) ceil($total / $limit),
                         'hasMore' => ($offset + $limit) < $total,
                     ],
                 ],

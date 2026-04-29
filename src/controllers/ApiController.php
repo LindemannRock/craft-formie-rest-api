@@ -166,7 +166,7 @@ class ApiController extends Controller
 
         // Run COUNT against a clone before applying limit/offset — avoids
         // re-preparing the (already-executed) main query for the count.
-        $total = (clone $query)->count();
+        $total = (int) (clone $query)->count();
 
         $query->limit($limit)->offset($offset);
 
@@ -314,7 +314,7 @@ class ApiController extends Controller
         
         // Run COUNT against a clone before applying limit/offset/order — avoids
         // re-preparing the (already-executed) main query for the count.
-        $total = (clone $query)->count();
+        $total = (int) (clone $query)->count();
 
         // Apply limit and offset
         $query->limit($limit)->offset($offset);
@@ -384,7 +384,7 @@ class ApiController extends Controller
             'status' => $form->status,
             'dateCreated' => $form->dateCreated->format('c'),
             'dateUpdated' => $form->dateUpdated->format('c'),
-            'submissionCount' => $submissionCount ?? Submission::find()
+            'submissionCount' => $submissionCount ?? (int) Submission::find()
                 ->formId($form->id)
                 ->isIncomplete(false)
                 ->isSpam(false)
