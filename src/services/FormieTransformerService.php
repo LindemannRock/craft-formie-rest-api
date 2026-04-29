@@ -82,6 +82,112 @@ class FormieTransformerService extends Component
     ];
 
     /**
+     * Build the form-level metadata block (appearance, behaviour, privacy, restrictions).
+     * Returned as a top-level group on the form-detail endpoint. Sources data from
+     * Formie's own APIs: `$form->getSettings()` (FormSettings model) and `$form->getTemplate()`.
+     *
+     * Each group is auto-driven by an allowlist — adding new keys is one-line.
+     *
+     * @return array<string, mixed>
+     */
+    public function getFormMetadata(Form $form): array
+    {
+        $settings = $form->getSettings();
+        if ($settings === null) {
+            return [];
+        }
+
+        $entry = [
+            'appearance' => $this->buildFormSettingsGroup($settings, [
+                'displayFormTitle', 'displayCurrentPageTitle', 'displayPageTabs',
+                'displayPageProgress', 'scrollToTop',
+                'defaultLabelPosition', 'defaultInstructionsPosition',
+                'requiredIndicator',
+            ]),
+            'behaviour' => $this->buildFormSettingsGroup($settings, [
+                'submitMethod', 'submitAction', 'submitActionFormHide',
+                'submitActionMessagePosition', 'submitActionMessageTimeout',
+                'loadingIndicator',
+                'validationOnSubmit', 'validationOnFocus',
+                'errorMessagePosition',
+                'redirectUrl',
+            ]),
+            'privacy' => $this->buildFormSettingsGroup($settings, [
+                'collectIp', 'collectUser', 'dataRetention', 'dataRetentionValue',
+            ]),
+        ];
+
+        // Normalise position class names → short names
+        foreach (['defaultLabelPosition', 'defaultInstructionsPosition'] as $k) {
+            if (isset($entry['appearance'][$k]) && is_string($entry['appearance'][$k])
+                && str_starts_with($entry['appearance'][$k], 'verbb\\formie\\positions\\')
+            ) {
+                $entry['appearance'][$k] = $this->shortClassName($entry['appearance'][$k]);
+            }
+        }
+
+        // Render rich-text submit/error messages to HTML via Formie's own helpers
+        if (method_exists($settings, 'getSubmitActionMessageHtml')) {
+            $msg = (string) $settings->getSubmitActionMessageHtml();
+            if ($msg !== '') {
+                $entry['behaviour']['submitActionMessageHtml'] = $msg;
+            }
+        }
+        if (method_exists($settings, 'getErrorMessageHtml')) {
+            $msg = (string) $settings->getErrorMessageHtml();
+            if ($msg !== '') {
+                $entry['behaviour']['errorMessageHtml'] = $msg;
+            }
+        }
+
+        // Restrictions: only emit if at least one is active
+        $restrictions = [];
+        if (!empty($settings->requireUser)) {
+            $restrictions['requireUser'] = true;
+        }
+        if (!empty($settings->scheduleForm)) {
+            $restrictions['scheduleForm'] = true;
+        }
+        if (!empty($settings->limitSubmissions)) {
+            $restrictions['limitSubmissions'] = $settings->limitSubmissions;
+            if (!empty($settings->limitSubmissionsNumber)) {
+                $restrictions['limitSubmissionsNumber'] = $settings->limitSubmissionsNumber;
+            }
+            if (!empty($settings->limitSubmissionsType)) {
+                $restrictions['limitSubmissionsType'] = $settings->limitSubmissionsType;
+            }
+        }
+        if ($restrictions !== []) {
+            $entry['restrictions'] = $restrictions;
+        }
+
+        return $entry;
+    }
+
+    /**
+     * Pick allowlisted keys from a FormSettings model. Drops null/empty-string/empty-array
+     * but preserves boolean `false` (which is meaningful — e.g. validationOnFocus = false).
+     *
+     * @param list<string> $keys
+     * @return array<string, mixed>
+     */
+    private function buildFormSettingsGroup(object $settings, array $keys): array
+    {
+        $group = [];
+        foreach ($keys as $k) {
+            if (!property_exists($settings, $k)) {
+                continue;
+            }
+            $value = $settings->$k;
+            if ($value === null || $value === '' || $value === []) {
+                continue;
+            }
+            $group[$k] = $value;
+        }
+        return $group;
+    }
+
+    /**
      * Build the form-fields metadata block returned by `/forms` list and detail
      * endpoints. One entry per custom field.
      *

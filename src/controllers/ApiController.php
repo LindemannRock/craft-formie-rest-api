@@ -396,10 +396,15 @@ class ApiController extends Controller
         ];
         
         if ($includeFields) {
+            // Form-level metadata (appearance, behaviour, privacy, restrictions)
+            // — only on the detail path to keep the list endpoint lean.
+            foreach (FormieRestApi::$plugin->transformer->getFormMetadata($form) as $k => $v) {
+                $data[$k] = $v;
+            }
             $data['fields'] = FormieRestApi::$plugin->transformer->getFormFields($form);
             $data['pages'] = $this->getFormPages($form);
         }
-        
+
         return $data;
     }
 
