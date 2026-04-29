@@ -1,0 +1,56 @@
+<?php
+/**
+ * Formie REST API translation file (Swedish)
+ *
+ * @link      https://lindemannrock.com
+ * @copyright Copyright (c) 2026 LindemannRock
+ */
+
+return [
+    // Plugin meta
+    'Plugin Name' => 'Pluginnamn',
+    'The public-facing name of the plugin' => 'Pluginets offentliga namn',
+
+    // Navigation
+    'Settings' => 'Inställningar',
+    'General' => 'Allmänt',
+    'Test' => 'Test',
+
+    // Permissions
+    'Manage settings' => 'Hantera inställningar',
+
+    // Controller messages
+    "Couldn't save settings." => 'Det gick inte att spara inställningarna.',
+    'Settings saved.' => 'Inställningarna har sparats.',
+
+    // Settings: General
+    'General Settings' => 'Allmänna inställningar',
+    'This is being overridden by the <code>pluginName</code> setting in <code>config/formie-rest-api.php</code>.' => 'Detta värde åsidosätts av inställningen <code>pluginName</code> i <code>config/formie-rest-api.php</code>.',
+
+    // Test page
+    'Test API' => 'Testa API',
+    'Test API Endpoints' => 'Testa API-slutpunkter',
+    'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Skicka en begäran till den lokala API:n med en av de konfigurerade nycklarna och granska svaret.',
+    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or use <code>ddev craft formie-rest-api/security/generate-key</code>.' => 'Inga API-nycklar konfigurerade. Ange FORMIE_API_KEY (och eventuellt FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) i din .env-fil, eller använd <code>ddev craft formie-rest-api/security/generate-key</code>.',
+    'API Key' => 'API-nyckel',
+    'Which configured key to send.' => 'Vilken konfigurerad nyckel som ska skickas.',
+    'Endpoint' => 'Slutpunkt',
+    'Which REST endpoint to call.' => 'Vilken REST-slutpunkt som ska anropas.',
+    'ID' => 'ID',
+    'Numeric form / submission ID.' => 'Numeriskt formulär- eller inlämnings-ID.',
+    'Form handle' => 'Formulärhandtag',
+    'Form handle (the slug, not the title).' => 'Formulärhandtag (slug, inte titeln).',
+    'formHandle (optional)' => 'formHandle (valfri)',
+    'Filter submissions to one form.' => 'Begränsa inlämningar till ett formulär.',
+    'dateFrom (optional)' => 'dateFrom (valfri)',
+    'dateTo (optional)' => 'dateTo (valfri)',
+    'limit' => 'limit',
+    'offset' => 'offset',
+    'Run Test' => 'Kör test',
+    'Result' => 'Resultat',
+    'Status:' => 'Status:',
+    'Time:' => 'Tid:',
+    'Equivalent curl' => 'Motsvarande curl-kommando',
+    'Response headers' => 'Svarshuvuden',
+    'Response body' => 'Svarskropp',
+];

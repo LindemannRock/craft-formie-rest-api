@@ -1,0 +1,56 @@
+<?php
+/**
+ * Formie REST API translation file (Italian)
+ *
+ * @link      https://lindemannrock.com
+ * @copyright Copyright (c) 2026 LindemannRock
+ */
+
+return [
+    // Plugin meta
+    'Plugin Name' => 'Nome del plugin',
+    'The public-facing name of the plugin' => 'Il nome pubblico del plugin',
+
+    // Navigation
+    'Settings' => 'Impostazioni',
+    'General' => 'Generale',
+    'Test' => 'Test',
+
+    // Permissions
+    'Manage settings' => 'Gestisci impostazioni',
+
+    // Controller messages
+    "Couldn't save settings." => 'Impossibile salvare le impostazioni.',
+    'Settings saved.' => 'Impostazioni salvate.',
+
+    // Settings: General
+    'General Settings' => 'Impostazioni generali',
+    'This is being overridden by the <code>pluginName</code> setting in <code>config/formie-rest-api.php</code>.' => 'Questo valore viene sovrascritto dall\'impostazione <code>pluginName</code> in <code>config/formie-rest-api.php</code>.',
+
+    // Test page
+    'Test API' => 'Testa API',
+    'Test API Endpoints' => 'Testa endpoint API',
+    'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Invia una richiesta all\'API locale utilizzando una delle chiavi configurate ed esamina la risposta.',
+    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or use <code>ddev craft formie-rest-api/security/generate-key</code>.' => 'Nessuna chiave API configurata. Imposti FORMIE_API_KEY (e facoltativamente FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) nel suo file .env, oppure utilizzi <code>ddev craft formie-rest-api/security/generate-key</code>.',
+    'API Key' => 'Chiave API',
+    'Which configured key to send.' => 'Quale chiave configurata inviare.',
+    'Endpoint' => 'Endpoint',
+    'Which REST endpoint to call.' => 'Quale endpoint REST chiamare.',
+    'ID' => 'ID',
+    'Numeric form / submission ID.' => 'ID numerico del modulo o dell\'invio.',
+    'Form handle' => 'Handle del modulo',
+    'Form handle (the slug, not the title).' => 'Handle del modulo (lo slug, non il titolo).',
+    'formHandle (optional)' => 'formHandle (facoltativo)',
+    'Filter submissions to one form.' => 'Filtra gli invii a un solo modulo.',
+    'dateFrom (optional)' => 'dateFrom (facoltativo)',
+    'dateTo (optional)' => 'dateTo (facoltativo)',
+    'limit' => 'limit',
+    'offset' => 'offset',
+    'Run Test' => 'Esegui test',
+    'Result' => 'Risultato',
+    'Status:' => 'Stato:',
+    'Time:' => 'Tempo:',
+    'Equivalent curl' => 'Comando curl equivalente',
+    'Response headers' => 'Intestazioni della risposta',
+    'Response body' => 'Corpo della risposta',
+];

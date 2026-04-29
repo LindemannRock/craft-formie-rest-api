@@ -1,0 +1,56 @@
+<?php
+/**
+ * Formie REST API translation file (Dutch)
+ *
+ * @link      https://lindemannrock.com
+ * @copyright Copyright (c) 2026 LindemannRock
+ */
+
+return [
+    // Plugin meta
+    'Plugin Name' => 'Pluginnaam',
+    'The public-facing name of the plugin' => 'De openbare naam van de plugin',
+
+    // Navigation
+    'Settings' => 'Instellingen',
+    'General' => 'Algemeen',
+    'Test' => 'Test',
+
+    // Permissions
+    'Manage settings' => 'Instellingen beheren',
+
+    // Controller messages
+    "Couldn't save settings." => 'Kon instellingen niet opslaan.',
+    'Settings saved.' => 'Instellingen opgeslagen.',
+
+    // Settings: General
+    'General Settings' => 'Algemene instellingen',
+    'This is being overridden by the <code>pluginName</code> setting in <code>config/formie-rest-api.php</code>.' => 'Deze waarde wordt overschreven door de instelling <code>pluginName</code> in <code>config/formie-rest-api.php</code>.',
+
+    // Test page
+    'Test API' => 'API testen',
+    'Test API Endpoints' => 'API-endpoints testen',
+    'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Stuur een verzoek naar de lokale API met een van de geconfigureerde sleutels en bekijk het antwoord.',
+    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or use <code>ddev craft formie-rest-api/security/generate-key</code>.' => 'Geen API-sleutels geconfigureerd. Stel FORMIE_API_KEY (en optioneel FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in uw .env-bestand in, of gebruik <code>ddev craft formie-rest-api/security/generate-key</code>.',
+    'API Key' => 'API-sleutel',
+    'Which configured key to send.' => 'Welke geconfigureerde sleutel verzonden moet worden.',
+    'Endpoint' => 'Endpoint',
+    'Which REST endpoint to call.' => 'Welk REST-endpoint aangeroepen moet worden.',
+    'ID' => 'ID',
+    'Numeric form / submission ID.' => 'Numerieke formulier- of inzending-ID.',
+    'Form handle' => 'Formulierhandle',
+    'Form handle (the slug, not the title).' => 'Formulierhandle (de slug, niet de titel).',
+    'formHandle (optional)' => 'formHandle (optioneel)',
+    'Filter submissions to one form.' => 'Inzendingen tot één formulier beperken.',
+    'dateFrom (optional)' => 'dateFrom (optioneel)',
+    'dateTo (optional)' => 'dateTo (optioneel)',
+    'limit' => 'limit',
+    'offset' => 'offset',
+    'Run Test' => 'Test uitvoeren',
+    'Result' => 'Resultaat',
+    'Status:' => 'Status:',
+    'Time:' => 'Duur:',
+    'Equivalent curl' => 'Equivalent curl-commando',
+    'Response headers' => 'Antwoordheaders',
+    'Response body' => 'Antwoordbody',
+];
