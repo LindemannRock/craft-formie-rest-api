@@ -302,13 +302,17 @@ class ApiController extends Controller
             $query->status($status);
         }
         
-        // Date filters — validate before passing to the query builder
+        // Date filters — validate before passing to the query builder.
+        // Craft ElementQuery's dateCreated() is a setter, NOT a chainer —
+        // calling it twice replaces the first value. Combine constraints into
+        // a single `['and', '>= ...', '<= ...']` array when both are set.
         $dateFromStr = $this->parseDateFilter($dateFrom, 'dateFrom', false);
         $dateToStr = $this->parseDateFilter($dateTo, 'dateTo', true);
-        if ($dateFromStr !== null) {
+        if ($dateFromStr !== null && $dateToStr !== null) {
+            $query->dateCreated(['and', '>= ' . $dateFromStr, '<= ' . $dateToStr]);
+        } elseif ($dateFromStr !== null) {
             $query->dateCreated('>= ' . $dateFromStr);
-        }
-        if ($dateToStr !== null) {
+        } elseif ($dateToStr !== null) {
             $query->dateCreated('<= ' . $dateToStr);
         }
         

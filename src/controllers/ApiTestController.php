@@ -299,10 +299,13 @@ class ApiTestController extends Controller
                 ->isSpam(false)
                 ->orderBy('dateCreated DESC');
 
-            if ($dateFromStr !== null) {
+            // Craft ElementQuery's dateCreated() is a setter, not a chainer —
+            // combine into one call when both are set so neither is lost.
+            if ($dateFromStr !== null && $dateToStr !== null) {
+                $query->dateCreated(['and', '>= ' . $dateFromStr, '<= ' . $dateToStr]);
+            } elseif ($dateFromStr !== null) {
                 $query->dateCreated('>= ' . $dateFromStr);
-            }
-            if ($dateToStr !== null) {
+            } elseif ($dateToStr !== null) {
                 $query->dateCreated('<= ' . $dateToStr);
             }
             if ($status) {
