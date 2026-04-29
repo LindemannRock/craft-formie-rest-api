@@ -18,6 +18,7 @@ namespace lindemannrock\formierestapi\services;
 use craft\base\Component;
 use craft\base\FieldInterface as CraftFieldInterface;
 use craft\helpers\Json;
+use lindemannrock\base\helpers\DateFormatHelper;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -73,12 +74,32 @@ class FormieTransformerService extends Component
         // Server-only / sensitive
         'prePopulate', 'includeInEmail', 'emailValue',
         // Layout/identity internals
-        'syncId', 'layoutId', 'pageId', 'rowId', 'sortOrder',
+        'syncId', 'layoutId', 'pageId', 'rowId', 'sortOrder', 'nestedLayoutId',
         // Server-side validation pairing
         'matchField',
         // Inherited from Craft's base Field but no Formie UI for top-level fields.
         // Subfield recursion still surfaces `enabled` explicitly where it matters.
         'enabled',
+        // CP-builder concern — we expose actual optgroup separators inline in
+        // the `options` array, so the boolean flag is redundant.
+        'optgroups',
+    ];
+
+    /**
+     * Subfield types whose `options` arrays are deterministic enumerations
+     * (year/month/day/hour/minute/second/am-pm for Date; ISO 3166 countries
+     * for Address). Bloat in API responses — clients can build these locally
+     * from standard data sources or from parent-field metadata.
+     *
+     * @var list<string>
+     */
+    private const OPTIONS_DROP_SUBFIELD_TYPES = [
+        // Date subfields
+        'DateYearDropdown', 'DateMonthDropdown', 'DateDayDropdown',
+        'DateHourDropdown', 'DateMinuteDropdown', 'DateSecondDropdown',
+        'DateAmPmDropdown',
+        // Address country subfield
+        'AddressCountry',
     ];
 
     /**
@@ -266,6 +287,12 @@ class FormieTransformerService extends Component
             }
         }
 
+        // Strip the deterministic `options` enum from Date subfields and Address
+        // country (large, deterministic enumerations clients can build locally).
+        if (in_array($entry['type'], self::OPTIONS_DROP_SUBFIELD_TYPES, true)) {
+            unset($settings['options'], $settings['multi']);
+        }
+
         $entry['appearance'] = $appearance;
         if ($settings !== []) {
             $entry['settings'] = $settings;
@@ -366,18 +393,15 @@ class FormieTransformerService extends Component
 
         return match (get_class($field)) {
             'verbb\formie\fields\Number' => is_numeric($value) ? (float) $value : null,
-            'verbb\formie\fields\Dropdown', 'verbb\formie\fields\Radio'
-                => is_array($value) ? ($value['value'] ?? $value[0] ?? null) : $value,
-            'verbb\formie\fields\Checkboxes'
-                => is_array($value)
-                    ? array_map(static fn($item) => is_array($item) ? ($item['value'] ?? $item) : $item, $value)
-                    : $value,
-            'verbb\formie\fields\Date'
-                => $value instanceof \DateTime ? $value->format('c') : $value,
+            'verbb\formie\fields\Dropdown',
+            'verbb\formie\fields\Radio',
+            'verbb\formie\fields\Checkboxes' => $this->processOptionValue($value),
+            'verbb\formie\fields\Date' => $this->processDateValue($value),
             'verbb\formie\fields\Name' => $this->processNameValue($value),
             'verbb\formie\fields\Phone' => $this->processPhoneValue($value),
-            'verbb\formie\fields\Email'
-                => is_array($value) ? ($value['email'] ?? $value[0] ?? null) : $value,
+            'verbb\formie\fields\Address' => $this->processAddressValue($value),
+            'verbb\formie\fields\Email' => is_string($value) ? $value : null,
+            'verbb\formie\fields\Agree' => $this->processAgreeValue($value),
             'verbb\formie\fields\FileUpload' => $this->processFileUploadValue($value),
             default => is_string($value) ? $value : Json::encode($value),
         };
@@ -417,6 +441,137 @@ class FormieTransformerService extends Component
         }
 
         return $entry;
+    }
+
+    /**
+     * Render a Date field value as ISO 8601 in Craft's site timezone.
+     *
+     * **Important Formie quirk we handle:** Formie's Date field does NOT convert
+     * user input to UTC on save — when a user types "2 AM" expecting it to be
+     * 2 AM in their local site timezone, Formie literally stores `02:00:00`
+     * and labels it UTC. A naive `setTimezone(siteTz)` would then shift the
+     * display by the UTC offset, returning "5 AM" — which is NOT what the user
+     * entered.
+     *
+     * We compensate by re-labeling the stored Y-m-d H:i:s components as site
+     * timezone (no clock shift). Result: user gets back the exact wall-clock
+     * time they typed, with the correct site-TZ offset attached. Consistent
+     * with Craft's own date-handling expectations and with what the user sees
+     * in the CP.
+     */
+    private function processDateValue(mixed $value): ?string
+    {
+        if (!$value instanceof \DateTime) {
+            return is_string($value) && $value !== '' ? $value : null;
+        }
+
+        $siteTz = new \DateTimeZone(\Craft::$app->getTimeZone());
+        $rebuilt = \DateTime::createFromFormat('Y-m-d H:i:s', $value->format('Y-m-d H:i:s'), $siteTz);
+
+        return $rebuilt ? DateFormatHelper::toApiString($rebuilt) : DateFormatHelper::toApiString($value);
+    }
+
+    /**
+     * Render Formie's Dropdown / Radio / Checkboxes values. Values come from
+     * `getFieldValue()` as Craft option models:
+     *  - `craft\fields\data\SingleOptionFieldData` for single-select (Radio, single Dropdown)
+     *  - `craft\fields\data\MultiOptionsFieldData` (iterable of `OptionData`)
+     *    for multi-select (Checkboxes, multi Dropdown)
+     *
+     * We expose `{ label, value }` per selected option — drops `selected`
+     * (always true for selected entries) and `valid` (internal validation).
+     * Single mode returns one object; multi mode returns an array.
+     */
+    private function processOptionValue(mixed $value): mixed
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        // Multi-select (MultiOptionsFieldData is iterable but not a single OptionData)
+        if (is_iterable($value) && !$this->isSingleOption($value)) {
+            $out = [];
+            foreach ($value as $opt) {
+                $shape = $this->optionToShape($opt);
+                if ($shape !== null) {
+                    $out[] = $shape;
+                }
+            }
+            return $out;
+        }
+
+        // Single-select
+        $shape = $this->optionToShape($value);
+        return $shape ?? $value;
+    }
+
+    /**
+     * Convert a single Craft `OptionData` (or array fallback) into `{ label, value }`.
+     *
+     * @return array{label: mixed, value: mixed}|null
+     */
+    private function optionToShape(mixed $opt): ?array
+    {
+        if (is_object($opt) && property_exists($opt, 'value') && property_exists($opt, 'label')) {
+            return ['label' => $opt->label, 'value' => $opt->value];
+        }
+        if (is_array($opt) && isset($opt['value'])) {
+            return ['label' => $opt['label'] ?? $opt['value'], 'value' => $opt['value']];
+        }
+        return null;
+    }
+
+    /**
+     * Distinguish a single `OptionData` model (which IS iterable via Yii Component
+     * magic but represents one option) from a multi-options collection.
+     */
+    private function isSingleOption(mixed $value): bool
+    {
+        return is_object($value)
+            && property_exists($value, 'value')
+            && property_exists($value, 'label')
+            && property_exists($value, 'selected');
+    }
+
+    /**
+     * Render Formie's Agree field. Formie stores the toggle state as a string
+     * `"true"` / `"false"` (or sometimes the configured checkedValue/uncheckedValue).
+     * Coerce to a real boolean so consumers don't have to handle string-truthiness.
+     * The configured `checkedValue` / `uncheckedValue` are exposed in the field
+     * metadata block for clients that want to display the labelled state.
+     */
+    private function processAgreeValue(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+        if (is_string($value)) {
+            return $value !== '' && $value !== '0' && strtolower($value) !== 'false';
+        }
+        return (bool) $value;
+    }
+
+    /**
+     * Render Formie's Address field. Values come from `getFieldValue()` as
+     * `verbb\formie\models\Address` instances exposing the line/city/state/zip/
+     * country properties + a localized `countryOption` (resolved country name).
+     * We expose every populated subfield — drops nulls/empties to keep the
+     * response clean.
+     */
+    private function processAddressValue(mixed $value): mixed
+    {
+        if (!is_object($value)) {
+            return is_string($value) && $value !== '' ? $value : null;
+        }
+
+        $result = [];
+        foreach (['address1', 'address2', 'address3', 'city', 'state', 'zip', 'country', 'countryOption'] as $k) {
+            if (property_exists($value, $k) && $value->$k !== null && $value->$k !== '') {
+                $result[$k] = $value->$k;
+            }
+        }
+
+        return $result !== [] ? $result : null;
     }
 
     /**
