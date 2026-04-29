@@ -212,6 +212,21 @@ If you need browser access today, the workaround is to proxy the request through
 
 CORS is on the roadmap as an opt-in, env-driven feature mirroring the HMAC and IP-whitelist patterns (per-key `FORMIE_API_ALLOWED_ORIGINS[_*]` env var). It will be implemented when the first browser consumer's requirements are known. Open an issue if you need it sooner.
 
+### Field metadata — units & notes
+
+Field metadata returned by `/forms/{id|handle}` reflects Formie's own settings. A few values where the unit isn't obvious:
+
+| Field type | Setting | Unit |
+|---|---|---|
+| FileUpload | `sizeLimit`, `sizeMinLimit` | Megabytes (MB) |
+| FileUpload | `limitFiles` | Number of files |
+| Signature | `penWeight` | Pixels |
+| SingleLineText / MultiLineText | `min`, `max` | See `minType` / `maxType` (`characters` or `words`) |
+| Date | `minDateOffsetNumber`, `maxDateOffsetNumber` | See `minDateOffsetType` / `maxDateOffsetType` (`days`, `weeks`, `months`, `years`) |
+| Date | `minYearRange`, `maxYearRange` | Years offset from current year (e.g. `-100` = 100 years ago, `100` = 100 years ahead) |
+
+All datetime values across submission and field-value responses are ISO 8601 in the site timezone.
+
 ### Submission filtering (default behaviour)
 
 Both production (`/api/v1/formie/submissions`) and test (`/api/test/formie/submissions`) endpoints **automatically exclude**:

@@ -19,6 +19,7 @@ use craft\base\Component;
 use craft\base\FieldInterface as CraftFieldInterface;
 use craft\helpers\Json;
 use lindemannrock\base\helpers\DateFormatHelper;
+use verbb\formie\base\NestedField;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -83,6 +84,23 @@ class FormieTransformerService extends Component
         // CP-builder concern — we expose actual optgroup separators inline in
         // the `options` array, so the boolean flag is redundant.
         'optgroups',
+    ];
+
+    /**
+     * Settings keys that Formie stores as `?string` (because they come from
+     * text inputs in the CP) but represent integer values. Cast on output so
+     * API consumers don't have to parseInt.
+     *
+     * Notes on units:
+     *  - `sizeLimit`, `sizeMinLimit` — megabytes (per Formie's CP description)
+     *  - `limitFiles` — count of files
+     *  - `penWeight` — pixels (Signature field stroke width)
+     *  - `min`, `max` (with `minType` / `maxType` companion) — characters or words
+     *
+     * @var list<string>
+     */
+    private const NUMERIC_STRING_SETTINGS = [
+        'sizeLimit', 'sizeMinLimit', 'limitFiles', 'penWeight',
     ];
 
     /**
@@ -267,6 +285,12 @@ class FormieTransformerService extends Component
                 $value = $this->shortClassName($value);
             }
 
+            // Cast known numeric-string settings to int (Formie stores text-input
+            // numerics as strings; consumers expect actual numbers).
+            if (in_array($key, self::NUMERIC_STRING_SETTINGS, true) && is_numeric($value)) {
+                $value = (int) $value;
+            }
+
             if (in_array($key, self::APPEARANCE_KEYS, true)) {
                 $appearance[$key] = $value;
             } elseif (in_array($key, self::ADVANCED_KEYS, true)) {
@@ -320,10 +344,13 @@ class FormieTransformerService extends Component
             $entry['conditions'] = $flat;
         }
 
-        // SubField fields (Name multi, Date, Address) expose their sub-components.
-        // Each subfield is independently configurable — recurse so UI consumers
-        // know per-subfield required/error/visibility/enabled.
-        if ($field instanceof SubFieldInterface && method_exists($field, 'getFieldLayout')) {
+        // Nested-field types (Name multi / Date / Address — predefined subfields;
+        // Group / Repeater — user-added nested fields) all expose their nested
+        // schema via Formie's NestedField API. Each subfield is independently
+        // configurable — recurse so UI consumers know per-subfield
+        // required/error/visibility/enabled.
+        $hasNested = $field instanceof SubFieldInterface || $field instanceof NestedField;
+        if ($hasNested && method_exists($field, 'getFieldLayout')) {
             $layout = $field->getFieldLayout();
             if ($layout !== null) {
                 $subFields = [];
@@ -392,14 +419,27 @@ class FormieTransformerService extends Component
         }
 
         return match (get_class($field)) {
-            'verbb\formie\fields\Number' => is_numeric($value) ? (float) $value : null,
+            'verbb\formie\fields\Number',
+            'verbb\formie\fields\Calculations' => is_numeric($value) ? (float) $value : null,
             'verbb\formie\fields\Dropdown',
             'verbb\formie\fields\Radio',
-            'verbb\formie\fields\Checkboxes' => $this->processOptionValue($value),
+            'verbb\formie\fields\Checkboxes',
+            'verbb\formie\fields\Recipients' => $this->processOptionValue($value),
             'verbb\formie\fields\Date' => $this->processDateValue($value),
             'verbb\formie\fields\Name' => $this->processNameValue($value),
             'verbb\formie\fields\Phone' => $this->processPhoneValue($value),
             'verbb\formie\fields\Address' => $this->processAddressValue($value),
+            // Password — never expose, even hashed. Hashes are crackable offline.
+            'verbb\formie\fields\Password' => null,
+            'verbb\formie\fields\Group' => $this->processNestedSingle($value, $field),
+            'verbb\formie\fields\Repeater' => $this->processNestedMulti($value, $field),
+            'verbb\formie\fields\Table' => $this->processTableValue($value, $field),
+            'verbb\formie\fields\Entries',
+            'verbb\formie\fields\Categories',
+            'verbb\formie\fields\Tags',
+            'verbb\formie\fields\Users',
+            'verbb\formie\fields\Products',
+            'verbb\formie\fields\Variants' => $this->processElementQueryValue($value),
             'verbb\formie\fields\Email' => is_string($value) ? $value : null,
             'verbb\formie\fields\Agree' => $this->processAgreeValue($value),
             'verbb\formie\fields\FileUpload' => $this->processFileUploadValue($value),
@@ -549,6 +589,206 @@ class FormieTransformerService extends Component
             return $value !== '' && $value !== '0' && strtolower($value) !== 'false';
         }
         return (bool) $value;
+    }
+
+    /**
+     * Render an element-query field value (Entries, Categories, Tags, Users,
+     * Products, Variants). `getFieldValue()` returns an unexecuted ElementQuery
+     * — we run it and extract a minimal element shape per entry: id, title,
+     * url, slug. For Users we expose `fullName` + `email` since "title" isn't
+     * meaningful there.
+     *
+     * Returns an array (multi-select) or a single object (single-select),
+     * matching how Craft itself uses the field.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    private function processElementQueryValue(mixed $value): ?array
+    {
+        if (!is_object($value) || !method_exists($value, 'all')) {
+            return null;
+        }
+        $elements = $value->all();
+        if (!is_array($elements) || $elements === []) {
+            return [];
+        }
+        $out = [];
+        foreach ($elements as $el) {
+            $shape = ['id' => (int) $el->id];
+            // Users: prefer fullName/email over title
+            if (property_exists($el, 'email') || method_exists($el, 'getFullName')) {
+                if (method_exists($el, 'getFullName')) {
+                    $name = (string) $el->getFullName();
+                    if ($name !== '') {
+                        $shape['fullName'] = $name;
+                    }
+                }
+                if (property_exists($el, 'email') && $el->email !== null && $el->email !== '') {
+                    $shape['email'] = $el->email;
+                }
+                if (property_exists($el, 'username') && $el->username !== null && $el->username !== '') {
+                    $shape['username'] = $el->username;
+                }
+            } else {
+                $shape['title'] = (string) ($el->title ?? '');
+                if (property_exists($el, 'slug') && $el->slug !== null && $el->slug !== '') {
+                    $shape['slug'] = $el->slug;
+                }
+                $url = method_exists($el, 'getUrl') ? $el->getUrl() : null;
+                if ($url !== null && $url !== '') {
+                    $shape['url'] = $url;
+                }
+            }
+            $out[] = $shape;
+        }
+        return $out;
+    }
+
+    /**
+     * Render Formie's Table field — array of rows, each row keyed by the
+     * user-defined column handle (drops Formie's internal `colN` aliases).
+     *
+     * Each cell is type-cast based on the column's configured type:
+     *  - `singleline` / `multiline` / `color` / `select` → string
+     *  - `number` → float (or null if non-numeric)
+     *  - `date` → ISO 8601 string in site TZ
+     *  - `heading` columns are decorative — omitted entirely
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    private function processTableValue(mixed $value, CraftFieldInterface $field): ?array
+    {
+        if (!is_array($value) || !property_exists($field, 'columns') || !is_array($field->columns)) {
+            return null;
+        }
+
+        $rows = [];
+        foreach ($value as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $rowOut = [];
+            foreach ($field->columns as $colId => $column) {
+                $type = is_array($column) ? ($column['type'] ?? 'singleline') : 'singleline';
+                if ($type === 'heading') {
+                    continue;
+                }
+                $handle = is_array($column) ? ($column['handle'] ?? $colId) : $colId;
+                $raw = $row[$colId] ?? (is_array($column) && isset($column['handle']) ? ($row[$column['handle']] ?? null) : null);
+
+                $rowOut[$handle] = match ($type) {
+                    'number' => is_numeric($raw) ? (float) $raw : null,
+                    'date', 'time' => $this->castTableDate($raw),
+                    'color' => $this->castTableColor($raw),
+                    'checkbox' => (bool) $raw,
+                    default => is_string($raw) && $raw !== '' ? $raw : null,
+                };
+            }
+            if ($rowOut !== []) {
+                $rows[] = $rowOut;
+            }
+        }
+        return $rows;
+    }
+
+    /**
+     * Cast a table-cell date / time value to ISO 8601 in site TZ.
+     * Formie's Table normalizeValue converts these to `DateTime` objects;
+     * fall back to string parsing if needed.
+     */
+    private function castTableDate(mixed $raw): mixed
+    {
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+        if ($raw instanceof \DateTime) {
+            return $this->processDateValue($raw);
+        }
+        if (is_string($raw)) {
+            $dt = DateFormatHelper::toCraftTimezone($raw);
+            return $dt !== null ? $this->processDateValue($dt) : $raw;
+        }
+        return $raw;
+    }
+
+    /**
+     * Cast a table-cell color value to a hex string (`#rrggbb`).
+     * Formie stores Color cells as `craft\fields\data\ColorData` after
+     * normalizeValue, exposing `->getHex()`.
+     */
+    private function castTableColor(mixed $raw): ?string
+    {
+        if (is_object($raw) && method_exists($raw, 'getHex')) {
+            $hex = (string) $raw->getHex();
+            return $hex !== '' ? $hex : null;
+        }
+        return is_string($raw) && $raw !== '' ? $raw : null;
+    }
+
+    /**
+     * Render a Group field (SingleNestedField). Formie's normalizeValue returns
+     * an associative array `[innerHandle => normalizedInnerValue]`. We recurse
+     * via processFieldValue so each inner field's handler is applied (Name →
+     * Name model, Phone → Phone model, etc.).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function processNestedSingle(mixed $value, CraftFieldInterface $field): ?array
+    {
+        if (!is_array($value) || $value === [] || !method_exists($field, 'getCustomFields')) {
+            return null;
+        }
+        return $this->renderNestedRow($value, $field);
+    }
+
+    /**
+     * Render a Repeater field (MultiNestedField). Formie's normalizeValue
+     * returns a list of associative arrays — one per row. We recurse per row
+     * + per inner field.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    private function processNestedMulti(mixed $value, CraftFieldInterface $field): ?array
+    {
+        if (!is_array($value) || !method_exists($field, 'getCustomFields')) {
+            return null;
+        }
+        $rows = [];
+        foreach ($value as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $rendered = $this->renderNestedRow($row, $field);
+            if ($rendered !== []) {
+                $rows[] = $rendered;
+            }
+        }
+        return $rows;
+    }
+
+    /**
+     * Apply each inner field's handler to a single row of nested values.
+     *
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private function renderNestedRow(array $row, CraftFieldInterface $parent): array
+    {
+        if (!$parent instanceof NestedField) {
+            return [];
+        }
+        $out = [];
+        foreach ($parent->getCustomFields() as $innerField) {
+            if (!$innerField instanceof CraftFieldInterface) {
+                continue;
+            }
+            $handle = $innerField->handle;
+            if (!array_key_exists($handle, $row)) {
+                continue;
+            }
+            $out[$handle] = $this->processFieldValue($innerField, $row[$handle]);
+        }
+        return $out;
     }
 
     /**
