@@ -223,6 +223,15 @@ This is hardcoded — the API contract is "completed, non-spam form submissions"
 
 ## REST API Endpoints
 
+### Versioning
+
+The plugin uses three independent version axes — they don't move together:
+
+| Version | Tracks | Bumps when |
+|---|---|---|
+| Plugin (e.g. `3.3.0`) | This package's release | Every feature/fix. Plugin major aligns to the Formie major (Formie 3.x → plugin 3.x.x; Formie 4 → plugin 4.0.0) |
+| **API URL** (`/api/v1/`) | The wire-format contract consumers integrate against | Only on breaking contract changes (removed/renamed fields, changed semantics). Plugin major bumps do **not** automatically bump the API URL |
+
 ### Production Endpoints
 
 | Method | Endpoint | Description |
@@ -302,6 +311,21 @@ If you give a partner a Limited key thinking they can't read submissions — the
 - Access logging (key, endpoint, IP, user-agent, response code)
 - Development-mode restrictions (test endpoints + test key only register when `devMode = true`)
 - **Not yet:** CORS for browser consumers — see [CORS support — not currently implemented](#cors-support--not-currently-implemented)
+
+### Operational hardening (Craft-level, not plugin-level)
+
+A couple of Craft framework settings worth knowing about — the plugin doesn't control these, but they affect API responses:
+
+- **`X-Powered-By: Craft CMS` response header.** Craft sends this by default. Some security-conscious deployments prefer to suppress it (defence in depth — don't tell unfamiliar attackers what stack to research). Disable it in `config/general.php`:
+
+  ```php
+  return GeneralConfig::create()
+      ->sendPoweredByHeader(false);
+  ```
+
+- **`Server: nginx` / similar.** Set at the web server level, not Craft. Strip via `server_tokens off;` (nginx) or equivalent.
+
+- **`trustedHosts` / proxy headers.** If you put the API behind a CDN or reverse proxy and use the IP whitelist feature, configure Craft's `trustedHosts` correctly so `getUserIP()` returns the real client IP, not the proxy. See [Craft docs](https://craftcms.com/docs/5.x/reference/config/general.html#trustedhosts).
 
 ## Plugin Settings
 

@@ -220,13 +220,12 @@ class ApiTestController extends Controller
                 ],
                 'meta' => [
                     'timestamp' => (new \DateTime())->format('c'),
-                    'version' => '1.0',
                     'endpoint' => 'forms',
                 ],
             ]);
         } catch (\Throwable $e) {
             Craft::error('API Test Error: ' . $e->getMessage(), __METHOD__);
-            
+
             return $this->asJson([
                 'success' => false,
                 'error' => [
@@ -354,13 +353,12 @@ class ApiTestController extends Controller
                 ],
                 'meta' => [
                     'timestamp' => (new \DateTime())->format('c'),
-                    'version' => '1.0',
                     'endpoint' => 'submissions',
                 ],
             ]);
         } catch (\Throwable $e) {
             Craft::error('API Test Error: ' . $e->getMessage(), __METHOD__);
-            
+
             return $this->asJson([
                 'success' => false,
                 'error' => [
@@ -393,7 +391,6 @@ class ApiTestController extends Controller
             ],
             'meta' => [
                 'timestamp' => (new \DateTime())->format('c'),
-                'version' => '1.0',
                 'endpoint' => 'auth',
             ],
         ]);
