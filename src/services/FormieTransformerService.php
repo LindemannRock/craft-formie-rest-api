@@ -236,7 +236,7 @@ class FormieTransformerService extends Component
     {
         $fields = [];
 
-        foreach ($form->getCustomFields() as $field) {
+        foreach ($form->getFields() as $field) {
             $fields[] = $this->fieldMetadata($field);
         }
 
@@ -317,6 +317,13 @@ class FormieTransformerService extends Component
             unset($settings['options'], $settings['multi']);
         }
 
+        // Rating-field (LindemannRock plugin): mirror the CP `if` conditions so
+        // settings that don't apply to the current ratingType / toggle state
+        // are dropped from the API response.
+        if (get_class($field) === 'lindemannrock\\formieratingfield\\fields\\Rating') {
+            $this->gateRatingFieldSettings($field, $settings);
+        }
+
         $entry['appearance'] = $appearance;
         if ($settings !== []) {
             $entry['settings'] = $settings;
@@ -354,7 +361,7 @@ class FormieTransformerService extends Component
             $layout = $field->getFieldLayout();
             if ($layout !== null) {
                 $subFields = [];
-                foreach ($layout->getCustomFields() as $sub) {
+                foreach ($layout->getFields() as $sub) {
                     if ($sub instanceof CraftFieldInterface) {
                         $subEntry = $this->fieldMetadata($sub);
                         if (property_exists($sub, 'enabled')) {
@@ -370,6 +377,62 @@ class FormieTransformerService extends Component
         }
 
         return $entry;
+    }
+
+    /**
+     * Strip Rating-field settings that don't apply given the field's current
+     * configuration. Mirrors the `if` expressions in
+     * `Rating::defineGeneralSchema()` / `defineSettingsSchema()` so the API
+     * response matches what a CP editor would actually see.
+     *
+     * @param array<string, mixed> $settings
+     */
+    private function gateRatingFieldSettings(CraftFieldInterface $field, array &$settings): void
+    {
+        $ratingType = property_exists($field, 'ratingType') ? $field->ratingType : null;
+        $showEndpointLabels = !empty($settings['showEndpointLabels']);
+        $singleEmojiSelection = !empty($settings['singleEmojiSelection']);
+        $enableGoogleReview = !empty($settings['enableGoogleReview']);
+
+        // Emoji-only settings
+        if ($ratingType !== 'emoji') {
+            unset($settings['emojiRenderMode'], $settings['singleEmojiSelection']);
+            $singleEmojiSelection = false;
+        }
+
+        // customLabels cascades from singleEmojiSelection (emoji-only)
+        if (!$singleEmojiSelection) {
+            unset($settings['customLabels']);
+        }
+
+        // Star-only setting
+        if ($ratingType !== 'star') {
+            unset($settings['allowHalfRatings']);
+        }
+
+        // NPS uses a fixed 0-10 range — min/max not configurable
+        if ($ratingType === 'nps') {
+            unset($settings['minValue'], $settings['maxValue']);
+        }
+
+        // Endpoint label texts only relevant when the toggle is on
+        if (!$showEndpointLabels) {
+            unset($settings['startLabel'], $settings['endLabel']);
+        }
+
+        // Google Review group — all gated by the master toggle
+        if (!$enableGoogleReview) {
+            unset(
+                $settings['googleReviewThreshold'],
+                $settings['googlePlaceIdField'],
+                $settings['googleReviewMessageHigh'],
+                $settings['googleReviewMessageMedium'],
+                $settings['googleReviewMessageLow'],
+                $settings['googleReviewUrl'],
+                $settings['googleReviewButtonLabel'],
+                $settings['googleReviewButtonAlign'],
+            );
+        }
     }
 
     /**
@@ -393,7 +456,7 @@ class FormieTransformerService extends Component
         // rather than the flattened strings that getSerializedFieldValues()
         // produces. Critical for fields whose API output should preserve
         // sub-properties (Phone.country, Name.prefix/firstName/middleName/lastName).
-        foreach ($form->getCustomFields() as $field) {
+        foreach ($form->getFields() as $field) {
             if (!$field instanceof CraftFieldInterface) {
                 continue;
             }
@@ -735,7 +798,7 @@ class FormieTransformerService extends Component
      */
     private function processNestedSingle(mixed $value, CraftFieldInterface $field): ?array
     {
-        if (!is_array($value) || $value === [] || !method_exists($field, 'getCustomFields')) {
+        if (!is_array($value) || $value === [] || !method_exists($field, 'getFields')) {
             return null;
         }
         return $this->renderNestedRow($value, $field);
@@ -750,7 +813,7 @@ class FormieTransformerService extends Component
      */
     private function processNestedMulti(mixed $value, CraftFieldInterface $field): ?array
     {
-        if (!is_array($value) || !method_exists($field, 'getCustomFields')) {
+        if (!is_array($value) || !method_exists($field, 'getFields')) {
             return null;
         }
         $rows = [];
@@ -778,7 +841,7 @@ class FormieTransformerService extends Component
             return [];
         }
         $out = [];
-        foreach ($parent->getCustomFields() as $innerField) {
+        foreach ($parent->getFields() as $innerField) {
             if (!$innerField instanceof CraftFieldInterface) {
                 continue;
             }

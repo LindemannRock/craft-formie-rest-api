@@ -448,7 +448,7 @@ class ApiController extends Controller
                 'fields' => [],
             ];
             
-            foreach ($page->getCustomFields() as $field) {
+            foreach ($page->getFields() as $field) {
                 $pageData['fields'][] = [
                     'handle' => $field->handle,
                     'label' => $field->label,
