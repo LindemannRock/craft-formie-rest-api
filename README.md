@@ -202,6 +202,16 @@ Non-matching IP → `401 Unauthorized` with message `Request originates from an 
 
 > **CDN / reverse-proxy caveat:** `Craft::$app->request->getUserIP()` returns whatever sent the request to PHP. Behind a CDN or reverse proxy you'll need to configure Craft's `trustedHosts` and proxy headers correctly — otherwise the whitelist matches the proxy IP, not the real client. See [Craft's request docs](https://craftcms.com/docs/5.x/reference/config/general.html#trustedhosts) for `trustedHosts` setup.
 
+### CORS support — not currently implemented
+
+This plugin **does not** add `Access-Control-Allow-*` response headers and does not handle `OPTIONS` preflight requests. The API is currently designed for **server-to-server** consumers (your SAP/ERP integration, scripts, scheduled jobs) where CORS does not apply.
+
+**This means a browser-based client on a different origin (a React/Vue dashboard, a partner widget, etc.) cannot call this API directly.** The browser will block the response with a CORS error.
+
+If you need browser access today, the workaround is to proxy the request through your own server (your backend calls this API with `X-API-Key` and forwards the response to the browser).
+
+CORS is on the roadmap as an opt-in, env-driven feature mirroring the HMAC and IP-whitelist patterns (per-key `FORMIE_API_ALLOWED_ORIGINS[_*]` env var). It will be implemented when the first browser consumer's requirements are known. Open an issue if you need it sooner.
+
 ### Submission filtering (default behaviour)
 
 Both production (`/api/v1/formie/submissions`) and test (`/api/test/formie/submissions`) endpoints **automatically exclude**:
@@ -285,12 +295,13 @@ If you give a partner a Limited key thinking they can't read submissions — the
 
 ## Security Features
 
-- API key validation
-- Rate limiting per key type
-- IP address logging
-- Request validation
-- CORS support
-- Development mode restrictions
+- API key validation (per-key permission scopes: `read_forms`, `read_submissions`, `create_submissions`)
+- HMAC request signing (optional, opt-in per key — replay protection, integrity, leaked-key mitigation)
+- IP whitelist (optional, opt-in per key — IPv4 + IPv6 + CIDR)
+- Rate limiting per key (atomic, mutex-serialized counter)
+- Access logging (key, endpoint, IP, user-agent, response code)
+- Development-mode restrictions (test endpoints + test key only register when `devMode = true`)
+- **Not yet:** CORS for browser consumers — see [CORS support — not currently implemented](#cors-support--not-currently-implemented)
 
 ## Plugin Settings
 
