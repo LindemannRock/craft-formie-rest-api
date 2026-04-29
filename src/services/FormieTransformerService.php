@@ -35,7 +35,7 @@ class FormieTransformerService extends Component
      * Build the form-fields metadata block returned by `/forms` list and detail
      * endpoints. One entry per custom field.
      *
-     * @return list<array{handle: string, label: string, type: string, required: bool, instructions: string|null}>
+     * @return list<array{handle: string, label: string, type: string, required: bool, instructions: string|null, errorMessage: string|null, visibility: string|null}>
      */
     public function getFormFields(Form $form): array
     {
@@ -48,6 +48,10 @@ class FormieTransformerService extends Component
                 'type' => $this->shortFieldType($field),
                 'required' => (bool) $field->required,
                 'instructions' => $field->instructions,
+                'errorMessage' => property_exists($field, 'errorMessage') ? $field->errorMessage : null,
+                // Formie stores "visible" as null/empty internally — coerce to the
+                // explicit string so API consumers get one of: visible|hidden|disabled.
+                'visibility' => $this->resolveVisibility($field),
             ];
         }
 
@@ -218,5 +222,19 @@ class FormieTransformerService extends Component
     private function shortFieldType(CraftFieldInterface $field): string
     {
         return basename(str_replace('\\', '/', get_class($field)));
+    }
+
+    /**
+     * Resolve a field's visibility to one of `visible`/`hidden`/`disabled`.
+     * Formie stores the default state as null/empty; we coerce so consumers
+     * always get an explicit value.
+     */
+    private function resolveVisibility(CraftFieldInterface $field): string
+    {
+        if (!property_exists($field, 'visibility')) {
+            return 'visible';
+        }
+        $value = $field->visibility;
+        return is_string($value) && $value !== '' ? $value : 'visible';
     }
 }
