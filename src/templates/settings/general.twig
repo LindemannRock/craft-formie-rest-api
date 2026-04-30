@@ -25,11 +25,9 @@
 {% import "_includes/forms" as forms %}
 
 {% block content %}
-    <form method="post" accept-charset="UTF-8">
-        {{ actionInput('formie-rest-api/settings/save') }}
-        {{ csrfInput() }}
-        {{ redirectInput('formie-rest-api/settings/general') }}
-        {{ hiddenInput('section', 'general') }}
+    {{ actionInput('formie-rest-api/settings/save') }}
+    {{ redirectInput('formie-rest-api/settings/general') }}
+    {{ hiddenInput('section', 'general') }}
 
         <h2 class="first">{{ 'General Settings'|t('formie-rest-api') }}</h2>
 
@@ -46,7 +44,6 @@
             warning: settings.isOverriddenByConfig('pluginName') ?
                 "This is being overridden by the <code>pluginName</code> setting in <code>config/formie-rest-api.php</code>."|t('formie-rest-api')|raw : null,
         }) }}
-    </form>
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
 {% endblock %}
