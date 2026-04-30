@@ -12,7 +12,7 @@ return [
     'Manage API keys, secure endpoints, and test Formie data responses from the plugin settings area.' => 'Gestisca le chiavi API, protegga gli endpoint e testi le risposte di dati Formie dall\'area delle impostazioni del plugin.',
     'Open Formie REST API' => 'Apri Formie REST API',
     'Plugin Name' => 'Nome del plugin',
-    'The public-facing name of the plugin' => 'Il nome pubblico del plugin',
+    'The name of the plugin as it appears in the Control Panel menu' => 'Il nome del plugin come appare nel menu del pannello di controllo',
 
     // Navigation
     'Settings' => 'Impostazioni',
