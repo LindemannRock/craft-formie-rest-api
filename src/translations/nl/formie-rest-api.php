@@ -27,6 +27,20 @@ return [
     'General Settings' => 'Algemene instellingen',
     'This is being overridden by the <code>pluginName</code> setting in <code>config/formie-rest-api.php</code>.' => 'Deze waarde wordt overschreven door de instelling <code>pluginName</code> in <code>config/formie-rest-api.php</code>.',
 
+    // Settings: Configuration warning
+    'COPIED' => 'GEKOPIEERD',
+    'COPY' => 'KOPIËREN',
+    'Configuration Required' => 'Configuratie vereist',
+    'DDEV:' => 'DDEV:',
+    'Generate separate keys per environment — never copy production keys to staging or development.' => 'Genereer aparte sleutels per omgeving — kopieer nooit productiesleutels naar staging of ontwikkeling.',
+    'No API keys configured.' => 'Geen API-sleutels geconfigureerd.',
+    'Run one of these commands in your terminal:' => 'Voer een van deze commando\'s uit in uw terminal:',
+    'Standard:' => 'Standaard:',
+    'The plugin will reject every request until at least one key is set.' => 'De plugin weigert elk verzoek totdat ten minste één sleutel is ingesteld.',
+    'This will write {keys} and matching signing secrets to your {file} file.' => 'Dit schrijft {keys} en bijbehorende ondertekeningsgeheimen naar uw {file}-bestand.',
+    'Warning:' => 'Waarschuwing:',
+    'error' => 'fout',
+
     // Test page
     'Test API' => 'API testen',
     'Test API Endpoints' => 'API-endpoints testen',

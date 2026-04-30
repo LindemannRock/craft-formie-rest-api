@@ -27,6 +27,20 @@ return [
     'General Settings' => 'Allmänna inställningar',
     'This is being overridden by the <code>pluginName</code> setting in <code>config/formie-rest-api.php</code>.' => 'Detta värde åsidosätts av inställningen <code>pluginName</code> i <code>config/formie-rest-api.php</code>.',
 
+    // Settings: Configuration warning
+    'COPIED' => 'KOPIERAD',
+    'COPY' => 'KOPIERA',
+    'Configuration Required' => 'Konfiguration krävs',
+    'DDEV:' => 'DDEV:',
+    'Generate separate keys per environment — never copy production keys to staging or development.' => 'Generera separata nycklar per miljö — kopiera aldrig produktionsnycklar till staging eller utveckling.',
+    'No API keys configured.' => 'Inga API-nycklar konfigurerade.',
+    'Run one of these commands in your terminal:' => 'Kör ett av dessa kommandon i din terminal:',
+    'Standard:' => 'Standard:',
+    'The plugin will reject every request until at least one key is set.' => 'Pluginet avvisar alla begäranden tills minst en nyckel är angiven.',
+    'This will write {keys} and matching signing secrets to your {file} file.' => 'Detta skriver {keys} och matchande signeringshemligheter till din {file}-fil.',
+    'Warning:' => 'Varning:',
+    'error' => 'fel',
+
     // Test page
     'Test API' => 'Testa API',
     'Test API Endpoints' => 'Testa API-slutpunkter',

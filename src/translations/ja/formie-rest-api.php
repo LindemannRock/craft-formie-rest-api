@@ -27,6 +27,20 @@ return [
     'General Settings' => '一般設定',
     'This is being overridden by the <code>pluginName</code> setting in <code>config/formie-rest-api.php</code>.' => 'この値は <code>config/formie-rest-api.php</code> の <code>pluginName</code> 設定により上書きされています。',
 
+    // Settings: Configuration warning
+    'COPIED' => 'コピー済み',
+    'COPY' => 'コピー',
+    'Configuration Required' => '設定が必要です',
+    'DDEV:' => 'DDEV :',
+    'Generate separate keys per environment — never copy production keys to staging or development.' => '環境ごとに別のキーを生成してください — 本番環境のキーをステージングや開発環境にコピーしないでください。',
+    'No API keys configured.' => 'API キーが設定されていません。',
+    'Run one of these commands in your terminal:' => 'ターミナルで以下のいずれかのコマンドを実行してください :',
+    'Standard:' => '標準 :',
+    'The plugin will reject every request until at least one key is set.' => '少なくとも 1 つのキーが設定されるまで、プラグインはすべてのリクエストを拒否します。',
+    'This will write {keys} and matching signing secrets to your {file} file.' => 'これにより {keys} および対応する署名シークレットが {file} ファイルに書き込まれます。',
+    'Warning:' => '警告 :',
+    'error' => 'エラー',
+
     // Test page
     'Test API' => 'API テスト',
     'Test API Endpoints' => 'API エンドポイントのテスト',

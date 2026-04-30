@@ -27,6 +27,20 @@ return [
     'General Settings' => 'Paramètres généraux',
     'This is being overridden by the <code>pluginName</code> setting in <code>config/formie-rest-api.php</code>.' => 'Cette valeur est remplacée par le paramètre <code>pluginName</code> dans <code>config/formie-rest-api.php</code>.',
 
+    // Settings: Configuration warning
+    'COPIED' => 'COPIÉ',
+    'COPY' => 'COPIER',
+    'Configuration Required' => 'Configuration requise',
+    'DDEV:' => 'DDEV :',
+    'Generate separate keys per environment — never copy production keys to staging or development.' => 'Générez des clés distinctes par environnement — ne copiez jamais les clés de production vers le staging ou le développement.',
+    'No API keys configured.' => 'Aucune clé API configurée.',
+    'Run one of these commands in your terminal:' => 'Exécutez l\'une de ces commandes dans votre terminal :',
+    'Standard:' => 'Standard :',
+    'The plugin will reject every request until at least one key is set.' => 'Le plugin rejettera toutes les requêtes tant qu\'au moins une clé n\'est pas définie.',
+    'This will write {keys} and matching signing secrets to your {file} file.' => 'Cela écrira {keys} et les secrets de signature correspondants dans votre fichier {file}.',
+    'Warning:' => 'Avertissement :',
+    'error' => 'erreur',
+
     // Test page
     'Test API' => 'Tester l\'API',
     'Test API Endpoints' => 'Tester les points de terminaison API',
