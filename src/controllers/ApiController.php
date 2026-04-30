@@ -434,20 +434,58 @@ class ApiController extends Controller
     }
 
     /**
-     * Get form pages
+     * Get form pages with per-page settings + conditions.
+     *
+     * Per-page settings come from `FieldLayoutPageSettings`. We expose only
+     * meaningful keys: button labels and visibility. Page-level conditions
+     * (whole-page show/hide) and next-button conditions are flattened to the
+     * same shape used by field conditions: `{ enabled, showRule, conditionRule, rules }`.
      */
     private function getFormPages(Form $form): array
     {
         $pages = [];
-        
+
         foreach ($form->getPages() as $page) {
             $pageData = [
                 'id' => $page->id,
                 'label' => $page->label,
                 'sortOrder' => $page->sortOrder,
-                'fields' => [],
             ];
-            
+
+            $pageSettings = $page->getPageSettings();
+            if ($pageSettings !== null) {
+                $settings = [];
+                foreach (['submitButtonLabel', 'backButtonLabel', 'saveButtonLabel'] as $k) {
+                    if (!empty($pageSettings->$k)) {
+                        $settings[$k] = $pageSettings->$k;
+                    }
+                }
+                if ($pageSettings->showBackButton) {
+                    $settings['showBackButton'] = true;
+                }
+                if ($pageSettings->showSaveButton) {
+                    $settings['showSaveButton'] = true;
+                }
+                if ($settings !== []) {
+                    $pageData['settings'] = $settings;
+                }
+
+                if ($pageSettings->enablePageConditions) {
+                    $flat = $this->flattenPageConditions($pageSettings->pageConditions);
+                    if ($flat !== null) {
+                        $pageData['conditions'] = $flat;
+                    }
+                }
+
+                if ($pageSettings->enableNextButtonConditions) {
+                    $flat = $this->flattenPageConditions($pageSettings->nextButtonConditions);
+                    if ($flat !== null) {
+                        $pageData['nextButtonConditions'] = $flat;
+                    }
+                }
+            }
+
+            $pageData['fields'] = [];
             foreach ($page->getFields() as $field) {
                 $pageData['fields'][] = [
                     'handle' => $field->handle,
@@ -455,10 +493,35 @@ class ApiController extends Controller
                     'type' => basename(str_replace('\\', '/', get_class($field))),
                 ];
             }
-            
+
             $pages[] = $pageData;
         }
-        
+
         return $pages;
+    }
+
+    /**
+     * Flatten Formie's nested `{ showRule, conditionRule, conditions: [...] }`
+     * page-condition shape into a single-level `{ enabled, showRule, conditionRule, rules }`.
+     *
+     * @param array<string, mixed>|null $conditions
+     * @return array<string, mixed>|null
+     */
+    private function flattenPageConditions(?array $conditions): ?array
+    {
+        if (!is_array($conditions) || $conditions === []) {
+            return null;
+        }
+        $flat = ['enabled' => true];
+        if (isset($conditions['showRule'])) {
+            $flat['showRule'] = $conditions['showRule'];
+        }
+        if (isset($conditions['conditionRule'])) {
+            $flat['conditionRule'] = $conditions['conditionRule'];
+        }
+        if (isset($conditions['conditions']) && is_array($conditions['conditions'])) {
+            $flat['rules'] = $conditions['conditions'];
+        }
+        return $flat;
     }
 }

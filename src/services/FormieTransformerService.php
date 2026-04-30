@@ -139,7 +139,8 @@ class FormieTransformerService extends Component
         $entry = [
             'appearance' => $this->buildFormSettingsGroup($settings, [
                 'displayFormTitle', 'displayCurrentPageTitle', 'displayPageTabs',
-                'displayPageProgress', 'scrollToTop',
+                'displayPageProgress', 'progressPosition', 'progressValuePosition',
+                'scrollToTop',
                 'defaultLabelPosition', 'defaultInstructionsPosition',
                 'requiredIndicator',
             ]),
@@ -163,6 +164,24 @@ class FormieTransformerService extends Component
             ) {
                 $entry['appearance'][$k] = $this->shortClassName($entry['appearance'][$k]);
             }
+        }
+
+        // Progress-bar position settings only matter when the progress bar is on
+        if (empty($entry['appearance']['displayPageProgress'])) {
+            unset(
+                $entry['appearance']['progressPosition'],
+                $entry['appearance']['progressValuePosition'],
+            );
+        }
+
+        // Form template (which Formie template the form renders with)
+        $template = $form->getTemplate();
+        if ($template !== null) {
+            $entry['template'] = array_filter([
+                'id' => $template->id,
+                'name' => $template->name,
+                'handle' => $template->handle,
+            ], static fn($v) => $v !== null && $v !== '');
         }
 
         // Render rich-text submit/error messages to HTML via Formie's own helpers
