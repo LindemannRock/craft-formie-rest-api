@@ -63,7 +63,16 @@ class FormieRestApi extends Plugin
         self::$plugin = $this;
 
         // Bootstrap the base plugin helper
-        PluginHelper::bootstrap($this, 'formieRestApiHelper');
+        PluginHelper::bootstrap($this, 'formieRestApiHelper', [], [], [
+            'installExperience' => [
+                'headline' => Craft::t('formie-rest-api', 'Formie REST API'),
+                'body' => Craft::t('formie-rest-api', 'Manage API keys, secure endpoints, and test Formie data responses from the plugin settings area.'),
+                'ctaLabel' => Craft::t('formie-rest-api', 'Open Formie REST API'),
+                'ctaUrl' => 'formie-rest-api/settings',
+                'redirectUri' => 'formie-rest-api/settings',
+                'confettiPreset' => 'surprise',
+            ],
+        ]);
 
         // Set the alias for this plugin
         Craft::setAlias('@lindemannrock/formierestapi', __DIR__);
