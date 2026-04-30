@@ -244,12 +244,14 @@ This is hardcoded — the API contract is "completed, non-spam form submissions"
 
 ### Versioning
 
-The plugin uses three independent version axes — they don't move together:
+The plugin uses two independent version axes — they don't move together:
 
 | Version | Tracks | Bumps when |
 |---|---|---|
 | Plugin (e.g. `3.3.0`) | This package's release | Every feature/fix. Plugin major aligns to the Formie major (Formie 3.x → plugin 3.x.x; Formie 4 → plugin 4.0.0) |
 | **API URL** (`/api/v1/`) | The wire-format contract consumers integrate against | Only on breaking contract changes (removed/renamed fields, changed semantics). Plugin major bumps do **not** automatically bump the API URL |
+
+**Branch strategy.** When Formie ships a new major, `main` tracks the new major (e.g. plugin 4.x for Formie 4), and the previous Formie major lives on a maintenance branch (e.g. `3.x`) for security and critical fixes during a deprecation window. The `/api/vN/` URL stays the same across these branches as long as the wire format is unchanged — so an integrator targeting `/api/v1/` keeps working whether the site is on plugin 3.x or 4.x.
 
 ### Production Endpoints
 
