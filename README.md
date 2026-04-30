@@ -33,6 +33,8 @@ The Formie REST API plugin provides:
 - **Access logging** for every request (partial key fingerprint, endpoint, IP, status)
 - **CLI key generator** (`ddev craft formie-rest-api/security/generate-key`)
 - **In-CP test page** for verifying keys, endpoints, and filters without leaving Craft
+- **Postman collection** (in [`postman/`](postman/)) with auto-HMAC pre-request script
+- **Translated CP UI** — 12 languages (EN, DE, FR, NL, ES, IT, PT, AR, JA, SV, DA, NO)
 
 ## Installation
 
@@ -287,8 +289,9 @@ curl -H "X-API-Key: your-api-key" \
 
 ## API Documentation
 
-- **[API_TEST_GUIDE.md](API_TEST_GUIDE.md)** - Complete REST API testing guide
-- **[.env.example](.env.example)** - Environment variable configuration
+- **[postman/](postman/)** — Postman collection + environment templates with auto-HMAC pre-request script
+- **[.env.example](.env.example)** — Environment variable configuration
+- **In-CP Test tab** — live API tester at *Settings → Plugins → Formie REST API → Test*
 
 ## API Key Permissions
 
@@ -347,9 +350,8 @@ A couple of Craft framework settings worth knowing about — the plugin doesn't 
 ## Plugin Settings
 
 Navigate to **Settings → Plugins → Formie REST API** for:
-- Plugin information
-- Available endpoints overview
-- Documentation links
+- **General** — plugin name (overridable via `config/formie-rest-api.php`)
+- **Test** — live API tester: pick a configured key, choose an endpoint, set optional filters (form handle, date range, limit/offset), and view the response status, headers, body, and the equivalent `curl` command. Available regardless of `devMode`; test endpoints (`/api/test/formie/*`) only resolve when `devMode = true`.
 
 ## Support
 
