@@ -8,6 +8,9 @@
 
 return [
     // Plugin meta
+    'Formie REST API' => 'Formie REST API',
+    'Manage API keys, secure endpoints, and test Formie data responses from the plugin settings area.' => 'Hantera API-nycklar, säkra slutpunkter och testa Formie-datasvar från pluginets inställningsområde.',
+    'Open Formie REST API' => 'Öppna Formie REST API',
     'Plugin Name' => 'Plugin-namn',
     'The public-facing name of the plugin' => 'Pluginets offentliga namn',
 
