@@ -5,12 +5,20 @@
 
 {% set crumbs = [
     {
-        label: 'Settings'|t('formie-rest-api'),
-        url: url('formie-rest-api/settings'),
+        label: 'Settings'|t('app'),
+        url: cpUrl('settings'),
+    },
+    {
+        label: 'Plugins'|t('app'),
+        url: cpUrl('settings/plugins'),
+    },
+    {
+        label: formieRestApiHelper.fullName|t('formie-rest-api'),
+        url: cpUrl('formie-rest-api/settings'),
     },
     {
         label: 'General'|t('formie-rest-api'),
-        url: url('formie-rest-api/settings/general'),
+        url: cpUrl('formie-rest-api/settings/general'),
     },
 ] %}
 
@@ -23,11 +31,11 @@
         {{ redirectInput('formie-rest-api/settings/general') }}
         {{ hiddenInput('section', 'general') }}
 
-        <h2 style="margin-top: 0px;">{{ 'General Settings'|t('formie-rest-api') }}</h2>
+        <h2 class="first">{{ 'General Settings'|t('formie-rest-api') }}</h2>
 
         {{ forms.textField({
             label: 'Plugin Name'|t('formie-rest-api'),
-            instructions: 'The public-facing name of the plugin'|t('formie-rest-api'),
+            instructions: 'The name of the plugin as it appears in the Control Panel menu'|t('formie-rest-api'),
             id: 'pluginName',
             name: 'settings[pluginName]',
             value: settings.pluginName,

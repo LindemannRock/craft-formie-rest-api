@@ -6,17 +6,25 @@
 
 {% set crumbs = [
     {
-        label: 'Settings'|t('formie-rest-api'),
-        url: url('formie-rest-api/settings'),
+        label: 'Settings'|t('app'),
+        url: cpUrl('settings'),
+    },
+    {
+        label: 'Plugins'|t('app'),
+        url: cpUrl('settings/plugins'),
+    },
+    {
+        label: formieRestApiHelper.fullName|t('formie-rest-api'),
+        url: cpUrl('formie-rest-api/settings'),
     },
     {
         label: 'Test'|t('formie-rest-api'),
-        url: url('formie-rest-api/settings/test'),
+        url: cpUrl('formie-rest-api/settings/test'),
     },
 ] %}
 
 {% block content %}
-    <h2 style="margin-top: 0;">{{ 'Test API Endpoints'|t('formie-rest-api') }}</h2>
+    <h2 class="first">{{ 'Test API Endpoints'|t('formie-rest-api') }}</h2>
     <p>{{ 'Send a request to the local API using one of the configured keys, and inspect the response.'|t('formie-rest-api') }}</p>
 
     {% if availableKeys|length == 0 %}
@@ -115,7 +123,7 @@
 
         <div id="testResults" style="display: none;">
             <div class="pane">
-                <h3 style="margin-top: 0;">{{ 'Result'|t('formie-rest-api') }}</h3>
+                <h3 class="first">{{ 'Result'|t('formie-rest-api') }}</h3>
                 <p>
                     <strong>{{ 'Status:'|t('formie-rest-api') }}</strong> <span id="resultStatus"></span>
                     <span class="light" style="margin-left: 16px;"><strong>{{ 'Time:'|t('formie-rest-api') }}</strong> <span id="resultTime"></span> ms</span>
