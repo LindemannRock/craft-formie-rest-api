@@ -176,8 +176,6 @@ class ApiKeyService extends Component
 
     /**
      * Read a signing-secret env var. Returns null if unset/empty.
-     *
-     * @since 3.4.0
      */
     private function resolveSigningSecret(string $envVar): ?string
     {
@@ -193,7 +191,6 @@ class ApiKeyService extends Component
      * Example value: `"203.0.113.5,192.168.1.0/24,2001:db8::/32"`
      *
      * @return array<int, string>
-     * @since 3.4.0
      */
     private function resolveIpWhitelist(string $envVar): array
     {

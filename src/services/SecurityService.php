@@ -42,8 +42,6 @@ class SecurityService extends Component
      * Check whether the request is within the rate-limit budget. Increments the
      * counter on success. Fails open (returns true) if the kill-switch env var
      * FORMIE_API_RATE_LIMIT_DISABLED=1 is set or if the cache backend errors.
-     *
-     * @since 3.4.0
      */
     public function checkRateLimit(string $apiKey, array $apiKeyData): bool
     {
@@ -83,8 +81,6 @@ class SecurityService extends Component
 
     /**
      * Get rate-limit response headers for the current window.
-     *
-     * @since 3.4.0
      */
     public function getRateLimitHeaders(string $apiKey, array $apiKeyData): array
     {
@@ -117,7 +113,6 @@ class SecurityService extends Component
      * client. See README → "IP whitelist".
      *
      * @param array<string, mixed> $apiKeyData
-     * @since 3.4.0
      */
     public function validateIpWhitelist(array $apiKeyData): bool
     {
@@ -237,7 +232,6 @@ class SecurityService extends Component
      * timestamp (> 5 min skew), or signature mismatch.
      *
      * @param array<string, mixed> $apiKeyData
-     * @since 3.4.0
      */
     public function validateRequestSignature(array $apiKeyData): bool
     {
