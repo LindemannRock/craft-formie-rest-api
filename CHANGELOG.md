@@ -1,5 +1,46 @@
 # Changelog
 
+## [3.4.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.3.0...v3.4.0) (2026-05-06)
+
+
+### Features
+
+* **api:** add date filter validation for query parameters ([753ccfe](https://github.com/LindemannRock/craft-formie-rest-api/commit/753ccfec4a87aa3c0c21c46ee4316f7af1b1de45))
+* **api:** add error message and visibility to form fields metadata ([fb15bf8](https://github.com/LindemannRock/craft-formie-rest-api/commit/fb15bf83ae66117ee142aeb3f90099e55e597be8))
+* **api:** add form-level metadata retrieval for detail endpoint ([cbbeb3e](https://github.com/LindemannRock/craft-formie-rest-api/commit/cbbeb3ee5d201779de9616b89fea61ecb85f42a5))
+* **api:** enforce API key permissions for form and submission actions ([65a5b35](https://github.com/LindemannRock/craft-formie-rest-api/commit/65a5b3555bddb7d5a63a575105eb886c59b109bf))
+* **api:** enforce HMAC signing for API key validation ([d6e7397](https://github.com/LindemannRock/craft-formie-rest-api/commit/d6e7397e85517b2c1220cf2358062014524052a8))
+* **api:** enhance form field processing with new value handling methods ([1e0bfc2](https://github.com/LindemannRock/craft-formie-rest-api/commit/1e0bfc2b6b0a6a7edb2e84e3fa4c17640dc786a3))
+* **api:** enhance form fields metadata with appearance and advanced settings ([2ed369e](https://github.com/LindemannRock/craft-formie-rest-api/commit/2ed369ebe5767197459bef3c2baf899316fe9d17))
+* **api:** enhance form pages with per-page settings and conditions ([792db43](https://github.com/LindemannRock/craft-formie-rest-api/commit/792db43ad1da70d925d3719d22b3b632f5a31884))
+* **api:** exclude incomplete and spam submissions from counts ([6328001](https://github.com/LindemannRock/craft-formie-rest-api/commit/6328001aaba2db6da336cbf3589bb48271ea5da1))
+* **api:** implement rate limiting and logging for API access ([7162c3d](https://github.com/LindemannRock/craft-formie-rest-api/commit/7162c3d03af6583289ae118894b5b60b4c895bf1))
+* **api:** optimize form and submission count queries ([92dd4df](https://github.com/LindemannRock/craft-formie-rest-api/commit/92dd4dfcecbae87c085b2f7ac6457f4677cffa3c))
+* **api:** optimize form submission count retrieval ([9fd09e2](https://github.com/LindemannRock/craft-formie-rest-api/commit/9fd09e23522d062e74c9ddf36b09bd4de0bd7f70))
+* **api:** optimize submission count retrieval with batch-fetching ([2b93ed7](https://github.com/LindemannRock/craft-formie-rest-api/commit/2b93ed7d8593cb0a046dba07d8852bafb10f45dd))
+* **api:** register test endpoints conditionally based on devMode ([c0bbec0](https://github.com/LindemannRock/craft-formie-rest-api/commit/c0bbec055aa779900293decb251e4c963cd0abea))
+* **api:** update API key generation method to use centralized service ([6c677a2](https://github.com/LindemannRock/craft-formie-rest-api/commit/6c677a2bfb1cde058bcf5c5321287c49f6b820cf))
+* **cli:** add SecurityController for API key generation ([3e1b15f](https://github.com/LindemannRock/craft-formie-rest-api/commit/3e1b15f7c2e62fee59182f75814da1a7a9a7b121))
+* **helper:** add installation experience configuration for API plugin ([f73d19b](https://github.com/LindemannRock/craft-formie-rest-api/commit/f73d19b30fb8186d6c59375f32fcc44afbcbbf0e))
+* **issue-templates:** add bug report, feature request, and question templates ([765448f](https://github.com/LindemannRock/craft-formie-rest-api/commit/765448f94216086d0b1ff03e856fd04455c35853))
+* **security:** implement HMAC signing for API key validation ([346426c](https://github.com/LindemannRock/craft-formie-rest-api/commit/346426c0d381df30494d51f2af936edfdde8ab68))
+* **security:** implement IP whitelist enforcement for API keys ([f3211da](https://github.com/LindemannRock/craft-formie-rest-api/commit/f3211da44bcb6edfdd347e6612899bfafab1e03a))
+* **SecurityService:** implement mutex for rate-limit checks ([5278c1a](https://github.com/LindemannRock/craft-formie-rest-api/commit/5278c1a80adb22416d851dd503330c81feea929b))
+* **settings:** add missing keys warning and validation summary to settings layout ([0cae9c6](https://github.com/LindemannRock/craft-formie-rest-api/commit/0cae9c61868c85ddf9d4dd6042855c4943cb8dc5))
+* **settings:** add settings controller and templates for general and test settings ([ee3dd8f](https://github.com/LindemannRock/craft-formie-rest-api/commit/ee3dd8f46880b81cf73e6b23d0abf1fbc4f7ffdb))
+* **transformer:** add FormieTransformerService for field processing and submission transformation ([9c5b2a4](https://github.com/LindemannRock/craft-formie-rest-api/commit/9c5b2a4fa090344d6f7ef812b62e4bb45d80bba4))
+* **translations:** add configuration warning messages in multiple languages ([7448687](https://github.com/LindemannRock/craft-formie-rest-api/commit/74486870720577f1cc3442ef442d79c96ff94816))
+* **translations:** add new translation files for multiple languages ([d884b61](https://github.com/LindemannRock/craft-formie-rest-api/commit/d884b61d4a8c33e4cb4c24535f6c7b29a0c4324e))
+* **translations:** add new translations for Formie REST API strings in multiple languages ([7471a83](https://github.com/LindemannRock/craft-formie-rest-api/commit/7471a8347997219c1a80fce2712bd9ab6562ace2))
+* **translations:** update plugin name descriptions in multiple languages ([278c13a](https://github.com/LindemannRock/craft-formie-rest-api/commit/278c13a78c4464882fa5e9676a294e015e7565c4))
+
+
+### Bug Fixes
+
+* **api:** cast count results to integer for accurate pagination ([65d3d8d](https://github.com/LindemannRock/craft-formie-rest-api/commit/65d3d8df1c893b26fd36106e929d7f0ec113516c))
+* drop PAT requirement for release-please — use built-in GITHUB_TOKEN ([29ba64a](https://github.com/LindemannRock/craft-formie-rest-api/commit/29ba64aa896c07a57f00e5d76f401acfbdaff29f))
+* **translations:** correct Danish, Spanish, Norwegian, and Swedish plugin name translations ([a7bfa63](https://github.com/LindemannRock/craft-formie-rest-api/commit/a7bfa63bd9befba480910bb0b94d47d044a6fe6d))
+
 ## [3.3.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.2...v3.3.0) (2026-04-02)
 
 
