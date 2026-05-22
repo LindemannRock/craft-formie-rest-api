@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.5.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.4.0...v3.5.0) (2026-05-22)
+
+
+### Added
+
+* add pre-commit hook for ECS and PHPStan code quality checks ([ce387f6](https://github.com/LindemannRock/craft-formie-rest-api/commit/ce387f6ed72def1b4d76d463e69bfae5e33ac0eb))
+* **i18n:** add translation issue template for reporting language problems ([08bca20](https://github.com/LindemannRock/craft-formie-rest-api/commit/08bca2036ffede85151a62d59f4daa12919f5d9a))
+* **tests:** add integration tests for API key and security services ([528ca50](https://github.com/LindemannRock/craft-formie-rest-api/commit/528ca50712f79dccefe228554619ead4bf1cbd8c))
+
+
+### Fixed
+
+* correct phpstan include path in configuration ([eab62cb](https://github.com/LindemannRock/craft-formie-rest-api/commit/eab62cb10ebe11d2799a5dd93200952290eca07d))
+
 ## [3.4.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.3.0...v3.4.0) (2026-05-06)
 
 
