@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.5.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.4.0...v3.5.0) (2026-05-22)
+## [3.5.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.4.0...v3.5.0) - 2026-05-22
 
 
 ### Added
@@ -14,7 +14,7 @@
 
 * correct phpstan include path in configuration ([eab62cb](https://github.com/LindemannRock/craft-formie-rest-api/commit/eab62cb10ebe11d2799a5dd93200952290eca07d))
 
-## [3.4.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.3.0...v3.4.0) (2026-05-06)
+## [3.4.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.3.0...v3.4.0) - 2026-05-06
 
 
 ### Features
@@ -55,14 +55,14 @@
 * drop PAT requirement for release-please — use built-in GITHUB_TOKEN ([29ba64a](https://github.com/LindemannRock/craft-formie-rest-api/commit/29ba64aa896c07a57f00e5d76f401acfbdaff29f))
 * **translations:** correct Danish, Spanish, Norwegian, and Swedish plugin name translations ([a7bfa63](https://github.com/LindemannRock/craft-formie-rest-api/commit/a7bfa63bd9befba480910bb0b94d47d044a6fe6d))
 
-## [3.3.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.2...v3.3.0) (2026-04-02)
+## [3.3.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.2...v3.3.0) - 2026-04-02
 
 
 ### Features
 
 * **svg:** add new icon mask SVG file and replace existing icon ([c20e01c](https://github.com/LindemannRock/craft-formie-rest-api/commit/c20e01ced74ffb6729567da259bdca299c8e4b22))
 
-## [3.2.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.1...v3.2.2) (2026-03-04)
+## [3.2.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.1...v3.2.2) - 2026-03-04
 
 
 ### Bug Fixes
@@ -76,14 +76,14 @@
 * add .gitattributes with export-ignore for Packagist distribution ([17a84bc](https://github.com/LindemannRock/craft-formie-rest-api/commit/17a84bc9801833881355270d35c0964bef58e3de))
 * switch to Craft License for commercial release ([0359a81](https://github.com/LindemannRock/craft-formie-rest-api/commit/0359a81d6c3b6fbd672f7109ac57ceebfde245ec))
 
-## [3.2.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.0...v3.2.1) (2026-02-07)
+## [3.2.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.2.0...v3.2.1) - 2026-02-07
 
 
 ### Miscellaneous Chores
 
 * release 3.2.1 ([db79319](https://github.com/LindemannRock/craft-formie-rest-api/commit/db79319857f8eb7f311d325e1ca289cc728de222))
 
-## [3.2.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.1.0...v3.2.0) (2026-01-11)
+## [3.2.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.1.0...v3.2.0) - 2026-01-11
 
 
 ### Features
@@ -100,7 +100,7 @@
 
 * update composer.json to include ECS in require-dev section ([af26f85](https://github.com/LindemannRock/craft-formie-rest-api/commit/af26f85c8f13e691e4fb929d29d34e385c1ff5ad))
 
-## [3.1.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.3...v3.1.0) (2025-12-04)
+## [3.1.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.3...v3.1.0) - 2025-12-04
 
 
 ### Features
@@ -112,63 +112,63 @@
 
 * improve documentation for plugin properties and ensure newline at end of file ([17d5144](https://github.com/LindemannRock/craft-formie-rest-api/commit/17d51446eb8e907fd1b53b2fc4aadd4e7da384cb))
 
-## [3.0.3](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.2...v3.0.3) (2025-11-01)
+## [3.0.3](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.2...v3.0.3) - 2025-11-01
 
 
 ### Bug Fixes
 
 * update validation method names for consistency and improve formatting in settings ([4a47057](https://github.com/LindemannRock/craft-formie-rest-api/commit/4a47057496ab2a8034404e6e2a0942ef826ae5c4))
 
-## [3.0.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.1...v3.0.2) (2025-10-27)
+## [3.0.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.1...v3.0.2) - 2025-10-27
 
 
 ### Miscellaneous Chores
 
 * update .gitignore ([31e2ba7](https://github.com/LindemannRock/craft-formie-rest-api/commit/31e2ba71da69222f32d7607f3b50c61f72474a46))
 
-## [3.0.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.0...v3.0.1) (2025-10-20)
+## [3.0.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.0.0...v3.0.1) - 2025-10-20
 
 
 ### Miscellaneous Chores
 
 * update README with additional badges ([434ffe7](https://github.com/LindemannRock/craft-formie-rest-api/commit/434ffe7a09ece1c2926b12ea77ca9482e111c172))
 
-## [3.0.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.4...v3.0.0) (2025-10-20)
+## [3.0.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.4...v3.0.0) - 2025-10-20
 
 
 ### Miscellaneous Chores
 
 * bump version scheme to match Formie 3 ([c531f2f](https://github.com/LindemannRock/craft-formie-rest-api/commit/c531f2fb4ad778f7df832db681a6e91a4fe4b68c))
 
-## [1.0.4](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.3...v1.0.4) (2025-10-16)
+## [1.0.4](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.3...v1.0.4) - 2025-10-16
 
 
 ### Bug Fixes
 
 * update installation instructions for Composer and DDEV ([3256296](https://github.com/LindemannRock/craft-formie-rest-api/commit/32562968f738a1f03f5e5d42d97e81e60961d452))
 
-## [1.0.3](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.2...v1.0.3) (2025-10-16)
+## [1.0.3](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.2...v1.0.3) - 2025-10-16
 
 
 ### Bug Fixes
 
 * change license from proprietary to MIT in composer.json ([0d62507](https://github.com/LindemannRock/craft-formie-rest-api/commit/0d62507f223cced4b6e4769b10dcdc8fa34374d7))
 
-## [1.0.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.1...v1.0.2) (2025-10-16)
+## [1.0.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.1...v1.0.2) - 2025-10-16
 
 
 ### Bug Fixes
 
 * update author details and add RSS feed link in composer.json ([78d5a0c](https://github.com/LindemannRock/craft-formie-rest-api/commit/78d5a0cc74d5eab472f546cb9571d050b292d906))
 
-## [1.0.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.0...v1.0.1) (2025-09-24)
+## [1.0.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v1.0.0...v1.0.1) - 2025-09-24
 
 
 ### Bug Fixes
 
 * update repository references and improve .gitignore structure ([9abb42f](https://github.com/LindemannRock/craft-formie-rest-api/commit/9abb42f6945a1bcda1f2a4cb5949ed3d2f27903e))
 
-## 1.0.0 (2025-09-15)
+## 1.0.0 - 2025-09-15
 
 
 ### Features
