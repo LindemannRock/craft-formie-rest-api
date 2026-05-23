@@ -1,7 +1,7 @@
 {% extends "formie-rest-api/_layouts/settings" %}
-{% set title = 'General Settings'|t('formie-rest-api') %}
+{% set title = 'Interface Settings'|t('formie-rest-api') %}
 {% set fullPageForm = true %}
-{% set selectedSettingsItem = 'general' %}
+{% set selectedSettingsItem = 'interface' %}
 
 {% set crumbs = [
     {
@@ -17,21 +17,22 @@
         url: cpUrl('formie-rest-api/settings'),
     },
     {
-        label: 'General'|t('formie-rest-api'),
-        url: cpUrl('formie-rest-api/settings/general'),
+        label: 'Interface'|t('formie-rest-api'),
+        url: cpUrl('formie-rest-api/settings/interface'),
     },
 ] %}
 
 {% block content %}
     {{ actionInput('formie-rest-api/settings/save') }}
-    {{ redirectInput('formie-rest-api/settings/general') }}
-    {{ hiddenInput('section', 'general') }}
+    {{ redirectInput('formie-rest-api/settings/interface') }}
+    {{ hiddenInput('section', 'interface') }}
 
-        <h2 class="first">{{ 'General Settings'|t('formie-rest-api') }}</h2>
-
-        {% include 'lindemannrock-base/_partials/field-plugin-name' with {
+        {% include 'lindemannrock-base/_partials/cascade-base-overrides' with {
             settings: settings,
             pluginHandle: 'formie-rest-api',
+            sections: {
+                dateFormat: {},
+            },
         } only %}
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
