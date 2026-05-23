@@ -51,6 +51,16 @@ class SettingsController extends Controller
     }
 
     /**
+     * Interface settings page.
+     */
+    public function actionInterface(): Response
+    {
+        return $this->renderTemplate('formie-rest-api/settings/interface', [
+            'settings' => FormieRestApi::$plugin->getSettings(),
+        ]);
+    }
+
+    /**
      * Test page.
      */
     public function actionTest(): Response
@@ -141,6 +151,17 @@ class SettingsController extends Controller
 
         foreach ($posted as $key => $value) {
             if (property_exists($settings, $key) && !$settings->isOverriddenByConfig($key)) {
+                // Multi-state selects (e.g. "Use global default" = '') need '' → null
+                // so nullable cascade properties — and the project-config YAML — hold
+                // null rather than a coerced ''. Coercing on the model first; `toArray()`
+                // below carries the null into the persisted payload.
+                if ($value === '') {
+                    $type = (new \ReflectionProperty($settings, $key))->getType();
+                    if ($type instanceof \ReflectionNamedType && $type->allowsNull()) {
+                        $value = null;
+                    }
+                }
+
                 $settings->$key = $value;
             }
         }
