@@ -11,9 +11,6 @@ return [
     'Formie REST API' => 'Formie REST API',
     'Manage API keys, secure endpoints, and test Formie data responses from the plugin settings area.' => 'Gérez les clés API, sécurisez les points de terminaison et testez les réponses de données Formie depuis la zone des paramètres du plugin.',
     'Open Formie REST API' => 'Ouvrir Formie REST API',
-    'Plugin Name' => 'Nom du plugin',
-    'The name of the plugin as it appears in the Control Panel menu' => 'Le nom du plugin tel qu\'il apparaît dans le menu du panneau de contrôle',
-
     // Navigation
     'Settings' => 'Paramètres',
     'General' => 'Général',
