@@ -119,6 +119,7 @@ class FormieRestApi extends Plugin
             function(RegisterUrlRulesEvent $event) {
                 $event->rules['formie-rest-api/settings'] = 'formie-rest-api/settings/index';
                 $event->rules['formie-rest-api/settings/general'] = 'formie-rest-api/settings/general';
+                $event->rules['formie-rest-api/settings/interface'] = 'formie-rest-api/settings/interface';
                 $event->rules['formie-rest-api/settings/test'] = 'formie-rest-api/settings/test';
                 $event->rules['formie-rest-api/settings/run-test'] = 'formie-rest-api/settings/run-test';
                 $event->rules['formie-rest-api/settings/save'] = 'formie-rest-api/settings/save';
