@@ -21,7 +21,7 @@ return [
 
     // Controller messages
     "Couldn't save settings." => 'No se pudieron guardar los ajustes.',
-    'Settings saved.' => 'Ajustes guardados.',
+    'Settings saved.' => 'Configuración guardada.',
 
     // Settings: General
     'General Settings' => 'Ajustes generales',

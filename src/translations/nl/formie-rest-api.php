@@ -20,7 +20,7 @@ return [
     'Manage settings' => 'Instellingen beheren',
 
     // Controller messages
-    "Couldn't save settings." => 'Kon instellingen niet opslaan.',
+    "Couldn't save settings." => 'Instellingen konden niet worden opgeslagen.',
     'Settings saved.' => 'Instellingen opgeslagen.',
 
     // Settings: General
