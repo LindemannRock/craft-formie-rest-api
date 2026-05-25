@@ -13,6 +13,7 @@ return [
     'Open Formie REST API' => 'Formie REST API を開く',
     // Navigation
     'Settings' => '設定',
+    'Plugins' => 'プラグイン',
     'General' => '一般',
     'Test' => 'テスト',
 

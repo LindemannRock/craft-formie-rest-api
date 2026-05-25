@@ -13,6 +13,7 @@ return [
     'Open Formie REST API' => 'فتح Formie REST API',
     // Navigation
     'Settings' => 'الإعدادات',
+    'Plugins' => 'الإضافات',
     'General' => 'عام',
     'Test' => 'اختبار',
 
