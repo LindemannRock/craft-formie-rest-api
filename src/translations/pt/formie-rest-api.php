@@ -26,7 +26,6 @@ return [
 
     // Settings: General
     'General Settings' => 'Definições gerais',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/formie-rest-api.php</code>.' => 'Este valor está a ser substituído pela definição <code>pluginName</code> em <code>config/formie-rest-api.php</code>.',
 
     // Settings: Configuration warning
     'COPIED' => 'COPIADO',

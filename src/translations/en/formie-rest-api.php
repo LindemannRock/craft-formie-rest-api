@@ -26,7 +26,6 @@ return [
 
     // Settings: General
     'General Settings' => 'General Settings',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/formie-rest-api.php</code>.' => 'This is being overridden by the <code>pluginName</code> setting in <code>config/formie-rest-api.php</code>.',
 
     // Settings: Configuration warning
     'COPIED' => 'COPIED',
