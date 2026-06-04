@@ -92,6 +92,17 @@ Use **different values per environment** (local, staging, production). Never sha
 A console command generates secure keys and (optionally) writes them to `.env`:
 
 ```bash
+# See available Formie REST API console commands
+ddev craft formie-rest-api/help
+
+# Focused help for the key generator
+ddev craft formie-rest-api/help security/generate-key
+
+# Native Craft/Yii signature help
+ddev craft help formie-rest-api/security/generate-key
+```
+
+```bash
 # Local
 ddev craft formie-rest-api/security/generate-key
 
