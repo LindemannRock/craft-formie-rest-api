@@ -364,7 +364,10 @@ A couple of Craft framework settings worth knowing about — the plugin doesn't 
 
 Navigate to **Settings → Plugins → Formie REST API** for:
 - **General** — plugin name (overridable via `config/formie-rest-api.php`)
+- **Interface** — date/time display preferences inherited from LindemannRock Base.
 - **Test** — live API tester: pick a configured key, choose an endpoint, set optional filters (form handle, date range, limit/offset), and view the response status, headers, body, and the equivalent `curl` command. Available regardless of `devMode`; test endpoints (`/api/test/formie/*`) only resolve when `devMode = true`.
+
+Control Panel settings are validated and saved by active section.
 
 ## Support
 

@@ -12,6 +12,7 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 use craft\web\Controller;
+use lindemannrock\base\helpers\SettingsPostHelper;
 use lindemannrock\formierestapi\FormieRestApi;
 use yii\web\Response;
 
@@ -148,31 +149,56 @@ class SettingsController extends Controller
         $plugin = FormieRestApi::$plugin;
         $posted = Craft::$app->getRequest()->getBodyParam('settings', []);
         $settings = $plugin->getSettings();
+        $section = $this->validSection((string) Craft::$app->getRequest()->getBodyParam('section', 'general'));
 
-        foreach ($posted as $key => $value) {
-            if (property_exists($settings, $key) && !$settings->isOverriddenByConfig($key)) {
-                // Multi-state selects (e.g. "Use global default" = '') need '' → null
-                // so nullable cascade properties — and the project-config YAML — hold
-                // null rather than a coerced ''. Coercing on the model first; `toArray()`
-                // below carries the null into the persisted payload.
-                if ($value === '') {
-                    $type = (new \ReflectionProperty($settings, $key))->getType();
-                    if ($type instanceof \ReflectionNamedType && $type->allowsNull()) {
-                        $value = null;
-                    }
-                }
+        $sectionAttributes = $this->validationAttributesForSection($section);
+        $result = SettingsPostHelper::apply(
+            model: $settings,
+            postedValues: is_array($posted) ? $posted : [],
+            allowedAttributes: $sectionAttributes,
+            isOverridden: fn(string $attribute): bool => $settings->isOverriddenByConfig($attribute),
+        );
+        $attributesToValidate = $result->attributesToValidate;
+        $settingsPayload = array_intersect_key($settings->getAttributes($result->assignedAttributes), array_flip($attributesToValidate));
 
-                $settings->$key = $value;
-            }
+        if ($result->hasErrors || !$settings->validate($attributesToValidate)) {
+            Craft::$app->getSession()->setError(Craft::t('formie-rest-api', 'Couldn\'t save settings.'));
+            return $this->renderTemplate("formie-rest-api/settings/{$section}", ['settings' => $settings]);
         }
 
-        if (!Craft::$app->getPlugins()->savePluginSettings($plugin, $settings->toArray())) {
+        if (!Craft::$app->getPlugins()->savePluginSettings($plugin, $settingsPayload)) {
             Craft::$app->getSession()->setError(Craft::t('formie-rest-api', 'Couldn\'t save settings.'));
-            return $this->renderTemplate('formie-rest-api/settings/general', ['settings' => $settings]);
+            return $this->renderTemplate("formie-rest-api/settings/{$section}", ['settings' => $settings]);
         }
 
         Craft::$app->getSession()->setNotice(Craft::t('formie-rest-api', 'Settings saved.'));
         return $this->redirectToPostedUrl();
+    }
+
+    private function validSection(string $section): string
+    {
+        $allowed = ['general', 'interface', 'test'];
+        return in_array($section, $allowed, true) ? $section : 'general';
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function validationAttributesForSection(string $section): array
+    {
+        return match ($section) {
+            'general' => [
+                'pluginName',
+            ],
+            'interface' => [
+                'timeFormat',
+                'monthFormat',
+                'dateOrder',
+                'dateSeparator',
+                'showSeconds',
+            ],
+            default => [],
+        };
     }
 
     /**
