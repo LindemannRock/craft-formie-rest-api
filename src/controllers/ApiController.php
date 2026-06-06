@@ -357,7 +357,11 @@ class ApiController extends Controller
         $this->requireApiPermission('read_submissions');
 
         /** @var \verbb\formie\elements\Submission|null $submission */
-        $submission = Submission::find()->id($submissionId)->one();
+        $submission = Submission::find()
+            ->id($submissionId)
+            ->isIncomplete(false)
+            ->isSpam(false)
+            ->one();
 
         if (!$submission) {
             throw new NotFoundHttpException("Submission with ID {$submissionId} not found");
