@@ -30,7 +30,7 @@
     {% if availableKeys|length == 0 %}
         {% include 'lindemannrock-base/_components/info-box' with {
             type: 'warning',
-            message: 'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or use <code>ddev craft formie-rest-api/security/generate-key</code>.'|t('formie-rest-api')|raw,
+            message: 'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).'|t('formie-rest-api')|raw,
         } %}
     {% else %}
         <div class="pane" style="margin-bottom: 24px;">
@@ -168,7 +168,7 @@ updateFields();
 
 testButton.addEventListener('click', async () => {
     testButton.disabled = true;
-    testStatus.textContent = 'Running…';
+    testStatus.textContent = {{ 'Running…'|t('formie-rest-api')|json_encode|raw }};
     testResults.style.display = 'none';
 
     const payload = {
@@ -199,7 +199,8 @@ testButton.addEventListener('click', async () => {
         testResults.style.display = 'block';
         testStatus.textContent = '';
     } catch (e) {
-        testStatus.textContent = 'Error: ' + (e.response?.data?.error || e.message || 'Unknown');
+        const detail = e.response?.data?.error || e.message || {{ 'Unknown error'|t('formie-rest-api')|json_encode|raw }};
+        testStatus.textContent = {{ 'Error:'|t('formie-rest-api')|json_encode|raw }} + ' ' + detail;
         testStatus.style.color = 'red';
     } finally {
         testButton.disabled = false;
