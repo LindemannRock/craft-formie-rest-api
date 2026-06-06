@@ -557,8 +557,8 @@ class FormieTransformerService extends Component
 
         // Rating-field-specific metadata (when the LindemannRock rating-field plugin is installed)
         if ($fieldType === 'Rating' && get_class($field) === 'lindemannrock\formieratingfield\fields\Rating') {
-            $entry['minValue'] = (string) $field->minValue;
-            $entry['maxValue'] = (string) $field->maxValue;
+            $entry['minValue'] = $field->minValue === null ? null : (int) $field->minValue;
+            $entry['maxValue'] = $field->maxValue === null ? null : (int) $field->maxValue;
             $entry['ratingType'] = $field->ratingType;
         }
 
