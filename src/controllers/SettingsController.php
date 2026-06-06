@@ -87,7 +87,7 @@ class SettingsController extends Controller
 
         $apiKey = $this->resolveKey($keyChoice);
         if ($apiKey === null) {
-            return $this->asJson(['error' => 'Selected API key is not configured.']);
+            return $this->asJson(['error' => Craft::t('formie-rest-api', 'Selected API key is not configured.')]);
         }
 
         [$path, $query] = $this->buildEndpoint($endpoint, $request);
