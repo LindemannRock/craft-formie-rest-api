@@ -25,7 +25,10 @@ final class HelpController extends AbstractHelpController
         return [
             'title' => 'Formie REST API',
             'pluginHandle' => 'formie-rest-api',
-            'commandPrefix' => 'ddev craft',
+            'commandPrefixes' => [
+                'php craft',
+                'ddev craft',
+            ],
             'summary' => 'Use these commands to generate API keys and optional paired HMAC signing secrets for Formie REST API consumers.',
             'common' => [
                 'security/generate-key',
