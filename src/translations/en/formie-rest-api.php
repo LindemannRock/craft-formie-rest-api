@@ -15,6 +15,7 @@ return [
     'Settings' => 'Settings',
     'Plugins' => 'Plugins',
     'General' => 'General',
+    'Interface' => 'Interface',
     'Test' => 'Test',
 
     // Permissions
@@ -26,6 +27,9 @@ return [
 
     // Settings: General
     'General Settings' => 'General Settings',
+
+    // Settings: Interface
+    'Interface Settings' => 'Interface Settings',
 
     // Settings: Configuration warning
     'COPIED' => 'COPIED',

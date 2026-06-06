@@ -15,6 +15,7 @@ return [
     'Settings' => 'Instellingen',
     'Plugins' => 'Plugins',
     'General' => 'Algemeen',
+    'Interface' => 'Interface',
     'Test' => 'Test',
 
     // Permissions
@@ -26,6 +27,9 @@ return [
 
     // Settings: General
     'General Settings' => 'Algemene instellingen',
+
+    // Settings: Interface
+    'Interface Settings' => 'Interface-instellingen',
 
     // Settings: Configuration warning
     'COPIED' => 'GEKOPIEERD',

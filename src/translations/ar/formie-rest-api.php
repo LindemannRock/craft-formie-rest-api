@@ -15,6 +15,7 @@ return [
     'Settings' => 'الإعدادات',
     'Plugins' => 'الإضافات',
     'General' => 'عام',
+    'Interface' => 'الواجهة',
     'Test' => 'اختبار',
 
     // Permissions
@@ -26,6 +27,9 @@ return [
 
     // Settings: General
     'General Settings' => 'الإعدادات العامة',
+
+    // Settings: Interface
+    'Interface Settings' => 'إعدادات الواجهة',
 
     // Settings: Configuration warning
     'COPIED' => 'تم النسخ',

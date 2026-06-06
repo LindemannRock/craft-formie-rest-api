@@ -15,6 +15,7 @@ return [
     'Settings' => 'Einstellungen',
     'Plugins' => 'Plugins',
     'General' => 'Allgemein',
+    'Interface' => 'Oberfläche',
     'Test' => 'Test',
 
     // Permissions
@@ -26,6 +27,9 @@ return [
 
     // Settings: General
     'General Settings' => 'Allgemeine Einstellungen',
+
+    // Settings: Interface
+    'Interface Settings' => 'Oberflächen-Einstellungen',
 
     // Settings: Configuration warning
     'COPIED' => 'KOPIERT',
