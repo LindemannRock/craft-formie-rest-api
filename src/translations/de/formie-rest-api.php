@@ -24,6 +24,7 @@ return [
     // Controller messages
     "Couldn't save settings." => 'Einstellungen konnten nicht gespeichert werden.',
     'Settings saved.' => 'Einstellungen gespeichert.',
+    'Selected API key is not configured.' => 'Der ausgewählte API-Schlüssel ist nicht konfiguriert.',
 
     // Settings: General
     'General Settings' => 'Allgemeine Einstellungen',
@@ -49,7 +50,7 @@ return [
     'Test API' => 'API testen',
     'Test API Endpoints' => 'API-Endpunkte testen',
     'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Sendet eine Anfrage an die lokale API mit einem der konfigurierten Schlüssel und zeigt die Antwort an.',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or use <code>ddev craft formie-rest-api/security/generate-key</code>.' => 'Keine API-Schlüssel konfiguriert. Setzen Sie FORMIE_API_KEY (und optional FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in Ihrer .env-Datei oder verwenden Sie <code>ddev craft formie-rest-api/security/generate-key</code>.',
+    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'Keine API-Schlüssel konfiguriert. Setzen Sie FORMIE_API_KEY (und optional FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in Ihrer .env-Datei oder führen Sie <code>php craft formie-rest-api/security/generate-key</code> aus (mit DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'API-Schlüssel',
     'Which configured key to send.' => 'Welcher konfigurierte Schlüssel gesendet werden soll.',
     'Endpoint' => 'Endpunkt',
@@ -71,4 +72,7 @@ return [
     'Equivalent curl' => 'Äquivalenter curl-Befehl',
     'Response headers' => 'Antwort-Header',
     'Response body' => 'Antwort-Body',
+    'Running…' => 'Wird ausgeführt…',
+    'Error:' => 'Fehler:',
+    'Unknown error' => 'Unbekannter Fehler',
 ];

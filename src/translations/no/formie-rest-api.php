@@ -24,6 +24,7 @@ return [
     // Controller messages
     "Couldn't save settings." => 'Innstillingene kunne ikke lagres.',
     'Settings saved.' => 'Innstillinger lagret.',
+    'Selected API key is not configured.' => 'Den valgte API-nøkkelen er ikke konfigurert.',
 
     // Settings: General
     'General Settings' => 'Generelle innstillinger',
@@ -49,7 +50,7 @@ return [
     'Test API' => 'Test API',
     'Test API Endpoints' => 'Test API-endepunkter',
     'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Send en forespørsel til det lokale API-et med en av de konfigurerte nøklene, og se på svaret.',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or use <code>ddev craft formie-rest-api/security/generate-key</code>.' => 'Ingen API-nøkler konfigurert. Angi FORMIE_API_KEY (og eventuelt FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) i .env-filen din, eller bruk <code>ddev craft formie-rest-api/security/generate-key</code>.',
+    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'Ingen API-nøkler konfigurert. Angi FORMIE_API_KEY (og eventuelt FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) i .env-filen din, eller kjør <code>php craft formie-rest-api/security/generate-key</code> (med DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'API-nøkkel',
     'Which configured key to send.' => 'Hvilken konfigurert nøkkel som skal sendes.',
     'Endpoint' => 'Endepunkt',
@@ -71,4 +72,7 @@ return [
     'Equivalent curl' => 'Tilsvarende curl-kommando',
     'Response headers' => 'Svar-headere',
     'Response body' => 'Svar-body',
+    'Running…' => 'Kjører…',
+    'Error:' => 'Feil:',
+    'Unknown error' => 'Ukjent feil',
 ];

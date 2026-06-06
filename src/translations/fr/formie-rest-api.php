@@ -24,6 +24,7 @@ return [
     // Controller messages
     "Couldn't save settings." => 'Impossible d\'enregistrer les paramètres.',
     'Settings saved.' => 'Paramètres enregistrés.',
+    'Selected API key is not configured.' => 'La clé API sélectionnée n\'est pas configurée.',
 
     // Settings: General
     'General Settings' => 'Paramètres généraux',
@@ -49,7 +50,7 @@ return [
     'Test API' => 'Tester l\'API',
     'Test API Endpoints' => 'Tester les points de terminaison API',
     'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Envoyez une requête à l\'API locale avec l\'une des clés configurées et examinez la réponse.',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or use <code>ddev craft formie-rest-api/security/generate-key</code>.' => 'Aucune clé API configurée. Définissez FORMIE_API_KEY (et éventuellement FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) dans votre fichier .env, ou utilisez <code>ddev craft formie-rest-api/security/generate-key</code>.',
+    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'Aucune clé API configurée. Définissez FORMIE_API_KEY (et éventuellement FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) dans votre fichier .env, ou exécutez <code>php craft formie-rest-api/security/generate-key</code> (avec DDEV : <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'Clé API',
     'Which configured key to send.' => 'Quelle clé configurée envoyer.',
     'Endpoint' => 'Point de terminaison',
@@ -71,4 +72,7 @@ return [
     'Equivalent curl' => 'Commande curl équivalente',
     'Response headers' => 'En-têtes de réponse',
     'Response body' => 'Corps de la réponse',
+    'Running…' => 'Exécution en cours…',
+    'Error:' => 'Erreur :',
+    'Unknown error' => 'Erreur inconnue',
 ];

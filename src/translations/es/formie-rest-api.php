@@ -24,6 +24,7 @@ return [
     // Controller messages
     "Couldn't save settings." => 'No se pudieron guardar los ajustes.',
     'Settings saved.' => 'Configuración guardada.',
+    'Selected API key is not configured.' => 'La clave API seleccionada no está configurada.',
 
     // Settings: General
     'General Settings' => 'Ajustes generales',
@@ -49,7 +50,7 @@ return [
     'Test API' => 'Probar API',
     'Test API Endpoints' => 'Probar endpoints de la API',
     'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Envíe una solicitud a la API local con una de las claves configuradas y revise la respuesta.',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or use <code>ddev craft formie-rest-api/security/generate-key</code>.' => 'No hay claves API configuradas. Defina FORMIE_API_KEY (y opcionalmente FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) en su archivo .env, o utilice <code>ddev craft formie-rest-api/security/generate-key</code>.',
+    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'No hay claves API configuradas. Defina FORMIE_API_KEY (y opcionalmente FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) en su archivo .env, o ejecute <code>php craft formie-rest-api/security/generate-key</code> (con DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'Clave API',
     'Which configured key to send.' => 'Qué clave configurada enviar.',
     'Endpoint' => 'Endpoint',
@@ -71,4 +72,7 @@ return [
     'Equivalent curl' => 'Comando curl equivalente',
     'Response headers' => 'Cabeceras de respuesta',
     'Response body' => 'Cuerpo de la respuesta',
+    'Running…' => 'Ejecutando…',
+    'Error:' => 'Error:',
+    'Unknown error' => 'Error desconocido',
 ];

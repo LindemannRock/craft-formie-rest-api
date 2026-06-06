@@ -24,6 +24,7 @@ return [
     // Controller messages
     "Couldn't save settings." => 'Impossibile salvare le impostazioni.',
     'Settings saved.' => 'Impostazioni salvate.',
+    'Selected API key is not configured.' => 'La chiave API selezionata non è configurata.',
 
     // Settings: General
     'General Settings' => 'Impostazioni generali',
@@ -49,7 +50,7 @@ return [
     'Test API' => 'Testa API',
     'Test API Endpoints' => 'Testa endpoint API',
     'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Invia una richiesta all\'API locale utilizzando una delle chiavi configurate ed esamina la risposta.',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or use <code>ddev craft formie-rest-api/security/generate-key</code>.' => 'Nessuna chiave API configurata. Imposti FORMIE_API_KEY (e facoltativamente FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) nel suo file .env, oppure utilizzi <code>ddev craft formie-rest-api/security/generate-key</code>.',
+    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'Nessuna chiave API configurata. Imposti FORMIE_API_KEY (e facoltativamente FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) nel suo file .env, oppure esegua <code>php craft formie-rest-api/security/generate-key</code> (con DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'Chiave API',
     'Which configured key to send.' => 'Quale chiave configurata inviare.',
     'Endpoint' => 'Endpoint',
@@ -71,4 +72,7 @@ return [
     'Equivalent curl' => 'Comando curl equivalente',
     'Response headers' => 'Intestazioni della risposta',
     'Response body' => 'Corpo della risposta',
+    'Running…' => 'Esecuzione in corso…',
+    'Error:' => 'Errore:',
+    'Unknown error' => 'Errore sconosciuto',
 ];
