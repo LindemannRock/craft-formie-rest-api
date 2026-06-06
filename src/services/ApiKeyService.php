@@ -68,7 +68,7 @@ class ApiKeyService extends Component
         $keys = [];
         
         // Primary API key with full access
-        $primaryKey = Craft::$app->config->general->formieApiKey ?? App::env('FORMIE_API_KEY');
+        $primaryKey = App::env('FORMIE_API_KEY');
         if ($primaryKey) {
             $primarySecret = $this->resolveSigningSecret('FORMIE_API_SIGNING_SECRET');
             $keys[$primaryKey] = [
@@ -83,7 +83,7 @@ class ApiKeyService extends Component
         }
 
         // Secondary API key with limited access
-        $secondaryKey = Craft::$app->config->general->formieApiKeyLimited ?? App::env('FORMIE_API_KEY_LIMITED');
+        $secondaryKey = App::env('FORMIE_API_KEY_LIMITED');
         if ($secondaryKey) {
             $limitedSecret = $this->resolveSigningSecret('FORMIE_API_SIGNING_SECRET_LIMITED');
             $keys[$secondaryKey] = [
