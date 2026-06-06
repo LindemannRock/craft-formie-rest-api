@@ -3,7 +3,7 @@
  * API Test Controller for Formie REST API Module
  *
  * This controller provides sample endpoints to demonstrate
- * what data the SAP team would receive from API queries
+ * what data an external API consumer would receive from API queries
  *
  * @author LindemannRock
  * @copyright Copyright (c) 2025 LindemannRock
@@ -139,7 +139,7 @@ class ApiTestController extends Controller
      * URL: /api/test/formie/forms
      * URL: /api/test/formie/forms?handle=customerFeedback
      * URL: /api/test/formie/forms?id=123
-     * Header: X-API-Key: test_key_sap_integration_2025
+     * Header: X-API-Key: your-api-key-here
      */
     public function actionForms(): Response
     {
@@ -240,7 +240,7 @@ class ApiTestController extends Controller
     /**
      * Test endpoint to show submissions for a specific form
      * URL: /api/test/formie/submissions?formHandle=customerFeedback
-     * Header: X-API-Key: test_key_sap_integration_2025
+     * Header: X-API-Key: your-api-key-here
      */
     public function actionSubmissions(): Response
     {
@@ -286,7 +286,9 @@ class ApiTestController extends Controller
                     'success' => false,
                     'error' => [
                         'code' => 'FORM_NOT_FOUND',
-                        'message' => "Form with handle '{$formHandle}' not found",
+                        'message' => $formHandle
+                            ? "Form with handle '{$formHandle}' not found"
+                            : "Form with ID '{$formId}' not found",
                     ],
                 ]);
             }
@@ -373,7 +375,7 @@ class ApiTestController extends Controller
     /**
      * Test authentication endpoint
      * URL: /api/test/formie/auth
-     * Header: X-API-Key: test_key_sap_integration_2025
+     * Header: X-API-Key: your-api-key-here
      */
     public function actionTestAuth(): Response
     {

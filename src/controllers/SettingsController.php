@@ -116,9 +116,9 @@ class SettingsController extends Controller
             ]);
             $timeMs = (int) ((microtime(true) - $start) * 1000);
 
-            $headers = [];
+            $responseHeaders = [];
             foreach ($response->getHeaders() as $name => $values) {
-                $headers[$name] = implode(', ', $values);
+                $responseHeaders[$name] = implode(', ', $values);
             }
 
             $bodyRaw = (string) $response->getBody();
@@ -130,7 +130,7 @@ class SettingsController extends Controller
             return $this->asJson([
                 'status' => $response->getStatusCode(),
                 'timeMs' => $timeMs,
-                'headers' => $headers,
+                'headers' => $responseHeaders,
                 'body' => $body,
                 'curl' => $this->buildCurl($url, $apiKey),
             ]);
