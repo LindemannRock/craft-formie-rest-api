@@ -55,6 +55,15 @@ class FormieRestApi extends Plugin
     public bool $hasCpSettings = true;
 
     /**
+     * @var bool Whether the settings page is reachable when admin changes are disabled.
+     *
+     * Must be set explicitly because we override getSettingsResponse(): Craft only
+     * auto-enables this for plugins using the default settings response, so without
+     * it the plugin is hidden from Settings when allowAdminChanges is off.
+     */
+    public bool $hasReadOnlyCpSettings = true;
+
+    /**
      * @inheritdoc
      */
     public function init(): void
