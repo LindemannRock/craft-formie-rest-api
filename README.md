@@ -198,6 +198,8 @@ $sig = hash_hmac('sha256', "GET\n{$path}\n{$ts}\n", $secret);
 
 A ready-to-use Postman collection lives in [`postman/`](postman/) — collection plus three environment templates (Primary, Limited, Test). The collection-level pre-request script computes the HMAC signature automatically when `signing_secret` is set on the active environment, and skips it when empty (for keys without signing). See [`postman/README.md`](postman/README.md) for setup.
 
+You can also download the collection and environment as a ZIP from **Formie REST API → Settings → Test** in the Craft control panel.
+
 ### IP Whitelist (optional, defence-in-depth)
 
 Restrict which client IPs can use a given API key. Useful for server-to-server integrations on stable infrastructure (SAP, ERP, internal networks).

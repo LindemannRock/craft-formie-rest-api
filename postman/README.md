@@ -4,19 +4,17 @@ Generic Postman collection + environment templates for the [Formie REST API](htt
 
 ## Files
 
-- **`Formie-REST-API.postman_collection.json`** — the collection. All endpoints (production + test). Collection-level pre-request script signs every request via HMAC when `signing_secret` is set on the active environment.
-- **`Formie-REST-API-Primary.postman_environment.json`** — environment template for the Primary key (full read access).
-- **`Formie-REST-API-Limited.postman_environment.json`** — environment template for the Limited key (forms only).
-- **`Formie-REST-API-Test.postman_environment.json`** — environment template for the Test key (devMode only, full read access).
+- **`Formie-REST-API.postman_collection.json`** — the collection. All endpoints (production + test), each with response tests. Collection-level pre-request script signs every request via HMAC when `signing_secret` is set on the active environment.
+- **`Formie-REST-API.postman_environment.json`** — the environment template (`base_url`, `api_key`, `signing_secret`, and sample `form_id` / `form_handle` / `submission_id`).
 
 ## Setup
 
-1. Import all four files into Postman.
-2. Open the environment you want to use.
+1. Import both files into Postman.
+2. Open the `Formie REST API` environment.
 3. Set:
    - `base_url` → your site URL (e.g. `https://yoursite.com`, no trailing slash)
-   - `api_key` → the matching API key from `.env` (`FORMIE_API_KEY`, `FORMIE_API_KEY_LIMITED`, or `FORMIE_API_KEY_TEST`)
-   - `signing_secret` → matching signing secret if signing is enabled for this key (`FORMIE_API_SIGNING_SECRET[_*]`). **Leave empty if signing is not enabled.**
+   - `api_key` → an API key from `.env` (`FORMIE_API_KEY`, `FORMIE_API_KEY_LIMITED`, or `FORMIE_API_KEY_TEST` — paste whichever one you want to test)
+   - `signing_secret` → matching signing secret if signing is enabled for that key (`FORMIE_API_SIGNING_SECRET[_*]`). **Leave empty if signing is not enabled.**
 4. Optionally set `form_id`, `form_handle`, `submission_id` for the relevant requests.
 5. Pick the environment from Postman's top-right dropdown and run any request.
 
@@ -26,13 +24,17 @@ The collection has a single pre-request script (collection-level, runs before ev
 
 - Reads `signing_secret` from the active environment.
 - If empty → sets `hmac_ts` and `hmac_sig` collection variables to empty strings; the empty headers are ignored by the server for keys that don't require signing.
-- If set → computes `HMAC-SHA256(method\npath\ntimestamp\nbody, signing_secret)` and stores both as collection variables.
+- If set → computes `HMAC-SHA256(method\npath+query\ntimestamp\nbody, signing_secret)` and stores both as collection variables. `path+query` is the request path including the query string (e.g. `/api/v1/formie/submissions?limit=100&offset=0`).
 
 Each request's Headers tab references `{{api_key}}`, `{{hmac_ts}}`, and `{{hmac_sig}}`. The same collection works for signed and unsigned keys.
 
-## Switching tiers
+## Switching keys
 
-Just change the active environment in Postman's dropdown. No collection edits needed.
+There is one environment, not one per key. To test a different key (Primary, Limited, or Test), paste a different value into `api_key` (and `signing_secret` if that key requires signing). No collection edits needed — the tier is determined by the key string you use, not by a separate environment.
+
+## Response tests
+
+Every request has a `test` script that asserts a `200` status, a JSON body, and `success: true` (plus `meta.total` on list endpoints and `data.authenticated` on Test auth). Run the whole collection with Postman's Collection Runner to smoke-test the API in one pass.
 
 ## Notes
 

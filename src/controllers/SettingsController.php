@@ -12,6 +12,7 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 use craft\web\Controller;
+use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\base\helpers\SettingsPostHelper;
 use lindemannrock\formierestapi\FormieRestApi;
 use yii\web\Response;
@@ -137,6 +138,28 @@ class SettingsController extends Controller
         } catch (\Throwable $e) {
             return $this->asJson(['error' => $e->getMessage()]);
         }
+    }
+
+    public function actionDownloadPostmanCollection(): Response
+    {
+        $postmanPath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'postman';
+        $files = [];
+
+        foreach ([
+            'Formie-REST-API.postman_collection.json',
+            'Formie-REST-API.postman_environment.json',
+            'README.md',
+        ] as $filename) {
+            $path = $postmanPath . DIRECTORY_SEPARATOR . $filename;
+            if (is_file($path)) {
+                $content = file_get_contents($path);
+                if ($content !== false) {
+                    $files[$filename] = $content;
+                }
+            }
+        }
+
+        return ExportHelper::toZip($files, 'formie-rest-api-postman.zip');
     }
 
     /**

@@ -27,6 +27,13 @@
     <h2 class="first">{{ 'Test API Endpoints'|t('formie-rest-api') }}</h2>
     <p>{{ 'Send a request to the local API using one of the configured keys, and inspect the response.'|t('formie-rest-api') }}</p>
 
+    {% include 'lindemannrock-base/_components/info-box' with {
+        type: 'info',
+        variant: 'colored',
+        margin: 'bottom',
+        message: '<strong>' ~ 'Developer resources'|t('formie-rest-api') ~ '</strong><br>' ~ 'Download the Postman collection and environment to test the Formie REST API outside Craft.'|t('formie-rest-api') ~ '<br><br><a href="' ~ actionUrl('formie-rest-api/settings/download-postman-collection') ~ '" class="btn" data-icon="download">' ~ 'Download Postman collection'|t('formie-rest-api') ~ '</a>',
+    } only %}
+
     {% if availableKeys|length == 0 %}
         {% include 'lindemannrock-base/_components/info-box' with {
             type: 'warning',
@@ -147,6 +154,7 @@
 {% css %}
     .endpoint-fields { display: none; }
     .endpoint-fields.visible { display: block; }
+    .endpoint-fields.visible + .endpoint-fields.visible { margin-top: 24px; }
 {% endcss %}
 
 {% js %}

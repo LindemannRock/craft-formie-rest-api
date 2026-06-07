@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "fra-collection-2026-04-29",
     "name": "Formie REST API",
-    "description": "REST API endpoints for the LindemannRock Formie REST API plugin.\n\n**Setup:**\n1. Import this collection.\n2. Import one or more of the matching environment files: `Primary`, `Limited`, `Test`.\n3. Set `base_url` in your active environment to the site URL (e.g. `https://yoursite.com`).\n4. Set `api_key` (and `signing_secret` if your key has HMAC signing enabled).\n5. Pick the environment from Postman's top-right dropdown and run any request.\n\n**HMAC signing:** the collection-level pre-request script signs every request automatically and stores the timestamp + signature as collection variables (`hmac_ts`, `hmac_sig`) which the request headers reference. If `signing_secret` is empty, both vars are set to empty strings (server ignores them when the key doesn't require signing).\n\n**Test endpoints** are only accessible when `devMode = true` on the server.\n\nSee the plugin README for endpoint reference and signing details.",
+    "description": "REST API endpoints for the LindemannRock Formie REST API plugin.\n\n**Setup:**\n1. Import this collection and the `Formie REST API` environment file.\n2. Set `base_url` in the environment to your site URL (e.g. `https://yoursite.com`, no trailing slash).\n3. Set `api_key` (and `signing_secret` if that key has HMAC signing enabled).\n4. Pick the environment from Postman's top-right dropdown and run any request.\n\nTo test a different key (Primary, Limited, or Test), just paste a different value into `api_key` — there is one environment, not one per key.\n\n**HMAC signing:** the collection-level pre-request script signs every request automatically and stores the timestamp + signature as collection variables (`hmac_ts`, `hmac_sig`) which the request headers reference. If `signing_secret` is empty, both vars are set to empty strings (server ignores them when the key doesn't require signing).\n\n**Test endpoints** are only accessible when `devMode = true` on the server.\n\nSee the plugin README for endpoint reference and signing details.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -68,6 +68,22 @@
       "item": [
         {
           "name": "List forms",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "pm.test('success is true', function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test('data is an array', function () { pm.expect(json.data).to.be.an('array'); });",
+                  "pm.test('meta.total is a number', function () { pm.expect(json.meta.total).to.be.a('number'); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -89,6 +105,21 @@
         },
         {
           "name": "Get form by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "pm.test('success is true', function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test('data is an object', function () { pm.expect(json.data).to.be.an('object'); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -105,6 +136,21 @@
         },
         {
           "name": "Get form by handle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "pm.test('success is true', function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test('data is an object', function () { pm.expect(json.data).to.be.an('object'); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -121,6 +167,22 @@
         },
         {
           "name": "List submissions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "pm.test('success is true', function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test('data is an array', function () { pm.expect(json.data).to.be.an('array'); });",
+                  "pm.test('meta.total is a number', function () { pm.expect(json.meta.total).to.be.a('number'); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -137,6 +199,7 @@
                 { "key": "offset", "value": "0" },
                 { "key": "formHandle", "value": "{{form_handle}}", "disabled": true },
                 { "key": "formId", "value": "{{form_id}}", "disabled": true },
+                { "key": "status", "value": "live", "disabled": true },
                 { "key": "dateFrom", "value": "2026-01-01", "disabled": true },
                 { "key": "dateTo", "value": "2026-12-31", "disabled": true }
               ]
@@ -145,6 +208,21 @@
         },
         {
           "name": "Get submission by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "pm.test('success is true', function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test('data is an object', function () { pm.expect(json.data).to.be.an('object'); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -167,6 +245,21 @@
       "item": [
         {
           "name": "Test auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "pm.test('success is true', function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test('authenticated is true', function () { pm.expect(json.data.authenticated).to.eql(true); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -183,6 +276,20 @@
         },
         {
           "name": "Test list forms",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "pm.test('success is true', function () { pm.expect(json.success).to.eql(true); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -203,6 +310,20 @@
         },
         {
           "name": "Test list submissions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response is JSON', function () { pm.response.to.be.json; });",
+                  "const json = pm.response.json();",
+                  "pm.test('success is true', function () { pm.expect(json.success).to.eql(true); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [

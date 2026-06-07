@@ -49,7 +49,10 @@ return [
     // Test page
     'Test API' => 'Test API',
     'Test API Endpoints' => 'Test API-endepunkter',
-    'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Send en forespørsel til det lokale API-et med en av de konfigurerte nøklene, og se på svaret.',
+    'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Send en forespørsel til den lokale API-en med en av de konfigurerte nøklene, og inspiser svaret.',
+    'Developer resources' => 'Utviklerressurser',
+    'Download the Postman collection and environment to test the Formie REST API outside Craft.' => 'Last ned Postman-samlingen og -miljøet for å teste Formie REST API utenfor Craft.',
+    'Download Postman collection' => 'Last ned Postman-samling',
     'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'Ingen API-nøkler konfigurert. Angi FORMIE_API_KEY (og eventuelt FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) i .env-filen din, eller kjør <code>php craft formie-rest-api/security/generate-key</code> (med DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'API-nøkkel',
     'Which configured key to send.' => 'Hvilken konfigurert nøkkel som skal sendes.',
