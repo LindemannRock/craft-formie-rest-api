@@ -1,5 +1,29 @@
 # Changelog
 
+## [3.6.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.5.0...v3.6.0) - 2026-06-07
+
+
+### Added
+
+* add static analysis script for CI workflow ([8c70369](https://github.com/LindemannRock/craft-formie-rest-api/commit/8c703695fa1404d8a27f6bef577c568890381dcb))
+* **cli:** add HelpController for cli command assistance ([53e32e2](https://github.com/LindemannRock/craft-formie-rest-api/commit/53e32e2a476bb36518e0dfc1534360f8cc4fccb4))
+* **config:** add date/time formatting overrides for plugin settings ([e538d73](https://github.com/LindemannRock/craft-formie-rest-api/commit/e538d732663ccc465d9876fa96f4b88baba30401))
+* **i18n:** add interface settings translations for multiple locales ([ddce4f2](https://github.com/LindemannRock/craft-formie-rest-api/commit/ddce4f2d6da847218953d0cbce70cb48b3a58731))
+* **i18n:** add missing translation for Plugins ([d886953](https://github.com/LindemannRock/craft-formie-rest-api/commit/d886953e4eb7fa09bba3b0f440f14377ef564876))
+* **i18n:** add new API key configuration messages in multiple languages ([3c040b8](https://github.com/LindemannRock/craft-formie-rest-api/commit/3c040b8d9c4313e5ac076c5843af00ca822bec1e))
+* **settings:** add interface settings page and navigation link ([e146381](https://github.com/LindemannRock/craft-formie-rest-api/commit/e146381c22d24e0d3d1b399c927cd8cc036fd1d3))
+* **settings:** add interface settings page to controller ([e7d7c1c](https://github.com/LindemannRock/craft-formie-rest-api/commit/e7d7c1c8c8d2eee91f2cdb319e0b53cc0d1fe579))
+* **settings:** add interface settings route to URL rules ([a1c2a7b](https://github.com/LindemannRock/craft-formie-rest-api/commit/a1c2a7bb64ba0f8b9cb889165e1ba9451b64673e))
+
+
+### Fixed
+
+* **api:** ensure submissions are complete and not marked as spam ([a9b0db3](https://github.com/LindemannRock/craft-formie-rest-api/commit/a9b0db310f0004a1c4908215510ee0d780e05469))
+* **controllers:** clarify API consumer description and standardize API key header ([5bc58bd](https://github.com/LindemannRock/craft-formie-rest-api/commit/5bc58bd46266ac8bc2972846aa8393211f03031e))
+* **i18n:** correct Spanish and Dutch settings saved translations ([798b6d7](https://github.com/LindemannRock/craft-formie-rest-api/commit/798b6d78f83f057cb80f47a215deaab264978085))
+* **settings:** return localized error message for unconfigured API key ([552b0bb](https://github.com/LindemannRock/craft-formie-rest-api/commit/552b0bb94b4f7039ecd48357fa64380e74c62248))
+* **settings:** update API key configuration message for clarity ([eee0c8d](https://github.com/LindemannRock/craft-formie-rest-api/commit/eee0c8d8ef56609767bf42db69f3c2850ce5036e))
+
 ## [3.5.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.4.0...v3.5.0) - 2026-05-22
 
 
