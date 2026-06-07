@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.7.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.6.0...v3.7.0) - 2026-06-07
+
+
+### Added
+
+* add hasReadOnlyCpSettings property to control panel settings ([6b97b6a](https://github.com/LindemannRock/craft-formie-rest-api/commit/6b97b6ace7d3129bb82b9fbe0cf16b0da052b084))
+* add Postman collection download to settings test page ([6b5abbd](https://github.com/LindemannRock/craft-formie-rest-api/commit/6b5abbd36a228f6280628a89c15ee0ca51042ae1))
+
 ## [3.6.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.5.0...v3.6.0) - 2026-06-07
 
 
