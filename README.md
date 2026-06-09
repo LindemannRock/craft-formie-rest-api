@@ -167,6 +167,8 @@ METHOD\nPATH_WITH_QUERY\nTIMESTAMP\nBODY
 
 For a `GET /api/v1/formie/forms` request the body is empty.
 
+> **Sort query parameters alphabetically before signing.** When `PATH_WITH_QUERY` has a query string, sort its parameters alphabetically (byte-wise) before building the signature base — e.g. sign `/api/v1/formie/submissions?formHandle=contact&limit=10&offset=0`, not the order you happened to send them in. A CDN/proxy in front of the site (e.g. Cloudflare) normalizes query-string order before the request reaches the server, so an unsorted signature will fail with `401 Missing or invalid request signature` once a request has two or more params that aren't already in alphabetical order. The order you actually *send* the params in doesn't matter — only the order you *sign*. (The server also accepts the as-received order, so single-param and already-sorted requests work either way.)
+
 **Example client (bash):**
 
 ```bash
@@ -226,7 +228,7 @@ const data = await res.json();
 
 ### Postman collection
 
-A ready-to-use Postman collection lives in [`postman/`](postman/) — collection plus three environment templates (Primary, Limited, Test). The collection-level pre-request script computes the HMAC signature automatically when `signing_secret` is set on the active environment, and skips it when empty (for keys without signing). See [`postman/README.md`](postman/README.md) for setup.
+A ready-to-use Postman collection lives in [`postman/`](postman/) — collection plus a single environment template. The collection-level pre-request script computes the HMAC signature automatically (sorting query params before signing) when `signing_secret` is set on the active environment, and skips it when empty (for keys without signing). Switch keys (Primary, Limited, Test) by pasting a different key into the environment. See [`postman/README.md`](postman/README.md) for setup.
 
 You can also download the collection and environment as a ZIP from **Formie REST API → Settings → Test** in the Craft control panel.
 
