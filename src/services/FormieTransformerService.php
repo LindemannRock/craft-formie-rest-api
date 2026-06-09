@@ -461,7 +461,13 @@ class FormieTransformerService extends Component
      *
      * @return array<string, array<string, mixed>>
      */
-    public function transformSubmissionFields(Submission $submission): array
+    /**
+     * @param string[]|null $onlyHandles When non-null, only these field handles are
+     *   transformed (sparse fieldset). The filter is applied before getFieldValue(),
+     *   so unrequested fields skip Formie's per-field normalisation entirely — that
+     *   is where the cost is, so a narrow selection is proportionally cheaper.
+     */
+    public function transformSubmissionFields(Submission $submission, ?array $onlyHandles = null): array
     {
         $form = $submission->getForm();
         if ($form === null) {
@@ -477,6 +483,10 @@ class FormieTransformerService extends Component
         // sub-properties (Phone.country, Name.prefix/firstName/middleName/lastName).
         foreach ($form->getFields() as $field) {
             if (!$field instanceof CraftFieldInterface) {
+                continue;
+            }
+            // Sparse fieldset: skip before the (expensive) getFieldValue() call.
+            if ($onlyHandles !== null && !in_array($field->handle, $onlyHandles, true)) {
                 continue;
             }
             $value = $submission->getFieldValue($field->handle);
