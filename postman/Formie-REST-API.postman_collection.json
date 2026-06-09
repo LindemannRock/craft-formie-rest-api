@@ -206,7 +206,8 @@
                 { "key": "formId", "value": "{{form_id}}", "disabled": true },
                 { "key": "status", "value": "live", "disabled": true },
                 { "key": "dateFrom", "value": "2026-01-01", "disabled": true },
-                { "key": "dateTo", "value": "2026-12-31", "disabled": true }
+                { "key": "dateTo", "value": "2026-12-31", "disabled": true },
+                { "key": "fields", "value": "fieldHandleA,fieldHandleB", "disabled": true }
               ]
             }
           }

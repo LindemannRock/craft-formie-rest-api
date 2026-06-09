@@ -53,4 +53,5 @@ Every request has a `test` script that asserts a `200` status, a JSON body, and 
 - The collection uses `crypto-js` (built into Postman) for HMAC. Tested on Postman v12 (12.8.1).
 - If the script logs `Cannot find module 'crypto-js'`, your Postman version is too old — upgrade to a recent build.
 - Test endpoints (`/api/test/formie/*`) only exist on the server when `devMode = true`. They return 404 on production builds.
+- **List submissions** has a disabled `fields` query param — enable it and set a comma-separated list of field handles (e.g. `rating,email`) to return a sparse fieldset (only those fields per submission). It also has `dateFrom`/`dateTo` for incremental pulls.
 - See the plugin README for endpoint reference and signing-base specification.

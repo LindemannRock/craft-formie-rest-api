@@ -285,6 +285,26 @@ Both production (`/api/v1/formie/submissions`) and test (`/api/test/formie/submi
 
 This is hardcoded — the API contract is "completed, non-spam form submissions". There is currently no opt-in flag to include drafts or spam. If your integration needs them, open an issue describing the use case.
 
+### Submission query parameters
+
+`GET /api/v1/formie/submissions` accepts:
+
+| Param | Description |
+|---|---|
+| `formHandle` / `formId` | Restrict to a single form |
+| `status` | Submission status (default `live`; pass `all` for any status) |
+| `limit` / `offset` | Pagination (defaults `100` / `0`) |
+| `dateFrom` / `dateTo` | Filter by `dateCreated`. Accepts `YYYY-MM-DD`, `YYYY-MM-DD HH:MM:SS`, or ISO 8601. **Use `dateFrom` for incremental sync** — pull only submissions created since your last run instead of re-fetching everything. |
+| `fields` | **Sparse fieldset** — comma-separated field handles (e.g. `fields=rating,email,name`). Each submission's `fields` map then contains only those handles. The server skips value resolution for unrequested fields, so a narrow selection is faster on large pulls. Omit for all fields. Unknown handles are ignored. Top-level keys (`id`, `dateCreated`, `status`, …) are always returned. |
+
+```bash
+# Incremental sync: only new submissions since the last run, just the fields we consume
+curl -H "X-API-Key: your-api-key" \
+     "https://yoursite.com/api/v1/formie/submissions?formHandle=productRating&dateFrom=2026-06-09T14:00:00&fields=rating,email"
+```
+
+> When signing is enabled, remember to **sort query params alphabetically before signing** (see [HMAC Request Signing](#hmac-request-signing-optional-recommended-for-production)).
+
 ## REST API Endpoints
 
 ### Versioning
