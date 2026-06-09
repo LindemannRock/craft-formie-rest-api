@@ -24,9 +24,21 @@ The collection has a single pre-request script (collection-level, runs before ev
 
 - Reads `signing_secret` from the active environment.
 - If empty → sets `hmac_ts` and `hmac_sig` collection variables to empty strings; the empty headers are ignored by the server for keys that don't require signing.
-- If set → computes `HMAC-SHA256(method\npath+query\ntimestamp\nbody, signing_secret)` and stores both as collection variables. `path+query` is the request path including the query string (e.g. `/api/v1/formie/submissions?limit=100&offset=0`).
+- If set → computes `HMAC-SHA256(method\npath+query\ntimestamp\nbody, signing_secret)` and stores both as collection variables. `path+query` is the request path including the query string (e.g. `/api/v1/formie/submissions?formHandle=productRating&limit=100&offset=0`).
 
 Each request's Headers tab references `{{api_key}}`, `{{hmac_ts}}`, and `{{hmac_sig}}`. The same collection works for signed and unsigned keys.
+
+> **Query params are sorted before signing.** The script sorts query parameters alphabetically before computing the signature. This is required when the site sits behind a CDN/proxy (e.g. Cloudflare) that normalizes query-string order before the request reaches the server — the signature must be computed over the sorted order to match what the server actually receives. If you build a client by hand, **sort your query parameters alphabetically before signing** (the order you send them in doesn't matter; only the order you sign does). A request that signs the unsorted order will fail with `401 Missing or invalid request signature` the moment it has two or more params that aren't already in alphabetical order.
+
+### Where to find the script in Postman
+
+The signing logic is **not** on any individual request — it lives on the collection itself, which is why you won't see it when browsing the requests:
+
+1. In the left sidebar, click the **`Formie REST API`** collection (the top-level item, not a request or folder inside it).
+2. Open the **Scripts** tab.
+3. Select **Pre-request**.
+
+That's the script that builds `hmac_ts` and `hmac_sig` before every request runs. The per-request **Scripts → Post-response** (older Postman: the **Tests** tab) is a different script — it only asserts the response; it does no signing.
 
 ## Switching keys
 

@@ -194,6 +194,36 @@ $sig = hash_hmac('sha256', "GET\n{$path}\n{$ts}\n", $secret);
 // Send X-API-Key, X-Timestamp, X-Signature headers
 ```
 
+**Example client (Node.js):**
+
+```js
+const crypto = require('crypto');
+
+const key = process.env.FORMIE_API_KEY;
+const secret = process.env.FORMIE_API_SIGNING_SECRET;
+
+// Path must include the query string when present, e.g.
+// '/api/v1/formie/submissions?formHandle=contact&limit=10'
+const method = 'GET';
+const pathQ = '/api/v1/formie/forms';
+const body = '';                                   // empty for GET, but still signed
+const ts = Math.floor(Date.now() / 1000).toString();
+
+const base = `${method}\n${pathQ}\n${ts}\n${body}`;
+const sig = crypto.createHmac('sha256', secret).update(base).digest('hex');
+
+const res = await fetch('https://yoursite.com' + pathQ, {
+    method,
+    headers: {
+        'X-API-Key': key,
+        'X-Timestamp': ts,
+        'X-Signature': sig,
+        'Accept': 'application/json',
+    },
+});
+const data = await res.json();
+```
+
 ### Postman collection
 
 A ready-to-use Postman collection lives in [`postman/`](postman/) — collection plus three environment templates (Primary, Limited, Test). The collection-level pre-request script computes the HMAC signature automatically when `signing_secret` is set on the active environment, and skips it when empty (for keys without signing). See [`postman/README.md`](postman/README.md) for setup.
