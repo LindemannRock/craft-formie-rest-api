@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.8.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.7.0...v3.8.0) - 2026-06-09
+
+
+### Added
+
+* add support for sparse fieldsets in submissions API ([98a70de](https://github.com/LindemannRock/craft-formie-rest-api/commit/98a70de87a0fd63a5f591aefdb7b4bae3ea40de5))
+* add support for sparse fieldsets in transformSubmissionFields method ([061b2dc](https://github.com/LindemannRock/craft-formie-rest-api/commit/061b2dc9b02c8747890f2657c0c23db05c2efaed))
+* **security:** add support for query parameter order normalization in request signature validation ([d30cfc1](https://github.com/LindemannRock/craft-formie-rest-api/commit/d30cfc156b88d218a8d562170c7426066d34ca91))
+* sort query parameters alphabetically before signing requests ([00ffbcf](https://github.com/LindemannRock/craft-formie-rest-api/commit/00ffbcf834c8f060928503c4a011ae2793e74d34))
+
 ## [3.7.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.6.0...v3.7.0) - 2026-06-07
 
 
