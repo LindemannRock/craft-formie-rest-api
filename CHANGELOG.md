@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.8.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.7.0...v3.8.0) (2026-06-09)
+## [3.8.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.7.0...v3.8.0) - 2026-06-09
 
 
 ### Added
