@@ -228,6 +228,14 @@ class SecurityService extends Component
      *  - `X-Signature`: hex-encoded HMAC-SHA256 of `method\npath\ntimestamp\nbody`,
      *    keyed by the per-key signing secret (env var `FORMIE_API_SIGNING_SECRET[_*]`).
      *
+     * The signature is accepted if it matches the URL **either as received or with
+     * its query parameters sorted alphabetically**. A CDN/proxy in front of the
+     * site (e.g. Cloudflare) may normalize query-string order before the request
+     * reaches us — so a client that signs the order it sent and a client that signs
+     * the sorted order must both verify. Sorting also makes signing deterministic
+     * regardless of query-param order or whether a CDN sits in front. This is
+     * strictly additive: any signature that verified before still verifies.
+     *
      * Returns false on any of: missing headers, missing signing secret, expired
      * timestamp (> 5 min skew), or signature mismatch.
      *
@@ -251,13 +259,51 @@ class SecurityService extends Component
             return false;
         }
 
-        $signatureBase = implode("\n", [
-            Craft::$app->request->getMethod(),
-            Craft::$app->request->getUrl(),
-            $timestamp,
-            Craft::$app->request->getRawBody(),
-        ]);
+        $request = Craft::$app->request;
+        $method = $request->getMethod();
+        $body = $request->getRawBody();
+        $url = $request->getUrl();
 
-        return hash_equals(hash_hmac('sha256', $signatureBase, $secret), $signature);
+        // Verify against the URL as received and, if different, the query-sorted
+        // form. Either matching is sufficient (see method docblock).
+        $candidates = [$url];
+        $canonical = $this->canonicalizeUrlQuery($url);
+        if ($canonical !== $url) {
+            $candidates[] = $canonical;
+        }
+
+        foreach ($candidates as $candidate) {
+            $base = implode("\n", [$method, $candidate, $timestamp, $body]);
+            if (hash_equals(hash_hmac('sha256', $base, $secret), $signature)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Return the URL with its query-string parameters sorted alphabetically
+     * (byte-wise), so request signing is independent of query-param order and of
+     * any CDN/proxy that normalizes query order before the request reaches us.
+     * URLs without a query string are returned unchanged.
+     */
+    private function canonicalizeUrlQuery(string $url): string
+    {
+        $queryPos = strpos($url, '?');
+        if ($queryPos === false) {
+            return $url;
+        }
+
+        $path = substr($url, 0, $queryPos);
+        $query = substr($url, $queryPos + 1);
+        if ($query === '') {
+            return $path;
+        }
+
+        $params = explode('&', $query);
+        sort($params, SORT_STRING);
+
+        return $path . '?' . implode('&', $params);
     }
 }

@@ -28,6 +28,10 @@ use lindemannrock\formierestapi\tests\TestCase;
  *  - missing headers (either one) → false (defensive presence checks)
  *  - expired timestamp → false (replay-protection window enforced)
  *  - tampered body → false (`hash_equals` actually fires)
+ *  - query-sorted signature → true even when the request arrives unsorted
+ *    (CDN/proxy query-order normalisation is tolerated)
+ *  - received-order signature → still true (strictly additive, no regression)
+ *  - a third arbitrary query order → false (only received + sorted are accepted)
  */
 final class SecurityServiceSignatureTest extends TestCase
 {
@@ -165,6 +169,91 @@ final class SecurityServiceSignatureTest extends TestCase
         $this->assertFalse(
             $service->validateRequestSignature(['signingSecret' => self::SECRET]),
             'A signature computed over a different body must fail hash_equals.',
+        );
+    }
+
+    public function testSortedQuerySignatureValidatesWhenRequestArrivesUnsorted(): void
+    {
+        // A client signs the query in alphabetical order (the documented rule,
+        // and what a CDN such as Cloudflare normalises to). Even if the request
+        // reaches us with the params in a different order, the signature must
+        // still validate — the server canonicalises the query before comparing.
+        $timestamp = (string) time();
+        $method = 'GET';
+        $receivedUrl = '/api/v1/formie/submissions?limit=100&offset=0&formHandle=contact';
+        $sortedUrl = '/api/v1/formie/submissions?formHandle=contact&limit=100&offset=0';
+
+        $stub = new StubApiRequest(
+            apiMethod: $method,
+            apiUrl: $receivedUrl,
+            apiRawBody: '',
+            headers: [
+                'X-Signature' => $this->buildSignature(self::SECRET, $method, $sortedUrl, $timestamp, ''),
+                'X-Timestamp' => $timestamp,
+            ],
+        );
+        $this->installRequestStub($stub);
+
+        $service = new SecurityService();
+        $this->assertTrue(
+            $service->validateRequestSignature(['signingSecret' => self::SECRET]),
+            'A signature over the alphabetically-sorted query must validate even when the request arrives with params in a different order.',
+        );
+    }
+
+    public function testReceivedOrderSignatureStillValidates(): void
+    {
+        // Strictly additive: a signature computed over the exact (unsorted) order
+        // the request arrives in must still validate, so clients that sign what
+        // they send are not broken.
+        $timestamp = (string) time();
+        $method = 'GET';
+        $url = '/api/v1/formie/submissions?limit=100&offset=0&formHandle=contact';
+
+        $stub = new StubApiRequest(
+            apiMethod: $method,
+            apiUrl: $url,
+            apiRawBody: '',
+            headers: [
+                'X-Signature' => $this->buildSignature(self::SECRET, $method, $url, $timestamp, ''),
+                'X-Timestamp' => $timestamp,
+            ],
+        );
+        $this->installRequestStub($stub);
+
+        $service = new SecurityService();
+        $this->assertTrue(
+            $service->validateRequestSignature(['signingSecret' => self::SECRET]),
+            'A signature over the URL exactly as received must still validate (backward compatible).',
+        );
+    }
+
+    public function testUnrelatedQueryOrderStillFails(): void
+    {
+        // Only two forms are accepted: the URL as received and its query-sorted
+        // form. A signature over some third arbitrary ordering must still fail —
+        // canonicalisation must not degrade into "accept any order".
+        $timestamp = (string) time();
+        $method = 'GET';
+        $receivedUrl = '/api/v1/formie/submissions?limit=100&offset=0&formHandle=contact';
+        // Neither the received order nor the alphabetically-sorted order.
+        $otherOrderUrl = '/api/v1/formie/submissions?offset=0&formHandle=contact&limit=100';
+
+        $stub = new StubApiRequest(
+            apiMethod: $method,
+            apiUrl: $receivedUrl,
+            apiRawBody: '',
+            headers: [
+                'X-Signature' => $this->buildSignature(self::SECRET, $method, $otherOrderUrl, $timestamp, ''),
+                'X-Timestamp' => $timestamp,
+            ],
+        );
+        $this->installRequestStub($stub);
+
+        $service = new SecurityService();
+        $this->assertFalse(
+            $service->validateRequestSignature(['signingSecret' => self::SECRET]),
+            'A signature over an arbitrary query order (neither received nor sorted) must not validate.',
         );
     }
 }
