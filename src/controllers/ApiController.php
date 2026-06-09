@@ -143,6 +143,45 @@ class ApiController extends Controller
     }
 
     /**
+     * Read the optional `fields` query param as a sparse-fieldset handle list.
+     * Returns null (= all fields) when absent or when not in a web-request context
+     * (e.g. invoked from the console/tests, where there are no query params).
+     *
+     * @return string[]|null
+     */
+    private function requestedFields(): ?array
+    {
+        $request = Craft::$app->getRequest();
+
+        return $request instanceof \craft\web\Request
+            ? self::parseFieldList($request->getParam('fields'))
+            : null;
+    }
+
+    /**
+     * Parse a `fields` query param ("a, b ,c") into a list of field handles for a
+     * sparse fieldset, or null when absent/empty (meaning: return all fields).
+     * Whitespace is trimmed and blank entries dropped. Unknown handles are simply
+     * absent from the response (no error) — the transformer only emits handles
+     * that exist on the form.
+     *
+     * @return string[]|null
+     */
+    private static function parseFieldList(mixed $param): ?array
+    {
+        if (!is_string($param)) {
+            return null;
+        }
+
+        $handles = array_values(array_filter(
+            array_map('trim', explode(',', $param)),
+            static fn(string $handle): bool => $handle !== '',
+        ));
+
+        return $handles === [] ? null : $handles;
+    }
+
+    /**
      * Get all forms
      * GET /api/v1/formie/forms
      */
@@ -279,7 +318,9 @@ class ApiController extends Controller
         $offset = (int) $request->getParam('offset', 0);
         $dateFrom = $request->getParam('dateFrom');
         $dateTo = $request->getParam('dateTo');
-        
+        // Sparse fieldset — null means "all fields".
+        $onlyFields = $this->requestedFields();
+
         // Build query — exclude abandoned drafts and Akismet-flagged spam
         // (matches the test-endpoint behaviour and the documented API contract)
         $query = Submission::find()
@@ -333,7 +374,7 @@ class ApiController extends Controller
         // Format response
         $submissionData = [];
         foreach ($submissions as $submission) {
-            $submissionData[] = $this->transformSubmission($submission);
+            $submissionData[] = $this->transformSubmission($submission, false, $onlyFields);
         }
         
         return [
@@ -366,10 +407,12 @@ class ApiController extends Controller
         if (!$submission) {
             throw new NotFoundHttpException("Submission with ID {$submissionId} not found");
         }
-        
+
+        $onlyFields = $this->requestedFields();
+
         return [
             'success' => true,
-            'data' => $this->transformSubmission($submission, true),
+            'data' => $this->transformSubmission($submission, true, $onlyFields),
             'meta' => [
                 'timestamp' => (new \DateTime())->format('c'),
             ],
@@ -415,7 +458,11 @@ class ApiController extends Controller
     /**
      * Transform submission for API response
      */
-    private function transformSubmission(Submission $submission, bool $includeForm = false): array
+    /**
+     * @param string[]|null $onlyFields When non-null, the `fields` map includes only
+     *   these field handles (sparse fieldset from the `?fields=` query param).
+     */
+    private function transformSubmission(Submission $submission, bool $includeForm = false, ?array $onlyFields = null): array
     {
         $form = $submission->getForm();
 
@@ -427,7 +474,7 @@ class ApiController extends Controller
             'status' => $submission->status,
             'dateCreated' => $submission->dateCreated->format('c'),
             'dateUpdated' => $submission->dateUpdated->format('c'),
-            'fields' => FormieRestApi::$plugin->transformer->transformSubmissionFields($submission),
+            'fields' => FormieRestApi::$plugin->transformer->transformSubmissionFields($submission, $onlyFields),
         ];
 
         if ($includeForm && $form !== null) {
