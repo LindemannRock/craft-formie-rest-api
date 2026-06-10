@@ -1,0 +1,297 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set fullPageForm = true %}
+{% set selectedSubnavItem = 'api-keys' %}
+{% set saveShortcutRedirect = cpUrl('formie-rest-api/api-keys/edit/{id}') %}
+{% set retainScrollOnSaveShortcut = true %}
+
+{% set crumbs = [
+    { label: formieRestApiHelper.fullName, url: url('formie-rest-api') },
+    { label: 'API Keys'|t('formie-rest-api'), url: url('formie-rest-api') },
+    { label: title },
+] %}
+
+{% block actionButton %}
+    <div class="btngroup submit">
+        <button type="submit" class="btn submit">{{ "Save"|t('formie-rest-api') }}</button>
+        <button type="button" class="btn submit menubtn"></button>
+        <div class="menu">
+            <ul role="listbox">
+                <li>
+                    <a class="formsubmit" role="option" tabindex="0" data-redirect="{{ cpUrl('formie-rest-api/api-keys/edit/{id}')|hash }}">
+                        <span class="label">{{ 'Save and continue editing'|t('formie-rest-api') }}</span>
+                        <span class="shortcut" id="save-shortcut"></span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% if not isNew and canRevoke %}
+        <button type="button"
+                id="action-btn"
+                class="btn menubtn action-btn hairline-dark m"
+                title="{{ 'Actions'|t('formie-rest-api') }}"
+                aria-controls="action-menu"
+                aria-label="{{ 'Actions'|t('formie-rest-api') }}"
+                data-disclosure-trigger="true"
+                aria-expanded="false"></button>
+        <div id="action-menu" class="menu menu--disclosure">
+            <ul>
+                <li>
+                    <button class="menu-item error formsubmit"
+                            data-destructive
+                            data-action="formie-rest-api/api-keys/delete"
+                            data-params='{"keyId":{{ apiKey.id }}}'
+                            data-confirm="{{ 'Are you sure you want to revoke this API key? Any callers using it will immediately lose access.'|t('formie-rest-api') }}"
+                            data-redirect="{{ 'formie-rest-api/api-keys'|hash }}">
+                        <span class="icon">{{ svg('@app/icons/trash.svg') }}</span>
+                        <span class="menu-item-label">{{ 'Revoke'|t('formie-rest-api') }}</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{# Banners rendered ABOVE the form container by the cp layout via `errorSummary`.
+   The one-time credential reveals (post-create) and the field-error summary
+   funnel into the same variable so they share the same hairline-separated zone
+   above the page. #}
+{% set newKeyBanner = '' %}
+{% set newSecretBanner = '' %}
+{% if newPlaintext %}
+    {% set newKeyBanner = include('lindemannrock-base/_components/secret-reveal', {
+        secret: newPlaintext,
+        title: 'Copy this API key now — it will never be shown again.'|t('formie-rest-api'),
+        helpText: '{pluginName} stores only a hash. If you lose this value you will need to create a new key.'|t('formie-rest-api', {
+            pluginName: formieRestApiHelper.fullName,
+        }),
+        type: 'success',
+        margin: 'bottom',
+    })|trim %}
+{% endif %}
+{% if newSecret %}
+    {% set newSecretBanner = include('lindemannrock-base/_components/secret-reveal', {
+        secret: newSecret,
+        title: 'Copy this signing secret now — it will never be shown again.'|t('formie-rest-api'),
+        helpText: 'The caller uses it to sign each request (HMAC-SHA256). Deliver it together with the API key over a secure channel.'|t('formie-rest-api'),
+        type: 'success',
+        margin: 'bottom',
+    })|trim %}
+{% endif %}
+
+{% set validationSummary = '' %}
+{% if apiKey.hasErrors() %}
+    {% set validationSummary = include('lindemannrock-base/_partials/error-summary', {
+        errors: apiKey.getErrors(),
+        linkMode: 'data-key',
+        translationCategory: 'formie-rest-api',
+    })|trim %}
+{% endif %}
+
+{% set errorSummary = [newKeyBanner, newSecretBanner, validationSummary]|filter(v => v)|join("\n") %}
+
+{% block content %}
+    <input type="hidden" name="action" value="formie-rest-api/api-keys/save">
+    <input type="hidden" name="redirect" value="{{ 'formie-rest-api/api-keys'|hash }}">
+    {% if not isNew %}
+        <input type="hidden" name="keyId" value="{{ apiKey.id }}">
+    {% endif %}
+    {{ csrfInput() }}
+
+    {{ forms.textField({
+        first: true,
+        label: 'Name'|t('formie-rest-api'),
+        instructions: 'A descriptive label so you can identify this key in the list — typically the consumer it belongs to. Not exposed to callers.'|t('formie-rest-api'),
+        id: 'name',
+        name: 'name',
+        value: apiKey.name,
+        required: true,
+        errors: apiKey.getErrors('name'),
+        data: {key: 'name'},
+    }) }}
+
+    <hr>
+
+    {# ---------------------------------------------------------------------
+       Allowed forms — "All" toggle XOR explicit list. The two controls
+       are visually exclusive on the client; server-side enforcement of
+       the same in ApiKeysController::populateRestrictionsFromRequest().
+       --------------------------------------------------------------------- #}
+    <h2>{{ 'Allowed forms'|t('formie-rest-api') }}</h2>
+
+    {{ forms.lightswitchField({
+        label: 'All forms (current and future)'|t('formie-rest-api'),
+        instructions: 'When on, this key can read every form — including forms created after the key. When off, choose specific forms below.'|t('formie-rest-api'),
+        id: 'allowAllForms',
+        name: 'allowAllForms',
+        on: apiKey.allowsAllForms(),
+        errors: apiKey.getErrors('allowedForms'),
+        data: {key: 'allowedForms'},
+    }) }}
+
+    <div id="allowed-forms-explicit" {% if apiKey.allowsAllForms() %}style="display:none;"{% endif %}>
+        {% if allForms|length == 0 %}
+            <p class="light">{{ 'No forms exist yet. Create a form before this key can be useful.'|t('formie-rest-api') }}</p>
+        {% else %}
+            {{ forms.checkboxGroupField({
+                label: 'Specific forms'|t('formie-rest-api'),
+                instructions: 'Tick each form this key can read.'|t('formie-rest-api'),
+                name: 'allowedForms',
+                values: apiKey.allowedForms,
+                options: allForms|map(form => {value: form.handle, label: form.title}),
+            }) }}
+        {% endif %}
+    </div>
+
+    <hr>
+
+    {# ---------------------------------------------------------------------
+       IP whitelist — textarea, one entry per line. Server normalises
+       (trim, lowercase, dedupe, drop blanks); shape validated by the model.
+       --------------------------------------------------------------------- #}
+    <h2>{{ 'IP whitelist'|t('formie-rest-api') }}</h2>
+
+    {{ forms.textareaField({
+        label: 'IP whitelist'|t('formie-rest-api'),
+        instructions: 'One entry per line. Use a single IP (<code>203.0.113.5</code>) or a CIDR range (<code>192.168.1.0/24</code>), IPv4 or IPv6. Leave empty to allow all IPs.'|t('formie-rest-api'),
+        id: 'ipWhitelist',
+        name: 'ipWhitelist',
+        value: apiKey.ipWhitelist|join("\n"),
+        rows: 4,
+        errors: apiKey.getErrors('ipWhitelist'),
+        data: {key: 'ipWhitelist'},
+    }) }}
+
+    {% include 'lindemannrock-base/_components/plugin-credit' %}
+{% endblock %}
+
+{% block details %}
+    <div class="meta">
+        {# Enabled — operator pause/resume without losing config. Distinct
+           from validUntil (auto-expiry) and revoke (delete). #}
+        {{ forms.lightswitchField({
+            label: 'Enabled'|t('formie-rest-api'),
+            instructions: 'Disabling deactivates the key without deleting it. Revoke (delete) removes the key permanently.'|t('formie-rest-api'),
+            id: 'enabled',
+            name: 'enabled',
+            on: apiKey.enabled,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Require signing'|t('formie-rest-api'),
+            instructions: 'When on, every request must carry a valid HMAC-SHA256 signature computed with this key’s signing secret.'|t('formie-rest-api'),
+            id: 'requireSignature',
+            name: 'requireSignature',
+            on: apiKey.requireSignature,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Read submissions'|t('formie-rest-api'),
+            instructions: 'When off, this key is limited to the forms endpoints and cannot read any submission data.'|t('formie-rest-api'),
+            id: 'canReadSubmissions',
+            name: 'canReadSubmissions',
+            on: apiKey.canReadSubmissions,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Rate limit'|t('formie-rest-api'),
+            instructions: 'Cap the request rate in requests per hour. Leave empty for the default (100/hour).'|t('formie-rest-api'),
+            id: 'rateLimit',
+            name: 'rateLimit',
+            type: 'number',
+            size: 6,
+            min: 1,
+            value: apiKey.rateLimit,
+            errors: apiKey.getErrors('rateLimit'),
+            data: {key: 'rateLimit'},
+        }) }}
+
+        {{ forms.dateTimeField({
+            label: 'Valid until'|t('formie-rest-api'),
+            instructions: 'Optional expiry datetime. Leave empty for no expiry.'|t('formie-rest-api'),
+            id: 'validUntil',
+            name: 'validUntil',
+            value: apiKey.validUntil,
+            errors: apiKey.getErrors('validUntil'),
+            data: {key: 'validUntil'},
+        }) }}
+    </div>
+
+    {% if not isNew %}
+        <fieldset>
+            <dl class="meta read-only">
+                {% set status = apiKey.getStatus() %}
+                {% set statusLabel = {
+                    'active': 'Enabled'|t('formie-rest-api'),
+                    'disabled': 'Disabled'|t('formie-rest-api'),
+                    'expired': 'Expired'|t('formie-rest-api'),
+                }[status] %}
+                {# Read-only meta: status dot + plain label, reusing the SAME
+                   colorSet the index table uses (`status`) so colours stay
+                   consistent across the listing and this page. #}
+                {% set statusColorKey = {'active': 'enabled', 'disabled': 'disabled', 'expired': 'expired'}[status] %}
+                {% if apiKey.id %}
+                    <div class="data">
+                        <dt class="heading">{{ 'ID'|t('formie-rest-api') }}</dt>
+                        <dd class="value">{{ apiKey.id }}</dd>
+                    </div>
+                {% endif %}
+                <div class="data">
+                    <dt class="heading">{{ 'Status'|t('formie-rest-api') }}</dt>
+                    <dd class="value">
+                        {% include 'lindemannrock-base/_components/status-dot' with {
+                            value: statusColorKey,
+                            colorSet: 'status',
+                        } only %}
+                        <span>{{ statusLabel }}</span>
+                    </dd>
+                </div>
+
+                <div class="data">
+                    <dt class="heading">{{ 'Prefix'|t('formie-rest-api') }}</dt>
+                    <dd class="value"><code>{{ apiKey.keyPrefix }}</code></dd>
+                </div>
+
+                <div class="data">
+                    <dt class="heading">{{ 'Last used'|t('formie-rest-api') }}</dt>
+                    <dd class="value">
+                        {% if apiKey.lastUsedAt %}
+                            {{ apiKey.lastUsedAt|lrDatetime }}
+                        {% else %}
+                            <span class="light">{{ 'Never'|t('formie-rest-api') }}</span>
+                        {% endif %}
+                    </dd>
+                </div>
+
+                <div class="data">
+                    <dt class="heading">{{ 'Created at'|t('formie-rest-api') }}</dt>
+                    <dd class="value">{{ apiKey.dateCreated|lrDatetime }}</dd>
+                </div>
+                <div class="data">
+                    <dt class="heading">{{ 'Updated at'|t('formie-rest-api') }}</dt>
+                    <dd class="value">{{ apiKey.dateUpdated|lrDatetime }}</dd>
+                </div>
+            </dl>
+        </fieldset>
+    {% endif %}
+{% endblock %}
+
+{% js %}
+    // Make the "All forms" toggle mutually exclusive with the explicit
+    // checkbox list. Pure UX — the server enforces the same in the controller.
+    (function() {
+        var toggle = document.getElementById('allowAllForms');
+        var explicitBlock = document.getElementById('allowed-forms-explicit');
+        if (!toggle || !explicitBlock) return;
+        toggle.addEventListener('click', function() {
+            // Use a microtask delay — Craft's lightswitch toggles `on` state
+            // *after* the click handler runs.
+            setTimeout(function() {
+                var on = toggle.classList.contains('on');
+                explicitBlock.style.display = on ? 'none' : '';
+            }, 0);
+        });
+    })();
+{% endjs %}

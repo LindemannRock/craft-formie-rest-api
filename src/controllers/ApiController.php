@@ -5,7 +5,7 @@
  * Provides REST API endpoints for accessing Formie forms and submissions
  *
  * @author LindemannRock
- * @copyright Copyright (c) 2025 LindemannRock
+ * @copyright Copyright (c) 2025-2026 LindemannRock
  * @link https://lindemannrock.com
  * @package FormieRestApi
  * @since 1.0.0
@@ -19,6 +19,7 @@ use craft\db\Table as CraftTable;
 use craft\web\Controller;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\formierestapi\FormieRestApi;
+use lindemannrock\formierestapi\models\ApiKey;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\Table as FormieTable;
@@ -71,6 +72,11 @@ class ApiController extends Controller
 
         $this->apiKeyData = $apiKeyData;
 
+        // CP-managed keys track their last use (env keys have no row to update)
+        if (($apiKeyData['dbKey'] ?? null) instanceof ApiKey) {
+            FormieRestApi::$plugin->apiKey->recordUsage($apiKeyData['dbKey']);
+        }
+
         // Set response format to JSON
         Craft::$app->response->format = Response::FORMAT_JSON;
 
@@ -114,6 +120,34 @@ class ApiController extends Controller
     {
         if (!FormieRestApi::$plugin->apiKey->hasPermission($this->apiKeyData ?? [], $permission)) {
             throw new ForbiddenHttpException("API key does not have permission: {$permission}");
+        }
+    }
+
+    /**
+     * The resolved key's form-handle allowlist, or null when unrestricted —
+     * env-var keys (no `allowedForms` entry) and wildcard DB keys.
+     *
+     * @return string[]|null
+     */
+    private function scopedFormHandles(): ?array
+    {
+        $allowed = $this->apiKeyData['allowedForms'] ?? null;
+        if (!is_array($allowed) || in_array(ApiKey::ALL_FORMS, $allowed, true)) {
+            return null;
+        }
+
+        return $allowed;
+    }
+
+    /**
+     * Throw 403 when the resolved key is form-scoped and $formHandle is
+     * outside its allowlist. No-op for unrestricted keys.
+     */
+    private function requireFormInScope(string $formHandle): void
+    {
+        $allowed = $this->scopedFormHandles();
+        if ($allowed !== null && !in_array($formHandle, $allowed, true)) {
+            throw new ForbiddenHttpException('API key is not allowed to access this form');
         }
     }
 
@@ -203,6 +237,12 @@ class ApiController extends Controller
             $query->status($status);
         }
 
+        // Form-scoped keys only ever see their allowed forms
+        $scoped = $this->scopedFormHandles();
+        if ($scoped !== null) {
+            $query->handle($scoped);
+        }
+
         // Run COUNT against a clone before applying limit/offset — avoids
         // re-preparing the (already-executed) main query for the count.
         $total = (int) (clone $query)->count();
@@ -266,7 +306,9 @@ class ApiController extends Controller
         if (!$form) {
             throw new NotFoundHttpException("Form with ID {$formId} not found");
         }
-        
+
+        $this->requireFormInScope($form->handle);
+
         return [
             'success' => true,
             'data' => $this->transformForm($form, true),
@@ -283,6 +325,9 @@ class ApiController extends Controller
     public function actionFormByHandle(string $handle): array
     {
         $this->requireApiPermission('read_forms');
+        // Scope check before the lookup — an out-of-scope key gets the same
+        // 403 whether or not the handle exists (no existence leak).
+        $this->requireFormInScope($handle);
 
         /** @var \verbb\formie\elements\Form|null $form */
         $form = Form::find()->handle($handle)->one();
@@ -329,13 +374,33 @@ class ApiController extends Controller
 
         // Filter by form
         if ($formHandle) {
+            // Scope check before the lookup — an out-of-scope key gets the same
+            // 403 whether or not the handle exists (no existence leak).
+            $this->requireFormInScope($formHandle);
+
             $form = Form::find()->handle($formHandle)->one();
             if (!$form) {
                 throw new BadRequestHttpException("Form with handle '{$formHandle}' not found");
             }
             $query->formId($form->id);
         } elseif ($formId) {
+            if ($this->scopedFormHandles() !== null) {
+                /** @var \verbb\formie\elements\Form|null $form */
+                $form = Form::find()->id($formId)->one();
+                if ($form) {
+                    $this->requireFormInScope($form->handle);
+                }
+                // Unknown id falls through to an empty result set, same as
+                // for unrestricted keys.
+            }
             $query->formId($formId);
+        } elseif (($scoped = $this->scopedFormHandles()) !== null) {
+            // No form filter requested: constrain a scoped key to its allowed
+            // forms so it can never list other forms' submissions. `[0]` when
+            // none of the allowed handles exist — formId([]) would mean
+            // "no constraint" and leak everything.
+            $scopedIds = Form::find()->handle($scoped)->ids();
+            $query->formId($scopedIds ?: [0]);
         }
         
         // Filter by status
@@ -406,6 +471,15 @@ class ApiController extends Controller
 
         if (!$submission) {
             throw new NotFoundHttpException("Submission with ID {$submissionId} not found");
+        }
+
+        $form = $submission->getForm();
+        if ($form !== null) {
+            $this->requireFormInScope($form->handle);
+        } elseif ($this->scopedFormHandles() !== null) {
+            // Orphaned submission with no resolvable form: a scoped key has no
+            // basis to claim it — fail closed.
+            throw new ForbiddenHttpException('API key is not allowed to access this form');
         }
 
         $onlyFields = $this->requestedFields();
