@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.9.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.8.0...v3.9.0) - 2026-06-10
+
+
+### Added
+
+* **i18n:** add fields (optional) translation in multiple locales ([2c4368d](https://github.com/LindemannRock/craft-formie-rest-api/commit/2c4368d48419362f7a0031189383ba8b3b530048))
+* **settings:** add testFields parameter to actionRunTest method ([8ac44f6](https://github.com/LindemannRock/craft-formie-rest-api/commit/8ac44f648b16e2af477f5d14747f3afdeb3c4516))
+* **settings:** change date fields to use date input type ([aa33291](https://github.com/LindemannRock/craft-formie-rest-api/commit/aa3329173d6f8f79d50273eed5344d3423219ad9))
+
 ## [3.8.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.7.0...v3.8.0) - 2026-06-09
 
 

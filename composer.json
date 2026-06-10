@@ -2,7 +2,7 @@
 	"name": "lindemannrock/craft-formie-rest-api",
 	"description": "REST API for Formie - Provides REST endpoints for accessing Formie forms and submissions",
 	"type": "craft-plugin",
-	"version": "3.8.0",
+	"version": "3.9.0",
 	"keywords": [
 		"craft",
 		"cms",
