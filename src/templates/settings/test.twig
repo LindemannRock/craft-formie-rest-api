@@ -103,6 +103,12 @@
                     name: 'testDateTo',
                     placeholder: '2026-04-27',
                 }) }}
+                {{ forms.textField({
+                    label: 'fields (optional)'|t('formie-rest-api'),
+                    id: 'testFields',
+                    name: 'testFields',
+                    placeholder: 'productCode,rating',
+                }) }}
             </div>
 
             <div class="endpoint-fields" data-for="forms submissions">
@@ -187,6 +193,7 @@ testButton.addEventListener('click', async () => {
         testFormHandle: document.getElementById('testFormHandle').value,
         testDateFrom: document.getElementById('testDateFrom').value,
         testDateTo: document.getElementById('testDateTo').value,
+        testFields: document.getElementById('testFields').value,
         testLimit: document.getElementById('testLimit').value,
         testOffset: document.getElementById('testOffset').value,
     };

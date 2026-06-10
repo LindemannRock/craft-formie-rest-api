@@ -303,6 +303,7 @@ class SettingsController extends Controller
         $formHandle = (string) $request->getBodyParam('testFormHandle', '');
         $dateFrom = (string) $request->getBodyParam('testDateFrom', '');
         $dateTo = (string) $request->getBodyParam('testDateTo', '');
+        $fields = (string) $request->getBodyParam('testFields', '');
         $limit = (string) $request->getBodyParam('testLimit', '');
         $offset = (string) $request->getBodyParam('testOffset', '');
 
@@ -325,6 +326,9 @@ class SettingsController extends Controller
             if ($dateTo !== '') {
                 $params['dateTo'] = $dateTo;
             }
+            if ($fields !== '') {
+                $params['fields'] = $fields;
+            }
         }
         if (in_array($choice, ['forms', 'submissions'], true)) {
             if ($limit !== '') {
@@ -334,6 +338,10 @@ class SettingsController extends Controller
                 $params['offset'] = $offset;
             }
         }
+
+        // Sort params alphabetically so the signed query matches what the server
+        // receives even when a CDN (e.g. Cloudflare) normalizes query-string order.
+        ksort($params);
 
         return [$path, http_build_query($params)];
     }
