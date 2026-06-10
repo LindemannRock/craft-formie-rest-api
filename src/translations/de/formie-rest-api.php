@@ -66,6 +66,7 @@ return [
     'Filter submissions to one form.' => 'Übermittlungen auf ein Formular eingrenzen.',
     'dateFrom (optional)' => 'dateFrom (optional)',
     'dateTo (optional)' => 'dateTo (optional)',
+    'fields (optional)' => 'fields (optional)',
     'limit' => 'limit',
     'offset' => 'offset',
     'Run Test' => 'Test ausführen',

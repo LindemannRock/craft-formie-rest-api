@@ -66,6 +66,7 @@ return [
     'Filter submissions to one form.' => '送信を 1 つのフォームに絞り込みます。',
     'dateFrom (optional)' => 'dateFrom ( 任意 )',
     'dateTo (optional)' => 'dateTo ( 任意 )',
+    'fields (optional)' => 'fields ( 任意 )',
     'limit' => 'limit',
     'offset' => 'offset',
     'Run Test' => 'テストを実行',

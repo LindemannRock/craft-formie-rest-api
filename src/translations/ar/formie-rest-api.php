@@ -66,6 +66,7 @@ return [
     'Filter submissions to one form.' => 'تصفية الإرسالات لنموذج واحد.',
     'dateFrom (optional)' => 'dateFrom (اختياري)',
     'dateTo (optional)' => 'dateTo (اختياري)',
+    'fields (optional)' => 'fields (اختياري)',
     'limit' => 'limit',
     'offset' => 'offset',
     'Run Test' => 'تشغيل الاختبار',

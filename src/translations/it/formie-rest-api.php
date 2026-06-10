@@ -66,6 +66,7 @@ return [
     'Filter submissions to one form.' => 'Filtra gli invii a un solo modulo.',
     'dateFrom (optional)' => 'dateFrom (facoltativo)',
     'dateTo (optional)' => 'dateTo (facoltativo)',
+    'fields (optional)' => 'fields (facoltativo)',
     'limit' => 'limit',
     'offset' => 'offset',
     'Run Test' => 'Esegui test',

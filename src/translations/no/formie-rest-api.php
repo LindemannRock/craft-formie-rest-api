@@ -66,6 +66,7 @@ return [
     'Filter submissions to one form.' => 'Begrens innsendinger til ett skjema.',
     'dateFrom (optional)' => 'dateFrom (valgfri)',
     'dateTo (optional)' => 'dateTo (valgfri)',
+    'fields (optional)' => 'fields (valgfri)',
     'limit' => 'limit',
     'offset' => 'offset',
     'Run Test' => 'Kjør test',

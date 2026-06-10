@@ -66,6 +66,7 @@ return [
     'Filter submissions to one form.' => 'Filtrar los envíos a un solo formulario.',
     'dateFrom (optional)' => 'dateFrom (opcional)',
     'dateTo (optional)' => 'dateTo (opcional)',
+    'fields (optional)' => 'fields (opcional)',
     'limit' => 'limit',
     'offset' => 'offset',
     'Run Test' => 'Ejecutar prueba',
