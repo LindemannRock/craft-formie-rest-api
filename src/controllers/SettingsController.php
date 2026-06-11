@@ -12,6 +12,7 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 use craft\web\Controller;
+use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\base\helpers\SettingsPostHelper;
 use lindemannrock\formierestapi\FormieRestApi;
@@ -29,16 +30,34 @@ class SettingsController extends Controller
      */
     public function beforeAction($action): bool
     {
-        $this->requirePermission('formieRestApi:manageSettings');
+        // actionIndex resolves its own permission-based redirect (CP nav default route)
+        if ($action->id !== 'index') {
+            $this->requirePermission('formieRestApi:manageSettings');
+        }
 
         return parent::beforeAction($action);
     }
 
     /**
-     * Settings index — redirect to General.
+     * Settings index — redirect to General, or to the first accessible
+     * section for users without settings access (CP nav default route).
      */
     public function actionIndex(): Response
     {
+        $user = Craft::$app->getUser();
+
+        if (!$user->checkPermission('formieRestApi:manageSettings')) {
+            $settings = FormieRestApi::$plugin->getSettings();
+            $sections = FormieRestApi::$plugin->getCpSections($settings, true);
+            $route = CpNavHelper::firstAccessibleRoute($user, $settings, $sections);
+            if ($route) {
+                return $this->redirect($route);
+            }
+
+            // No access at all - show 403
+            $this->requirePermission('formieRestApi:manageSettings');
+        }
+
         return $this->redirect('formie-rest-api/settings/general');
     }
 
@@ -86,9 +105,23 @@ class SettingsController extends Controller
         $keyChoice = (string) $request->getBodyParam('testKey', 'primary');
         $endpoint = (string) $request->getBodyParam('testEndpoint', 'forms');
 
-        $apiKey = $this->resolveKey($keyChoice);
-        if ($apiKey === null) {
-            return $this->asJson(['error' => Craft::t('formie-rest-api', 'Selected API key is not configured.')]);
+        if ($keyChoice === 'pasted') {
+            // CP-managed keys are stored hashed, so the server cannot recover
+            // their plaintext — the operator pastes it for this test only.
+            // Neither value is persisted or logged.
+            $apiKey = trim((string) $request->getBodyParam('testPastedKey', ''));
+            $pastedSecret = trim((string) $request->getBodyParam('testPastedSecret', ''));
+            $signingSecret = $pastedSecret !== '' ? $pastedSecret : null;
+
+            if ($apiKey === '') {
+                return $this->asJson(['error' => Craft::t('formie-rest-api', 'Paste an API key to test.')]);
+            }
+        } else {
+            $apiKey = $this->resolveKey($keyChoice);
+            if ($apiKey === null) {
+                return $this->asJson(['error' => Craft::t('formie-rest-api', 'Selected API key is not configured.')]);
+            }
+            $signingSecret = $this->resolveSigningSecret($keyChoice);
         }
 
         [$path, $query] = $this->buildEndpoint($endpoint, $request);
@@ -98,9 +131,8 @@ class SettingsController extends Controller
 
         $headers = ['X-API-Key' => $apiKey, 'Accept' => 'application/json'];
 
-        // If the resolved key has a signing secret configured, sign the request
-        // server-side so the test page works against keys that require HMAC.
-        $signingSecret = $this->resolveSigningSecret($keyChoice);
+        // If the key has a signing secret (env-configured or pasted), sign the
+        // request server-side so the test page works against keys that require HMAC.
         if ($signingSecret !== null) {
             $timestamp = (string) time();
             $signatureBase = implode("\n", ['GET', $pathWithQuery, $timestamp, '']);
@@ -182,14 +214,13 @@ class SettingsController extends Controller
             shouldSkipAttribute: fn(string $attribute): bool => $settings->isOverriddenByConfig($attribute),
         );
         $attributesToValidate = $result->attributesToValidate;
-        $settingsPayload = array_intersect_key($settings->getAttributes($result->assignedAttributes), array_flip($attributesToValidate));
 
         if ($result->hasErrors || !$settings->validate($attributesToValidate)) {
             Craft::$app->getSession()->setError(Craft::t('formie-rest-api', 'Couldn\'t save settings.'));
             return $this->renderTemplate("formie-rest-api/settings/{$section}", ['settings' => $settings]);
         }
 
-        if (!Craft::$app->getPlugins()->savePluginSettings($plugin, $settingsPayload)) {
+        if (!$settings->saveToDatabase($attributesToValidate)) {
             Craft::$app->getSession()->setError(Craft::t('formie-rest-api', 'Couldn\'t save settings.'));
             return $this->renderTemplate("formie-rest-api/settings/{$section}", ['settings' => $settings]);
         }
@@ -212,6 +243,7 @@ class SettingsController extends Controller
         return match ($section) {
             'general' => [
                 'pluginName',
+                'logLevel',
             ],
             'interface' => [
                 'timeFormat',
@@ -243,7 +275,9 @@ class SettingsController extends Controller
     }
 
     /**
-     * Build the dropdown options array for the key picker.
+     * Build the dropdown options array for the key picker. CP-managed keys
+     * can't be offered by name (only their hashes are stored), so a generic
+     * "Pasted key" option lets the operator supply one manually.
      */
     private function getKeyOptions(): array
     {
@@ -251,6 +285,7 @@ class SettingsController extends Controller
         foreach ($this->getAvailableKeys() as $value => $label) {
             $options[] = ['value' => $value, 'label' => $label];
         }
+        $options[] = ['value' => 'pasted', 'label' => Craft::t('formie-rest-api', 'Pasted key')];
         return $options;
     }
 

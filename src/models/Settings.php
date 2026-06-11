@@ -3,16 +3,18 @@
  * Formie REST API plugin for Craft CMS 5.x
  *
  * @link      https://lindemannrock.com
- * @copyright Copyright (c) 2025 LindemannRock
+ * @copyright Copyright (c) 2025-2026 LindemannRock
  */
 
 namespace lindemannrock\formierestapi\models;
 
 use craft\base\Model;
 use lindemannrock\base\traits\DateFormatSettingsTrait;
+use lindemannrock\base\traits\LogLevelSettingsTrait;
 use lindemannrock\base\traits\PluginNameSettingsTrait;
 use lindemannrock\base\traits\SettingsConfigTrait;
 use lindemannrock\base\traits\SettingsDisplayNameTrait;
+use lindemannrock\base\traits\SettingsPersistenceTrait;
 
 /**
  * Formie REST API Settings Model
@@ -24,9 +26,11 @@ use lindemannrock\base\traits\SettingsDisplayNameTrait;
 class Settings extends Model
 {
     use DateFormatSettingsTrait;
+    use LogLevelSettingsTrait;
     use PluginNameSettingsTrait;
     use SettingsConfigTrait;
     use SettingsDisplayNameTrait;
+    use SettingsPersistenceTrait;
 
     /**
      * @var string The name of the plugin as it appears in the Control Panel menu
@@ -40,6 +44,7 @@ class Settings extends Model
     {
         return array_merge(
             $this->pluginNameSettingsRules(),
+            $this->logLevelSettingsRules(),
             $this->dateFormatSettingsRules(),
         );
     }
@@ -51,6 +56,7 @@ class Settings extends Model
     {
         return array_merge(
             $this->pluginNameSettingsLabel(),
+            $this->logLevelSettingsLabel(),
             $this->dateFormatSettingsLabels(),
         );
     }
@@ -61,5 +67,21 @@ class Settings extends Model
     protected static function pluginHandle(): string
     {
         return 'formie-rest-api';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected static function tableName(): string
+    {
+        return 'formierestapi_settings';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected static function booleanFields(): array
+    {
+        return ['showSeconds'];
     }
 }
