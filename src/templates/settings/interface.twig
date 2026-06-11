@@ -5,20 +5,16 @@
 
 {% set crumbs = [
     {
-        label: 'Settings'|t('formie-rest-api'),
-        url: cpUrl('settings'),
-    },
-    {
-        label: 'Plugins'|t('formie-rest-api'),
-        url: cpUrl('settings/plugins'),
-    },
-    {
         label: formieRestApiHelper.fullName|t('formie-rest-api'),
-        url: cpUrl('formie-rest-api/settings'),
+        url: url('formie-rest-api'),
+    },
+    {
+        label: 'Settings'|t('formie-rest-api'),
+        url: url('formie-rest-api/settings'),
     },
     {
         label: 'Interface'|t('formie-rest-api'),
-        url: cpUrl('formie-rest-api/settings/interface'),
+        url: url('formie-rest-api/settings/interface'),
     },
 ] %}
 

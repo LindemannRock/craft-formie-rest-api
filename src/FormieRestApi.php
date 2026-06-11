@@ -5,7 +5,7 @@
  * REST API for Formie - REST endpoints for accessing Formie forms and submissions
  *
  * @link      https://lindemannrock.com
- * @copyright Copyright (c) 2025 LindemannRock
+ * @copyright Copyright (c) 2025-2026 LindemannRock
  */
 
 namespace lindemannrock\formierestapi;
@@ -17,11 +17,14 @@ use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
+use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\formierestapi\models\Settings;
 use lindemannrock\formierestapi\services\ApiKeyService;
 use lindemannrock\formierestapi\services\FormieTransformerService;
 use lindemannrock\formierestapi\services\SecurityService;
+use lindemannrock\logginglibrary\LoggingLibrary;
+use lindemannrock\logginglibrary\traits\LoggingTrait;
 use yii\base\Event;
 
 /**
@@ -39,6 +42,8 @@ use yii\base\Event;
  */
 class FormieRestApi extends Plugin
 {
+    use LoggingTrait;
+
     /**
      * @var FormieRestApi|null Singleton plugin instance
      */
@@ -48,6 +53,11 @@ class FormieRestApi extends Plugin
      * @var string Plugin schema version for migrations
      */
     public string $schemaVersion = '1.0.0';
+
+    /**
+     * @var bool Whether the plugin has its own section in the CP nav
+     */
+    public bool $hasCpSection = true;
 
     /**
      * @var bool Whether the plugin exposes a control panel settings page
@@ -72,7 +82,7 @@ class FormieRestApi extends Plugin
         self::$plugin = $this;
 
         // Bootstrap the base plugin helper
-        PluginHelper::bootstrap($this, 'formieRestApiHelper', [], [], [
+        PluginHelper::bootstrap($this, 'formieRestApiHelper', ['formieRestApi:viewSystemLogs'], ['formieRestApi:downloadSystemLogs'], [
             'installExperience' => [
                 'headline' => Craft::t('formie-rest-api', 'Formie REST API'),
                 'body' => Craft::t('formie-rest-api', 'Manage API keys, secure endpoints, and test Formie data responses from the plugin settings area.'),
@@ -126,6 +136,14 @@ class FormieRestApi extends Plugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function(RegisterUrlRulesEvent $event) {
+                $event->rules['formie-rest-api'] = 'formie-rest-api/api-keys/index';
+                $event->rules['formie-rest-api/api-keys'] = 'formie-rest-api/api-keys/index';
+                $event->rules['formie-rest-api/api-keys/create'] = 'formie-rest-api/api-keys/edit';
+                $event->rules['formie-rest-api/api-keys/edit/<keyId:\d+>'] = 'formie-rest-api/api-keys/edit';
+                $event->rules['formie-rest-api/api-keys/delete/<keyId:\d+>'] = 'formie-rest-api/api-keys/delete';
+                $event->rules['formie-rest-api/api-keys/bulk-enable'] = 'formie-rest-api/api-keys/bulk-enable';
+                $event->rules['formie-rest-api/api-keys/bulk-disable'] = 'formie-rest-api/api-keys/bulk-disable';
+                $event->rules['formie-rest-api/api-keys/bulk-delete'] = 'formie-rest-api/api-keys/bulk-delete';
                 $event->rules['formie-rest-api/settings'] = 'formie-rest-api/settings/index';
                 $event->rules['formie-rest-api/settings/general'] = 'formie-rest-api/settings/general';
                 $event->rules['formie-rest-api/settings/interface'] = 'formie-rest-api/settings/interface';
@@ -147,6 +165,29 @@ class FormieRestApi extends Plugin
                         'formieRestApi:manageSettings' => [
                             'label' => Craft::t('formie-rest-api', 'Manage settings'),
                         ],
+                        // API Keys - grouped (parent grants page access + view, destructive actions nested)
+                        'formieRestApi:manageApiKeys' => [
+                            'label' => Craft::t('formie-rest-api', 'Manage API keys'),
+                            'nested' => [
+                                'formieRestApi:createApiKeys' => [
+                                    'label' => Craft::t('formie-rest-api', 'Create API keys'),
+                                ],
+                                'formieRestApi:editApiKeys' => [
+                                    'label' => Craft::t('formie-rest-api', 'Edit API keys'),
+                                ],
+                                'formieRestApi:revokeApiKeys' => [
+                                    'label' => Craft::t('formie-rest-api', 'Revoke API keys'),
+                                ],
+                            ],
+                        ],
+                        'formieRestApi:viewSystemLogs' => [
+                            'label' => Craft::t('formie-rest-api', 'View system logs'),
+                            'nested' => [
+                                'formieRestApi:downloadSystemLogs' => [
+                                    'label' => Craft::t('formie-rest-api', 'Download system logs'),
+                                ],
+                            ],
+                        ],
                     ],
                 ];
             }
@@ -157,19 +198,98 @@ class FormieRestApi extends Plugin
         if (!empty($settings->pluginName)) {
             $this->name = $settings->pluginName;
         }
-
-        Craft::info(
-            'Formie REST API plugin loaded',
-            __METHOD__
-        );
     }
     
     /**
      * @inheritdoc
      */
+    public function getCpNavItem(): ?array
+    {
+        $item = parent::getCpNavItem();
+        $user = Craft::$app->getUser();
+
+        if ($item) {
+            $settings = $this->getSettings();
+
+            $item['label'] = $settings->getFullName();
+
+            $sections = $this->getCpSections($settings);
+            $item['subnav'] = CpNavHelper::buildSubnav($user, $settings, $sections);
+
+            // System Logs (using logging library)
+            if (PluginHelper::isPluginEnabled('logging-library')) {
+                $item = LoggingLibrary::addLogsNav($item, $this->handle, [
+                    'formieRestApi:viewSystemLogs',
+                ]);
+            }
+
+            // Hide from nav if no accessible subnav items
+            if (empty($item['subnav'])) {
+                return null;
+            }
+        }
+
+        return $item;
+    }
+
+    /**
+     * Get CP sections for nav + default route resolution
+     *
+     * @since 3.10.0
+     */
+    public function getCpSections(Settings $settings, bool $includeLogs = false): array
+    {
+        $sections = [];
+
+        $sections[] = [
+            'key' => 'api-keys',
+            'label' => Craft::t('formie-rest-api', 'API Keys'),
+            'url' => 'formie-rest-api',
+            'permissionsAll' => ['formieRestApi:manageApiKeys'],
+        ];
+
+        if ($includeLogs) {
+            $sections[] = [
+                'key' => 'logs',
+                'label' => Craft::t('formie-rest-api', 'Logs'),
+                'url' => 'formie-rest-api/logs',
+                'permissionsAll' => ['formieRestApi:viewSystemLogs'],
+                'when' => fn() => PluginHelper::isPluginEnabled('logging-library'),
+            ];
+        }
+
+        $sections[] = [
+            'key' => 'settings',
+            'label' => Craft::t('formie-rest-api', 'Settings'),
+            'url' => 'formie-rest-api/settings',
+            'permissionsAll' => ['formieRestApi:manageSettings'],
+        ];
+
+        return $sections;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setSettings(array|Model $settings): void
+    {
+        // No-op: settings come from loadFromDatabase() in createSettingsModel(),
+        // not from project config.
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected function createSettingsModel(): ?Model
     {
-        return new Settings();
+        try {
+            return Settings::loadFromDatabase();
+        } catch (\Throwable $e) {
+            $this->logError('Could not load settings from database', [
+                'error' => $e->getMessage(),
+            ]);
+            return new Settings();
+        }
     }
     
     /**
