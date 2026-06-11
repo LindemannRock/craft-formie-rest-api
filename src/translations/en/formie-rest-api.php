@@ -156,7 +156,7 @@ return [
     'Equivalent curl' => 'Equivalent curl',
     'Response headers' => 'Response headers',
     'Response body' => 'Response body',
-    'Running…' => 'Running…',
+    'Running...' => 'Running...',
     'Error:' => 'Error:',
     'Unknown error' => 'Unknown error',
 ];

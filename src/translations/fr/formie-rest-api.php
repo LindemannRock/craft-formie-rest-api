@@ -156,7 +156,7 @@ return [
     'Equivalent curl' => 'Commande curl équivalente',
     'Response headers' => 'En-têtes de réponse',
     'Response body' => 'Corps de la réponse',
-    'Running…' => 'Exécution en cours…',
+    'Running...' => 'Exécution en cours...',
     'Error:' => 'Erreur :',
     'Unknown error' => 'Erreur inconnue',
 ];

@@ -156,7 +156,7 @@ return [
     'Equivalent curl' => '同等の curl コマンド',
     'Response headers' => 'レスポンスヘッダー',
     'Response body' => 'レスポンスボディ',
-    'Running…' => '実行中…',
+    'Running...' => '実行中...',
     'Error:' => 'エラー :',
     'Unknown error' => '不明なエラー',
 ];

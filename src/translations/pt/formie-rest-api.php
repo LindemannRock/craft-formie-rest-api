@@ -80,7 +80,7 @@ return [
     'Signing' => 'Assinatura',
     'Expires' => 'Expira',
     'Last used' => 'Última utilização',
-    'Expired' => 'Expirada',
+    'Expired' => 'Expirado',
     'No API keys yet.' => 'Ainda sem chaves API.',
     'Search API keys...' => 'Pesquisar chaves API...',
     'API key' => 'chave API',
@@ -156,7 +156,7 @@ return [
     'Equivalent curl' => 'Comando curl equivalente',
     'Response headers' => 'Cabeçalhos da resposta',
     'Response body' => 'Corpo da resposta',
-    'Running…' => 'A executar…',
+    'Running...' => 'A executar...',
     'Error:' => 'Erro:',
     'Unknown error' => 'Erro desconhecido',
 ];

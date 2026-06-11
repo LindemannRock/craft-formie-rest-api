@@ -208,7 +208,7 @@ updatePastedFields();
 
 testButton.addEventListener('click', async () => {
     testButton.disabled = true;
-    testStatus.textContent = {{ 'Running…'|t('formie-rest-api')|json_encode|raw }};
+    testStatus.textContent = {{ 'Running...'|t('formie-rest-api')|json_encode|raw }};
     testStatus.classList.remove('lr-text-red');
     testResults.style.display = 'none';
 

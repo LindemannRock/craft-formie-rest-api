@@ -9,7 +9,7 @@
 return [
     // Plugin meta
     'Formie REST API' => 'Formie REST API',
-    'Manage API keys, secure endpoints, and test Formie data responses from the plugin settings area.' => 'Gestione claves API, asegure los endpoints y pruebe las respuestas de datos de Formie desde el área de ajustes del plugin.',
+    'Manage API keys, secure endpoints, and test Formie data responses from the plugin settings area.' => 'Gestione claves API, asegure los endpoints y pruebe las respuestas de datos de Formie desde el área de configuración del plugin.',
     'Open Formie REST API' => 'Abrir Formie REST API',
     // Navigation
     'Settings' => 'Configuración',
@@ -20,7 +20,7 @@ return [
     'Test' => 'Prueba',
 
     // Permissions
-    'Manage settings' => 'Gestionar ajustes',
+    'Manage settings' => 'Gestionar configuración',
     'Manage API keys' => 'Gestionar claves API',
     'Create API keys' => 'Crear claves API',
     'Edit API keys' => 'Editar claves API',
@@ -46,7 +46,7 @@ return [
     'Updated at' => 'Actualizado el',
 
     // Controller messages
-    "Couldn't save settings." => 'No se pudieron guardar los ajustes.',
+    "Couldn't save settings." => 'No se pudo guardar la configuración.',
     'Settings saved.' => 'Configuración guardada.',
     'Selected API key is not configured.' => 'La clave API seleccionada no está configurada.',
     'API key created' => 'Clave API creada',
@@ -67,7 +67,7 @@ return [
     'Invalid IP whitelist entry: "{entry}". Use a single IP or CIDR range (e.g. 203.0.113.5 or 192.168.1.0/24).' => 'Entrada de lista blanca de IP no válida: "{entry}". Utilice una dirección IP única o un rango CIDR (p. ej. 203.0.113.5 o 192.168.1.0/24).',
 
     // Settings: General
-    'General Settings' => 'Ajustes generales',
+    'General Settings' => 'Configuración general',
 
     // Settings: Interface
     'Interface Settings' => 'Configuración de interfaz',
@@ -80,7 +80,7 @@ return [
     'Signing' => 'Firma',
     'Expires' => 'Caduca',
     'Last used' => 'Último uso',
-    'Expired' => 'Caducada',
+    'Expired' => 'Expirado',
     'No API keys yet.' => 'Aún no hay claves API.',
     'Search API keys...' => 'Buscar claves API...',
     'API key' => 'clave API',
@@ -156,7 +156,7 @@ return [
     'Equivalent curl' => 'Comando curl equivalente',
     'Response headers' => 'Cabeceras de respuesta',
     'Response body' => 'Cuerpo de la respuesta',
-    'Running…' => 'Ejecutando…',
+    'Running...' => 'Ejecutando...',
     'Error:' => 'Error:',
     'Unknown error' => 'Error desconocido',
 ];

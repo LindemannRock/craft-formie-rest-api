@@ -156,7 +156,7 @@ return [
     'Equivalent curl' => 'Equivalent curl-commando',
     'Response headers' => 'Antwoordheaders',
     'Response body' => 'Antwoordbody',
-    'Running…' => 'Bezig met uitvoeren…',
+    'Running...' => 'Bezig met uitvoeren...',
     'Error:' => 'Fout:',
     'Unknown error' => 'Onbekende fout',
 ];

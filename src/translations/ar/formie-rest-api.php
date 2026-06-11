@@ -156,7 +156,7 @@ return [
     'Equivalent curl' => 'أمر curl المكافئ',
     'Response headers' => 'ترويسات الاستجابة',
     'Response body' => 'محتوى الاستجابة',
-    'Running…' => 'جارٍ التشغيل…',
+    'Running...' => 'جارٍ التشغيل...',
     'Error:' => 'خطأ:',
     'Unknown error' => 'خطأ غير معروف',
 ];

@@ -94,7 +94,7 @@ return [
     'Are you sure you want to revoke 1 API key? Any callers using it will immediately lose access. This cannot be undone.' => 'Möchten Sie wirklich 1 API-Schlüssel widerrufen? Alle Aufrufer, die ihn verwenden, verlieren sofort den Zugriff. Dies kann nicht rückgängig gemacht werden.',
     'Are you sure you want to revoke {count} API keys? Any callers using them will immediately lose access. This cannot be undone.' => 'Möchten Sie wirklich {count} API-Schlüssel widerrufen? Alle Aufrufer, die sie verwenden, verlieren sofort den Zugriff. Dies kann nicht rückgängig gemacht werden.',
     'Prefix' => 'Präfix',
-    'None' => 'Keiner',
+    'None' => 'Keine',
 
     // Edit page
     'New API Key' => 'Neuer API-Schlüssel',
@@ -156,7 +156,7 @@ return [
     'Equivalent curl' => 'Äquivalenter curl-Befehl',
     'Response headers' => 'Antwort-Header',
     'Response body' => 'Antwort-Body',
-    'Running…' => 'Wird ausgeführt…',
+    'Running...' => 'Wird ausgeführt...',
     'Error:' => 'Fehler:',
     'Unknown error' => 'Unbekannter Fehler',
 ];

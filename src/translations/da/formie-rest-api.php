@@ -156,7 +156,7 @@ return [
     'Equivalent curl' => 'Tilsvarende curl-kommando',
     'Response headers' => 'Svarheaders',
     'Response body' => 'Svarbody',
-    'Running…' => 'Kører…',
+    'Running...' => 'Kører...',
     'Error:' => 'Fejl:',
     'Unknown error' => 'Ukendt fejl',
 ];

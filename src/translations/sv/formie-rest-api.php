@@ -47,7 +47,7 @@ return [
 
     // Controller messages
     "Couldn't save settings." => 'Det gick inte att spara inställningarna.',
-    'Settings saved.' => 'Inställningarna har sparats.',
+    'Settings saved.' => 'Inställningar sparade.',
     'Selected API key is not configured.' => 'Den valda API-nyckeln är inte konfigurerad.',
     'API key created' => 'API-nyckel skapad',
     'API key saved' => 'API-nyckel sparad',
@@ -80,7 +80,7 @@ return [
     'Signing' => 'Signering',
     'Expires' => 'Upphör',
     'Last used' => 'Senast använd',
-    'Expired' => 'Upphörd',
+    'Expired' => 'Utgången',
     'No API keys yet.' => 'Inga API-nycklar ännu.',
     'Search API keys...' => 'Sök API-nycklar...',
     'API key' => 'API-nyckel',
@@ -156,7 +156,7 @@ return [
     'Equivalent curl' => 'Motsvarande curl-kommando',
     'Response headers' => 'Svarshuvuden',
     'Response body' => 'Svarskropp',
-    'Running…' => 'Kör…',
+    'Running...' => 'Kör...',
     'Error:' => 'Fel:',
     'Unknown error' => 'Okänt fel',
 ];

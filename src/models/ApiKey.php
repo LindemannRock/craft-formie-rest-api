@@ -153,6 +153,24 @@ class ApiKey extends Model
     }
 
     /**
+     * @inheritdoc
+     */
+    public function attributeLabels(): array
+    {
+        return [
+            'name' => Craft::t('formie-rest-api', 'Name'),
+            'enabled' => Craft::t('formie-rest-api', 'Enabled'),
+            'keyPrefix' => Craft::t('formie-rest-api', 'Prefix'),
+            'requireSignature' => Craft::t('formie-rest-api', 'Require signing'),
+            'canReadSubmissions' => Craft::t('formie-rest-api', 'Read submissions'),
+            'allowedForms' => Craft::t('formie-rest-api', 'Allowed forms'),
+            'ipWhitelist' => Craft::t('formie-rest-api', 'IP whitelist'),
+            'rateLimit' => Craft::t('formie-rest-api', 'Rate limit'),
+            'validUntil' => Craft::t('formie-rest-api', 'Valid until'),
+        ];
+    }
+
+    /**
      * Enabled keys must have an explicit form permission boundary. An empty
      * allowlist is valid only for disabled draft keys.
      */
