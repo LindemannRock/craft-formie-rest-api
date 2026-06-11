@@ -103,7 +103,7 @@ php craft formie-rest-api/api-keys/create \
 The plugin reads API keys from environment variables (or, optionally, `config/general.php`):
 
 ```bash
-# Primary API key — full read/write access
+# Primary API key — read forms and submissions
 FORMIE_API_KEY="..."
 
 # Limited access key — read forms only (optional)
