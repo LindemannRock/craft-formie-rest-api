@@ -3,16 +3,14 @@
 {% set title = title ?? 'Settings'|t('formie-rest-api') %}
 {% set selectedSettingsItem = selectedSettingsItem ?? 'general' %}
 {% set selectedSubnavItem = 'settings' %}
-{% set missingKeysSummary = include('formie-rest-api/_partials/missing-keys-warning')|trim %}
-{% set validationSummary = '' %}
+{% set errorSummary = '' %}
 {% if settings is defined and settings.hasErrors() %}
-    {% set validationSummary = include('lindemannrock-base/_partials/error-summary', {
+    {% set errorSummary = include('lindemannrock-base/_partials/error-summary', {
         errors: settings.getErrors(),
         linkMode: 'field-id',
         translationCategory: 'formie-rest-api'
     })|trim %}
 {% endif %}
-{% set errorSummary = [missingKeysSummary, validationSummary]|filter(v => v)|join("\n") %}
 
 {% block sidebar %}
     <nav id="settings-nav">
