@@ -5,20 +5,16 @@
 
 {% set crumbs = [
     {
-        label: 'Settings'|t('formie-rest-api'),
-        url: cpUrl('settings'),
-    },
-    {
-        label: 'Plugins'|t('formie-rest-api'),
-        url: cpUrl('settings/plugins'),
-    },
-    {
         label: formieRestApiHelper.fullName|t('formie-rest-api'),
-        url: cpUrl('formie-rest-api/settings'),
+        url: url('formie-rest-api'),
+    },
+    {
+        label: 'Settings'|t('formie-rest-api'),
+        url: url('formie-rest-api/settings'),
     },
     {
         label: 'General'|t('formie-rest-api'),
-        url: cpUrl('formie-rest-api/settings/general'),
+        url: url('formie-rest-api/settings/general'),
     },
 ] %}
 
@@ -30,6 +26,11 @@
         <h2 class="first">{{ 'General Settings'|t('formie-rest-api') }}</h2>
 
         {% include 'lindemannrock-base/_partials/field-plugin-name' with {
+            settings: settings,
+            pluginHandle: 'formie-rest-api',
+        } only %}
+
+        {% include 'lindemannrock-base/_partials/field-log-level' with {
             settings: settings,
             pluginHandle: 'formie-rest-api',
         } only %}

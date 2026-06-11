@@ -29,6 +29,7 @@ final class SettingsControllerSectionScopeTest extends TestCase
         $expected = [
             'general' => [
                 'pluginName',
+                'logLevel',
             ],
             'interface' => [
                 'timeFormat',

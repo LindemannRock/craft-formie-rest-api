@@ -23,6 +23,11 @@ return [
          */
         // 'pluginName' => 'Formie REST API',
 
+        /**
+         * Log level options: 'debug', 'info', 'warning', 'error'
+         */
+        // 'logLevel' => 'error',
+
 
         // ========================================
         // BASE PLUGIN OVERRIDES

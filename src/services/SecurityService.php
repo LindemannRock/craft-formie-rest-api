@@ -16,16 +16,26 @@ namespace lindemannrock\formierestapi\services;
 use Craft;
 use craft\base\Component;
 use craft\helpers\App;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Json;
 use lindemannrock\base\helpers\PluginHelper;
+use lindemannrock\logginglibrary\traits\LoggingTrait;
 
 class SecurityService extends Component
 {
+    use LoggingTrait;
+
     /**
      * Length of the rate-limit window in seconds.
      */
     private const RATE_LIMIT_WINDOW = 3600;
+
+    /**
+     * @inheritdoc
+     */
+    public function init(): void
+    {
+        parent::init();
+        $this->setLoggingHandle('formie-rest-api');
+    }
 
     /**
      * Build the cache key for the current rate-limit window.
@@ -58,7 +68,7 @@ class SecurityService extends Component
         // the limit check before any of them writes. Fail open if we can't
         // acquire the lock within 2s — consistent with the cache-error path.
         if (!$mutex->acquire($lockName, 2)) {
-            Craft::warning('Rate-limit mutex acquire failed (failing open)', 'formie-rest-api');
+            $this->logWarning('Rate-limit mutex acquire failed (failing open)');
             return true;
         }
 
@@ -72,7 +82,9 @@ class SecurityService extends Component
             Craft::$app->cache->set($cacheKey, $current + 1, self::RATE_LIMIT_WINDOW);
             return true;
         } catch (\Throwable $e) {
-            Craft::warning('Rate-limit cache error (failing open): ' . $e->getMessage(), 'formie-rest-api');
+            $this->logWarning('Rate-limit cache error (failing open)', [
+                'error' => $e->getMessage(),
+            ]);
             return true;
         } finally {
             $mutex->release($lockName);
@@ -200,8 +212,7 @@ class SecurityService extends Component
         // Remove sensitive data
         unset($params['password'], $params['token'], $params['secret']);
         
-        $log = [
-            'timestamp' => DateTimeHelper::currentTimeStamp(),
+        $this->logInfo('API access', [
             'api_key' => substr($apiKey, 0, 10) . '...', // Only log partial key
             'endpoint' => $endpoint,
             'method' => Craft::$app->request->getMethod(),
@@ -209,9 +220,7 @@ class SecurityService extends Component
             'user_agent' => Craft::$app->request->getUserAgent(),
             'params' => $params,
             'response_code' => $responseCode,
-        ];
-
-        Craft::info(Json::encode($log), 'formie-rest-api');
+        ]);
     }
     
     /**
