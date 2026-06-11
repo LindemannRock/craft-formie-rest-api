@@ -12,6 +12,7 @@ return [
     'Manage API keys, secure endpoints, and test Formie data responses from the plugin settings area.' => 'Administrer API-nøkler, sikre endepunkter og test Formie-datasvar fra pluginets innstillingsområde.',
     'Open Formie REST API' => 'Åpne Formie REST API',
     // Navigation
+    'API Keys' => 'API-nøkler',
     'Settings' => 'Innstillinger',
     'Plugins' => 'Plugins',
     'General' => 'Generelt',

@@ -12,6 +12,7 @@ return [
     'Manage API keys, secure endpoints, and test Formie data responses from the plugin settings area.' => 'API キーの管理、エンドポイントの保護、プラグイン設定エリアからの Formie データ応答のテストを行います。',
     'Open Formie REST API' => 'Formie REST API を開く',
     // Navigation
+    'API Keys' => 'API キー',
     'Settings' => '設定',
     'Plugins' => 'プラグイン',
     'General' => '一般',
