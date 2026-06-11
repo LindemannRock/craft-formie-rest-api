@@ -44,6 +44,12 @@ class ApiController extends Controller
     private ?array $apiKeyData = null;
 
     /**
+     * @var string|null The raw X-API-Key header for the current request, cached
+     * in beforeAction() so afterAction() reuses it without re-reading the header.
+     */
+    private ?string $apiKey = null;
+
+    /**
      * @inheritdoc
      */
     public function beforeAction($action): bool
@@ -71,6 +77,7 @@ class ApiController extends Controller
         }
 
         $this->apiKeyData = $apiKeyData;
+        $this->apiKey = $apiKey;
 
         // CP-managed keys track their last use (env keys have no row to update)
         if (($apiKeyData['dbKey'] ?? null) instanceof ApiKey) {
@@ -100,7 +107,7 @@ class ApiController extends Controller
      */
     public function afterAction($action, $result)
     {
-        $apiKey = Craft::$app->request->getHeaders()->get('X-API-Key');
+        $apiKey = $this->apiKey;
         if (is_string($apiKey) && $apiKey !== '') {
             FormieRestApi::$plugin->security->logApiAccess(
                 $apiKey,
