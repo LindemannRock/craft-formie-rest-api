@@ -93,10 +93,6 @@ return [
     'Are you sure you want to revoke this API key? Any callers using it will immediately lose access.' => 'هل أنت متأكد من أنك تريد إبطال مفتاح API هذا؟ سيفقد أي مستدعين يستخدمونه الوصول فوراً.',
     'Are you sure you want to revoke 1 API key? Any callers using it will immediately lose access. This cannot be undone.' => 'هل أنت متأكد من أنك تريد إبطال مفتاح API واحد؟ سيفقد أي مستدعين يستخدمونه الوصول فوراً. لا يمكن التراجع عن هذا الإجراء.',
     'Are you sure you want to revoke {count} API keys? Any callers using them will immediately lose access. This cannot be undone.' => 'هل أنت متأكد من أنك تريد إبطال {count} مفاتيح API؟ سيفقد أي مستدعين يستخدمونها الوصول فوراً. لا يمكن التراجع عن هذا الإجراء.',
-    'Couldn’t revoke API key.' => 'تعذر إبطال مفتاح API.',
-    'Couldn’t enable API keys.' => 'تعذر تفعيل مفاتيح API.',
-    'Couldn’t disable API keys.' => 'تعذر تعطيل مفاتيح API.',
-    'Couldn’t revoke API keys.' => 'تعذر إبطال مفاتيح API.',
     'Prefix' => 'البادئة',
     'None' => 'لا شيء',
 

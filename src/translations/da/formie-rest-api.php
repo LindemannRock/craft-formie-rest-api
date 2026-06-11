@@ -93,10 +93,6 @@ return [
     'Are you sure you want to revoke this API key? Any callers using it will immediately lose access.' => 'Er du sikker på, at du vil tilbagekalde denne API-nøgle? Alle kaldere, der bruger den, mister øjeblikkeligt adgangen.',
     'Are you sure you want to revoke 1 API key? Any callers using it will immediately lose access. This cannot be undone.' => 'Er du sikker på, at du vil tilbagekalde 1 API-nøgle? Alle kaldere, der bruger den, mister øjeblikkeligt adgangen. Dette kan ikke fortrydes.',
     'Are you sure you want to revoke {count} API keys? Any callers using them will immediately lose access. This cannot be undone.' => 'Er du sikker på, at du vil tilbagekalde {count} API-nøgler? Alle kaldere, der bruger dem, mister øjeblikkeligt adgangen. Dette kan ikke fortrydes.',
-    'Couldn’t revoke API key.' => 'Kunne ikke tilbagekalde API-nøgle.',
-    'Couldn’t enable API keys.' => 'Kunne ikke aktivere API-nøgler.',
-    'Couldn’t disable API keys.' => 'Kunne ikke deaktivere API-nøgler.',
-    'Couldn’t revoke API keys.' => 'Kunne ikke tilbagekalde API-nøgler.',
     'Prefix' => 'Præfiks',
     'None' => 'Ingen',
 

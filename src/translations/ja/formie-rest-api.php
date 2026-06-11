@@ -93,10 +93,6 @@ return [
     'Are you sure you want to revoke this API key? Any callers using it will immediately lose access.' => 'この API キーを失効してもよろしいですか？使用中の呼び出し元はただちにアクセスを失います。',
     'Are you sure you want to revoke 1 API key? Any callers using it will immediately lose access. This cannot be undone.' => '1 件の API キーを失効してもよろしいですか？使用中の呼び出し元はただちにアクセスを失います。この操作は元に戻せません。',
     'Are you sure you want to revoke {count} API keys? Any callers using them will immediately lose access. This cannot be undone.' => '{count} 件の API キーを失効してもよろしいですか？使用中の呼び出し元はただちにアクセスを失います。この操作は元に戻せません。',
-    'Couldn’t revoke API key.' => 'API キーを失効できませんでした。',
-    'Couldn’t enable API keys.' => 'API キーを有効にできませんでした。',
-    'Couldn’t disable API keys.' => 'API キーを無効にできませんでした。',
-    'Couldn’t revoke API keys.' => 'API キーを失効できませんでした。',
     'Prefix' => 'プレフィックス',
     'None' => 'なし',
 

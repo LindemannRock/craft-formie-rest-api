@@ -93,10 +93,6 @@ return [
     'Are you sure you want to revoke this API key? Any callers using it will immediately lose access.' => 'Revogar esta chave API? Quaisquer chamadores que a utilizem perderão imediatamente o acesso.',
     'Are you sure you want to revoke 1 API key? Any callers using it will immediately lose access. This cannot be undone.' => 'Revogar 1 chave API? Quaisquer chamadores que a utilizem perderão imediatamente o acesso. Esta ação não pode ser anulada.',
     'Are you sure you want to revoke {count} API keys? Any callers using them will immediately lose access. This cannot be undone.' => 'Revogar {count} chaves API? Quaisquer chamadores que as utilizem perderão imediatamente o acesso. Esta ação não pode ser anulada.',
-    'Couldn’t revoke API key.' => 'Não foi possível revogar a chave API.',
-    'Couldn’t enable API keys.' => 'Não foi possível ativar as chaves API.',
-    'Couldn’t disable API keys.' => 'Não foi possível desativar as chaves API.',
-    'Couldn’t revoke API keys.' => 'Não foi possível revogar as chaves API.',
     'Prefix' => 'Prefixo',
     'None' => 'Nenhum',
 

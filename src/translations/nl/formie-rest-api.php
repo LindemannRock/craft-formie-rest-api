@@ -93,10 +93,6 @@ return [
     'Are you sure you want to revoke this API key? Any callers using it will immediately lose access.' => 'Weet u zeker dat u deze API-sleutel wilt intrekken? Aanroepers die deze gebruiken verliezen direct hun toegang.',
     'Are you sure you want to revoke 1 API key? Any callers using it will immediately lose access. This cannot be undone.' => 'Weet u zeker dat u 1 API-sleutel wilt intrekken? Aanroepers die deze gebruiken verliezen direct hun toegang. Dit kan niet ongedaan worden gemaakt.',
     'Are you sure you want to revoke {count} API keys? Any callers using them will immediately lose access. This cannot be undone.' => 'Weet u zeker dat u {count} API-sleutels wilt intrekken? Aanroepers die deze gebruiken verliezen direct hun toegang. Dit kan niet ongedaan worden gemaakt.',
-    'Couldn’t revoke API key.' => 'Kan API-sleutel niet intrekken.',
-    'Couldn’t enable API keys.' => 'Kan API-sleutels niet inschakelen.',
-    'Couldn’t disable API keys.' => 'Kan API-sleutels niet uitschakelen.',
-    'Couldn’t revoke API keys.' => 'Kan API-sleutels niet intrekken.',
     'Prefix' => 'Prefix',
     'None' => 'Geen',
 
