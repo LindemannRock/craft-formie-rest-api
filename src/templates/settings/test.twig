@@ -6,20 +6,16 @@
 
 {% set crumbs = [
     {
-        label: 'Settings'|t('formie-rest-api'),
-        url: cpUrl('settings'),
-    },
-    {
-        label: 'Plugins'|t('formie-rest-api'),
-        url: cpUrl('settings/plugins'),
-    },
-    {
         label: formieRestApiHelper.fullName|t('formie-rest-api'),
-        url: cpUrl('formie-rest-api/settings'),
+        url: url('formie-rest-api'),
+    },
+    {
+        label: 'Settings'|t('formie-rest-api'),
+        url: url('formie-rest-api/settings'),
     },
     {
         label: 'Test'|t('formie-rest-api'),
-        url: cpUrl('formie-rest-api/settings/test'),
+        url: url('formie-rest-api/settings/test'),
     },
 ] %}
 
@@ -39,7 +35,7 @@
             type: 'warning',
             message: 'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).'|t('formie-rest-api')|raw,
         } %}
-    {% else %}
+    {% endif %}
         <div class="pane" style="margin-bottom: 24px;">
             {{ forms.selectField({
                 label: 'API Key'|t('formie-rest-api'),
@@ -49,6 +45,25 @@
                 options: keyOptions,
                 value: keyOptions[0].value ?? '',
             }) }}
+
+            <div id="pasted-key-fields" style="display: none;">
+                {{ forms.textField({
+                    label: 'API Key'|t('formie-rest-api'),
+                    instructions: 'Paste the full key (fra_...). Used for this test only — never stored.'|t('formie-rest-api'),
+                    id: 'testPastedKey',
+                    name: 'testPastedKey',
+                    type: 'password',
+                    autocomplete: 'off',
+                }) }}
+                {{ forms.textField({
+                    label: 'Signing secret'|t('formie-rest-api'),
+                    instructions: 'Leave empty if the key does not require signing.'|t('formie-rest-api'),
+                    id: 'testPastedSecret',
+                    name: 'testPastedSecret',
+                    type: 'password',
+                    autocomplete: 'off',
+                }) }}
+            </div>
 
             {{ forms.selectField({
                 label: 'Endpoint'|t('formie-rest-api'),
@@ -143,16 +158,15 @@
                 </p>
 
                 <h4>{{ 'Equivalent curl'|t('formie-rest-api') }}</h4>
-                <pre id="resultCurl" style="background:#f3f4f6;padding:12px;border-radius:4px;white-space:pre-wrap;word-break:break-all;"></pre>
+                <pre id="resultCurl" class="lr-code-block frapi-pre-wrap"></pre>
 
                 <h4>{{ 'Response headers'|t('formie-rest-api') }}</h4>
-                <pre id="resultHeaders" style="background:#f3f4f6;padding:12px;border-radius:4px;max-height:200px;overflow:auto;"></pre>
+                <pre id="resultHeaders" class="lr-code-block frapi-pre-scroll"></pre>
 
                 <h4>{{ 'Response body'|t('formie-rest-api') }}</h4>
-                <pre id="resultBody" style="background:#f3f4f6;padding:12px;border-radius:4px;max-height:400px;overflow:auto;"></pre>
+                <pre id="resultBody" class="lr-code-block frapi-pre-scroll-lg"></pre>
             </div>
         </div>
-    {% endif %}
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
 {% endblock %}
@@ -161,6 +175,9 @@
     .endpoint-fields { display: none; }
     .endpoint-fields.visible { display: block; }
     .endpoint-fields.visible + .endpoint-fields.visible { margin-top: 24px; }
+    .frapi-pre-wrap { white-space: pre-wrap; word-break: break-all; }
+    .frapi-pre-scroll { max-height: 200px; overflow: auto; }
+    .frapi-pre-scroll-lg { max-height: 400px; overflow: auto; }
 {% endcss %}
 
 {% js %}
@@ -180,13 +197,25 @@ function updateFields() {
 endpointSelect.addEventListener('change', updateFields);
 updateFields();
 
+const keySelect = document.getElementById('testKey');
+const pastedFields = document.getElementById('pasted-key-fields');
+
+function updatePastedFields() {
+    pastedFields.style.display = keySelect.value === 'pasted' ? '' : 'none';
+}
+keySelect.addEventListener('change', updatePastedFields);
+updatePastedFields();
+
 testButton.addEventListener('click', async () => {
     testButton.disabled = true;
     testStatus.textContent = {{ 'Running…'|t('formie-rest-api')|json_encode|raw }};
+    testStatus.classList.remove('lr-text-red');
     testResults.style.display = 'none';
 
     const payload = {
         testKey: document.getElementById('testKey').value,
+        testPastedKey: document.getElementById('testPastedKey').value,
+        testPastedSecret: document.getElementById('testPastedSecret').value,
         testEndpoint: document.getElementById('testEndpoint').value,
         testId: document.getElementById('testId').value,
         testHandle: document.getElementById('testHandle').value,
@@ -202,8 +231,11 @@ testButton.addEventListener('click', async () => {
         const response = await Craft.sendActionRequest('POST', 'formie-rest-api/settings/run-test', { data: payload });
         const data = response.data;
 
-        document.getElementById('resultStatus').textContent = data.status;
-        document.getElementById('resultStatus').style.color = data.status >= 200 && data.status < 300 ? 'green' : 'red';
+        const resultStatus = document.getElementById('resultStatus');
+        const isOk = data.status >= 200 && data.status < 300;
+        resultStatus.textContent = data.status;
+        resultStatus.classList.toggle('lr-text-green', isOk);
+        resultStatus.classList.toggle('lr-text-red', !isOk);
         document.getElementById('resultTime').textContent = data.timeMs;
         document.getElementById('resultCurl').textContent = data.curl;
         document.getElementById('resultHeaders').textContent = Object.entries(data.headers)
@@ -216,7 +248,7 @@ testButton.addEventListener('click', async () => {
     } catch (e) {
         const detail = e.response?.data?.error || e.message || {{ 'Unknown error'|t('formie-rest-api')|json_encode|raw }};
         testStatus.textContent = {{ 'Error:'|t('formie-rest-api')|json_encode|raw }} + ' ' + detail;
-        testStatus.style.color = 'red';
+        testStatus.classList.add('lr-text-red');
     } finally {
         testButton.disabled = false;
     }
