@@ -56,9 +56,9 @@ return [
     'Couldn’t revoke API key' => 'No se pudo revocar la clave API',
     'API key not found' => 'Clave API no encontrada',
     '{count, plural, =1{1 API key revoked} other{# API keys revoked}}' => '{count, plural, =1{1 clave API revocada} other{# claves API revocadas}}',
-    '{count, plural, =1{1 API key enabled} other{# API keys enabled}}' => '{count, plural, =1{1 clave API habilitada} other{# claves API habilitadas}}',
+    '{count, plural, =1{1 API key enabled} other{# API keys enabled}}' => '{count, plural, =1{1 clave API activada} other{# claves API activadas}}',
     '{count, plural, =1{1 API key disabled} other{# API keys disabled}}' => '{count, plural, =1{1 clave API desactivada} other{# claves API desactivadas}}',
-    'Couldn’t enable API keys' => 'No se pudieron habilitar las claves API',
+    'Couldn’t enable API keys' => 'No se pudieron activar las claves API',
     'Couldn’t disable API keys' => 'No se pudieron desactivar las claves API',
     'Couldn’t revoke API keys' => 'No se pudieron revocar las claves API',
 
