@@ -42,7 +42,9 @@ That's the script that builds `hmac_ts` and `hmac_sig` before every request runs
 
 ## Switching keys
 
-There is one environment, not one per key. To test a different key (Primary, Limited, or Test), paste a different value into `api_key` (and `signing_secret` if that key requires signing). No collection edits needed — the tier is determined by the key string you use, not by a separate environment.
+There is one environment, not one per key. To test a different key, paste a different value into `api_key` (and `signing_secret` if that key requires signing). No collection edits needed.
+
+CP-managed keys (created under **Formie REST API → API Keys**) work identically to env-var keys: paste the key into `api_key` and its signing secret into `signing_secret` — same header, same signing base. Remember both values are only shown once, at creation.
 
 ## Response tests
 

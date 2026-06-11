@@ -28,10 +28,11 @@ This plugin is in active development and not yet available on the Craft Plugin S
 
 The Formie REST API plugin provides:
 - **REST endpoints** for forms and submissions
-- **API-key authentication** via `X-API-Key` header (Primary, Limited, Test)
+- **Database-backed API keys managed in the control panel** — one key per consumer, with per-key form scoping, submissions toggle, HMAC signing, IP whitelist, rate limit, and expiry
+- **API-key authentication** via `X-API-Key` header
 - **Rate limiting** with `X-RateLimit-*` response headers and 429 on exceed
-- **Access logging** for every request (partial key fingerprint, endpoint, IP, status)
-- **CLI key generator** (`ddev craft formie-rest-api/security/generate-key`)
+- **Access logging** for every request (partial key fingerprint, endpoint, IP, status), viewable in the CP log viewer
+- **CLI key creation** (`ddev craft formie-rest-api/api-keys/create`)
 - **In-CP test page** for verifying keys, endpoints, and filters without leaving Craft
 - **Postman collection** (in [`postman/`](postman/)) with auto-HMAC pre-request script
 - **Translated CP UI** — 12 languages (EN, DE, FR, NL, ES, IT, PT, AR, JA, SV, DA, NO)
@@ -70,7 +71,34 @@ ddev craft plugin/install formie-rest-api
 
 In the Control Panel, go to Settings → Plugins and click "Install" for Formie REST API.
 
-## Environment Configuration
+## API Keys (CP-managed)
+
+API keys are created and managed in the control panel under **Formie REST API → API Keys** — one key per consumer. Each key carries its own:
+
+- **Allowed forms** — all forms (`*`, including future ones) or an explicit list; a scoped key can never read other forms' data
+- **Read submissions** toggle — off limits the key to the forms endpoints
+- **Require signing** toggle — enforce HMAC request signing (each key gets a paired signing secret at creation)
+- **IP whitelist** — single IPs or CIDR ranges, IPv4/IPv6
+- **Rate limit** — requests per hour (default 100)
+- **Expiry** — optional auto-expiry datetime
+- **Enabled** switch — pause a key without deleting it; revoke deletes it permanently
+
+The plaintext key and its signing secret are shown **exactly once**, right after creation. The plugin stores only a hash of the key and the signing secret encrypted at rest — if either is lost, revoke and create a new key (that is also the rotation procedure).
+
+Keys can also be created headlessly:
+
+```bash
+php craft formie-rest-api/api-keys/create \
+  --name="Partner integration" \
+  --forms=contactForm,productRating \
+  --rate-limit=200
+```
+
+(`--forms="*"`, `--no-submissions`, `--no-signing`, `--ip-whitelist=...`, `--valid-until=...`, `--disabled` are also available.)
+
+## Environment Configuration (legacy)
+
+> **Deprecated:** environment-variable keys remain supported only as a migration bridge for existing consumers and will be removed in a future release. Create keys in the CP instead.
 
 The plugin reads API keys from environment variables (or, optionally, `config/general.php`):
 
@@ -362,7 +390,9 @@ curl -H "X-API-Key: your-api-key" \
 
 ## API Key Permissions
 
-| Key Type | Permissions | Rate Limit |
+CP-managed keys carry **per-key capabilities** (allowed forms, submissions toggle) instead of fixed tiers — see [API Keys (CP-managed)](#api-keys-cp-managed). The fixed tiers below apply only to the legacy environment-variable keys:
+
+| Key Type (legacy env) | Permissions | Rate Limit |
 |----------|-------------|------------|
 | **Primary** | Read forms, Read submissions | 1000/hour |
 | **Limited** | Read forms only | 100/hour |
@@ -375,28 +405,28 @@ The plugin has **two separate permission systems** with different audiences. Bot
 | | Craft user permissions | API key scopes |
 |---|---|---|
 | **Audience** | Logged-in CP users (humans) | External clients with `X-API-Key` |
-| **Where defined** | Code → `EVENT_REGISTER_PERMISSIONS` | Code → `ApiKeyService::getValidApiKeys()` |
-| **Where assigned** | CP → Settings → Users → User Groups → "Formie REST API" section | Hardcoded per env-var (Primary / Limited / Test) |
-| **What's enforced** | `Manage settings` (gates the CP settings page) | `read_forms`, `read_submissions`, `create_submissions` (gates each REST endpoint) |
-| **Failure status** | 403 from CP redirect / login | 403 `ForbiddenHttpException` from API |
+| **Where defined** | Code → `EVENT_REGISTER_PERMISSIONS` | Per key in the CP (or env-var tier for legacy keys) |
+| **Where assigned** | CP → Settings → Users → User Groups → "Formie REST API" section | CP → Formie REST API → API Keys |
+| **What's enforced** | `Manage settings`, `Manage/Create/Edit/Revoke API keys`, `View/Download system logs` | `read_forms`, `read_submissions` + per-key form scoping (gates each REST endpoint) |
+| **Failure status** | 403 from CP redirect / login | 401/403 from API |
 
 **In practice:**
-- A CP user with `Manage settings` can edit the plugin's settings page. That's all the CP grants.
-- An external API consumer's access is determined entirely by **which env-var slot** their API key was generated into:
-  - `FORMIE_API_KEY` → Primary scope (full read)
-  - `FORMIE_API_KEY_LIMITED` → Limited scope (forms only)
-  - `FORMIE_API_KEY_TEST` → Test scope (full read, devMode only)
+- A CP user with `Manage API keys` can see the key list; creating, editing, and revoking each require their own nested permission.
+- An external API consumer's access is determined entirely by the capabilities saved on **their** key: which forms it may read, whether it may read submissions at all, and whether requests must be signed.
 
-If you give a partner a Limited key thinking they can't read submissions — they can't. The scope is enforced server-side.
+If you give a partner a forms-only key thinking they can't read submissions — they can't. The scope is enforced server-side.
 
 ## Security Features
 
-- API key validation (per-key permission scopes: `read_forms`, `read_submissions`, `create_submissions`)
-- HMAC request signing (optional, opt-in per key — replay protection, integrity, leaked-key mitigation)
+- API key validation (per-key permission scopes: `read_forms`, `read_submissions`)
+- **Hashed key storage** — CP-managed keys are stored as HMAC-SHA256 hashes keyed by Craft's `securityKey`; the plaintext is shown once at creation and never persisted
+- **Encrypted signing secrets** — each key's HMAC secret is stored encrypted at rest (`Security::encryptByKey()`), recoverable only by the server for signature validation
+- Per-key form scoping — a scoped key cannot list, read, or query forms outside its allowlist (same 403 whether or not a probed handle exists)
+- HMAC request signing (per-key toggle, default on — replay protection, integrity, leaked-key mitigation)
 - IP whitelist (optional, opt-in per key — IPv4 + IPv6 + CIDR)
 - Rate limiting per key (atomic, mutex-serialized counter)
 - Access logging (key, endpoint, IP, user-agent, response code)
-- Development-mode restrictions (test endpoints + test key only register when `devMode = true`)
+- Development-mode restrictions (test endpoints + legacy test key only register when `devMode = true`)
 - **Not yet:** CORS for browser consumers — see [CORS support — not currently implemented](#cors-support--not-currently-implemented)
 
 ### Operational hardening (Craft-level, not plugin-level)
@@ -414,14 +444,17 @@ A couple of Craft framework settings worth knowing about — the plugin doesn't 
 
 - **`trustedHosts` / proxy headers.** If you put the API behind a CDN or reverse proxy and use the IP whitelist feature, configure Craft's `trustedHosts` correctly so `getUserIP()` returns the real client IP, not the proxy. See [Craft docs](https://craftcms.com/docs/5.x/reference/config/general.html#trustedhosts).
 
-## Plugin Settings
+## Control Panel
 
-Navigate to **Settings → Plugins → Formie REST API** for:
-- **General** — plugin name (overridable via `config/formie-rest-api.php`)
-- **Interface** — date/time display preferences inherited from LindemannRock Base.
-- **Test** — live API tester: pick a configured key, choose an endpoint, set optional filters (form handle, date range, limit/offset), and view the response status, headers, body, and the equivalent `curl` command. Available regardless of `devMode`; test endpoints (`/api/test/formie/*`) only resolve when `devMode = true`.
+The plugin has its own section in the CP nav (**Formie REST API**):
 
-Control Panel settings are validated and saved by active section.
+- **API Keys** — create, scope, enable/disable, and revoke per-consumer keys (see [API Keys (CP-managed)](#api-keys-cp-managed))
+- **Settings → General** — plugin name and log level (overridable via `config/formie-rest-api.php`)
+- **Settings → Interface** — date/time display preferences inherited from LindemannRock Base
+- **Settings → Test** — live API tester: pick a configured key **or paste one created in the CP** (with its signing secret), choose an endpoint, set optional filters (form handle, date range, sparse `fields`, limit/offset), and view the response status, headers, body, and the equivalent `curl` command. Available regardless of `devMode`; test endpoints (`/api/test/formie/*`) only resolve when `devMode = true`
+- **Logs** — request/access log viewer (LindemannRock Logging Library)
+
+Control Panel settings are validated and saved by active section, and persist in the plugin's own database table.
 
 ## Support
 
