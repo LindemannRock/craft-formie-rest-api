@@ -5,7 +5,7 @@
  * Comprehensive security features for API protection
  *
  * @author LindemannRock
- * @copyright Copyright (c) 2025 LindemannRock
+ * @copyright Copyright (c) 2025-2026 LindemannRock
  * @link https://lindemannrock.com
  * @package FormieRestApi
  * @since 1.0.0
