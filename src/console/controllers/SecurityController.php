@@ -31,7 +31,7 @@ class SecurityController extends Controller
         $this->stdout(str_repeat('=', 60) . "\n\n");
 
         $keyType = $this->select('Which API key do you want to generate?', [
-            'primary' => 'Primary key (read_forms, read_submissions, create_submissions) — FORMIE_API_KEY',
+            'primary' => 'Primary key (read_forms, read_submissions) — FORMIE_API_KEY',
             'limited' => 'Limited key (read_forms only) — FORMIE_API_KEY_LIMITED',
             'test' => 'Test key (devMode only) — FORMIE_API_KEY_TEST',
             'all' => 'All three (Primary + Limited + Test) — same prefix, asked per key',

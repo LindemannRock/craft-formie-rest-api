@@ -44,7 +44,9 @@ final class ApiKeyServiceTest extends TestCase
         $this->assertSame('Primary API Key', $keys[$primary]['name']);
         $this->assertContains('read_forms', $keys[$primary]['permissions']);
         $this->assertContains('read_submissions', $keys[$primary]['permissions']);
-        $this->assertContains('create_submissions', $keys[$primary]['permissions']);
+        // create_submissions is intentionally absent: there is no submission-creation
+        // endpoint, so the scope would be unenforced metadata (audit P13.1).
+        $this->assertNotContains('create_submissions', $keys[$primary]['permissions']);
         $this->assertNull($keys[$primary]['signingSecret'], 'No secret env means no signing secret.');
         $this->assertFalse($keys[$primary]['requireSignature'], 'requireSignature must be off when no signing secret is configured.');
 

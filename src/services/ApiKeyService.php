@@ -113,7 +113,7 @@ class ApiKeyService extends Component
             $primarySecret = $this->resolveSigningSecret('FORMIE_API_SIGNING_SECRET');
             $keys[$primaryKey] = [
                 'name' => 'Primary API Key',
-                'permissions' => ['read_forms', 'read_submissions', 'create_submissions'],
+                'permissions' => ['read_forms', 'read_submissions'],
                 'rateLimit' => $this->getRateLimitForEnvironment('primary'),
                 'environment' => Craft::$app->env,
                 'ipWhitelist' => $this->resolveIpWhitelist('FORMIE_API_IP_WHITELIST'),
@@ -144,7 +144,7 @@ class ApiKeyService extends Component
                 $testSecret = $this->resolveSigningSecret('FORMIE_API_SIGNING_SECRET_TEST');
                 $keys[$testKey] = [
                     'name' => 'Development Test Key',
-                    'permissions' => ['read_forms', 'read_submissions', 'create_submissions'],
+                    'permissions' => ['read_forms', 'read_submissions'],
                     'rateLimit' => 1000,
                     'environment' => 'development',
                     'ipWhitelist' => $this->resolveIpWhitelist('FORMIE_API_IP_WHITELIST_TEST'),
