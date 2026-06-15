@@ -1,0 +1,7 @@
+{
+    "plugin": {
+        "name": "Formie REST API",
+        "handle": "formie-rest-api",
+        "description": "REST API for Craft CMS that exposes Formie forms and submissions through authenticated, rate-limited endpoints."
+    }
+}

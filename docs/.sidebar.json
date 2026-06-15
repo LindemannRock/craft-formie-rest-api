@@ -1,0 +1,47 @@
+[
+    {
+        "title": "Get Started",
+        "collapsable": false,
+        "children": [
+            "get-started/requirements",
+            "get-started/installation",
+            "get-started/quickstart",
+            "get-started/configuration"
+        ]
+    },
+    {
+        "title": "Feature Tour",
+        "collapsable": true,
+        "open": true,
+        "children": [
+            "feature-tour/overview",
+            "feature-tour/api-keys",
+            "feature-tour/test-page"
+        ]
+    },
+    {
+        "title": "Developers",
+        "collapsable": true,
+        "open": false,
+        "children": [
+            "developers/api-endpoints",
+            "developers/authentication",
+            "developers/rate-limiting",
+            "developers/field-reference",
+            "developers/permissions",
+            "developers/console-commands",
+            "developers/environment-keys",
+            "developers/twig-globals",
+            "developers/shared-features"
+        ]
+    },
+    {
+        "title": "Resources",
+        "collapsable": true,
+        "open": false,
+        "children": [
+            "resources/troubleshooting",
+            "resources/translations"
+        ]
+    }
+]

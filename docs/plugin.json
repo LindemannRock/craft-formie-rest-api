@@ -1,0 +1,9 @@
+{
+    "name": "Formie REST API",
+    "handle": "formie-rest-api",
+    "description": "REST API for Formie - Provides REST endpoints for accessing Formie forms and submissions",
+    "version": "3.10.0",
+    "developer": "LindemannRock",
+    "developerUrl": "https://lindemannrock.com",
+    "documentationUrl": "https://github.com/LindemannRock/craft-formie-rest-api/blob/main/README.md"
+}

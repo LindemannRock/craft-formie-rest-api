@@ -1,0 +1,52 @@
+# Shared Features
+
+Formie REST API uses the following shared libraries and features.
+
+## `lindemannrock/base`
+
+| Feature | Description |
+|---------|-------------|
+| `PluginHelper::bootstrap()` | Initializes base module, Twig globals, and logging configuration |
+| `SettingsConfigTrait` | Config file override detection and log level validation |
+| `SettingsDisplayNameTrait` | Standardized plugin name helper methods |
+| `SettingsPersistenceTrait` | Database persistence for Settings models |
+
+### Details
+
+**PluginHelper::bootstrap()**
+
+Provides plugin name helpers in Twig templates (see Twig Globals section)
+
+**SettingsConfigTrait**
+
+Settings can be overridden via config/{plugin-handle}.php. Debug logging requires devMode.
+
+**SettingsDisplayNameTrait**
+
+Provides getDisplayName(), getFullName(), getPluralDisplayName(), etc.
+
+**SettingsPersistenceTrait**
+
+Settings are stored in database with automatic type conversion for boolean, integer, float, and JSON fields.
+
+---
+
+## `lindemannrock/logging-library`
+
+| Feature | Description |
+|---------|-------------|
+| `LoggingTrait` | Convenient logging methods (logInfo, logWarning, logError, logDebug) |
+| `LoggingLibrary::addLogsNav()` | Adds "Logs" subnav to plugin CP navigation |
+
+### Details
+
+**LoggingTrait**
+
+Provides standardized logging to dedicated plugin log files
+
+**LoggingLibrary::addLogsNav()**
+
+View plugin logs directly in the Control Panel
+
+---
+

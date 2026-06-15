@@ -1,0 +1,25 @@
+{
+    "generated": [
+        "developers/twig-globals.md",
+        "developers/shared-features.md"
+    ],
+    "manual": [
+        "get-started/requirements.md",
+        "get-started/installation.md",
+        "get-started/quickstart.md",
+        "get-started/configuration.md",
+        "feature-tour/overview.md",
+        "feature-tour/api-keys.md",
+        "feature-tour/test-page.md",
+        "developers/api-endpoints.md",
+        "developers/authentication.md",
+        "developers/rate-limiting.md",
+        "developers/field-reference.md",
+        "developers/permissions.md",
+        "developers/console-commands.md",
+        "developers/environment-keys.md",
+        "resources/troubleshooting.md",
+        "resources/translations.md"
+    ],
+    "lastGenerated": "2026-06-15T13:46:45+03:00"
+}
