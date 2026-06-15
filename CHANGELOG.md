@@ -1,5 +1,29 @@
 # Changelog
 
+## [3.10.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.9.0...v3.10.0) (2026-06-15)
+
+
+### Added
+
+* add console command for creating API keys ([311d5f5](https://github.com/LindemannRock/craft-formie-rest-api/commit/311d5f5d4e4dc10c8b0792e429edf56791302bab))
+* add CP section with API Keys, Settings and Logs navigation ([b15b78d](https://github.com/LindemannRock/craft-formie-rest-api/commit/b15b78d948c2d273aa0c3cd25ecfe7c4772ddc1e))
+* add database-backed API key management with CP UI ([73a1f22](https://github.com/LindemannRock/craft-formie-rest-api/commit/73a1f22aea33aa57cebaaa89b5974f28c26fa161))
+* add pasted-key option to the API test page ([5850e8b](https://github.com/LindemannRock/craft-formie-rest-api/commit/5850e8ba92a5d7feaaa3eca1fa4b870ee9cd58f7))
+* **cli:** update HelpController to enhance API key management commands ([422d085](https://github.com/LindemannRock/craft-formie-rest-api/commit/422d0854f6a2f9504cf05ca80ffa9338db8a0fb8))
+* **controllers:** add ApiKeysController for managing API keys ([28562c8](https://github.com/LindemannRock/craft-formie-rest-api/commit/28562c85d297398c4661678723c272bb315e7a61))
+* **i18n:** add 'API Keys' translation in multiple languages ([c15ba72](https://github.com/LindemannRock/craft-formie-rest-api/commit/c15ba72a22eaca0b64dcdd387c126c528e955670))
+* **i18n:** add attribute labels for ApiKey model ([b1ecd26](https://github.com/LindemannRock/craft-formie-rest-api/commit/b1ecd26bcd2a7d70488a0b7a61ec65c8d69ecff2))
+* integrate logging library with log level setting ([9a6ace3](https://github.com/LindemannRock/craft-formie-rest-api/commit/9a6ace3064975161ea27cce2b64fd3ce53358617))
+* migrate plugin settings to database persistence ([d50368e](https://github.com/LindemannRock/craft-formie-rest-api/commit/d50368edefde51966354fc12f88c75f903751982))
+* **tests:** add integration tests for database-backed API keys ([2c39ec9](https://github.com/LindemannRock/craft-formie-rest-api/commit/2c39ec912cbc8bacaae98d629e50e8c0a7195bb0))
+
+
+### Fixed
+
+* **i18n:** correct API key error messages for consistency ([c1dbb4a](https://github.com/LindemannRock/craft-formie-rest-api/commit/c1dbb4a93714855c465df0533a5a0b843e8063ee))
+* **i18n:** correct Spanish translations for API key status messages ([8241f7e](https://github.com/LindemannRock/craft-formie-rest-api/commit/8241f7e6fb6f9d043354dc43bfe96aa594468cbc))
+* **security:** remove create_submissions permission from API keys ([ccb5d93](https://github.com/LindemannRock/craft-formie-rest-api/commit/ccb5d93f37860d781ca9a88a188c512085b4bb57))
+
 ## [3.9.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.8.0...v3.9.0) - 2026-06-10
 
 
