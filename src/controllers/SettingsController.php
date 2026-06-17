@@ -184,7 +184,7 @@ class SettingsController extends Controller
     }
 
     /**
-     * Save settings (project config — Craft handles persistence).
+     * Save settings to the plugin's database table (via SettingsPersistenceTrait).
      */
     public function actionSave(): ?Response
     {
