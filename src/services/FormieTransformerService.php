@@ -459,13 +459,11 @@ class FormieTransformerService extends Component
      * Skips structural/decorative field types and adds Rating-field-specific
      * min/max/ratingType metadata when applicable.
      *
-     * @return array<string, array<string, mixed>>
-     */
-    /**
      * @param string[]|null $onlyHandles When non-null, only these field handles are
      *   transformed (sparse fieldset). The filter is applied before getFieldValue(),
      *   so unrequested fields skip Formie's per-field normalisation entirely — that
      *   is where the cost is, so a narrow selection is proportionally cheaper.
+     * @return array<string, array<string, mixed>>
      */
     public function transformSubmissionFields(Submission $submission, ?array $onlyHandles = null): array
     {
