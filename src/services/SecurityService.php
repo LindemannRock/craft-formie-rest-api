@@ -235,7 +235,7 @@ class SecurityService extends Component
      * Expects two request headers from the client:
      *  - `X-Timestamp`: unix epoch seconds
      *  - `X-Signature`: hex-encoded HMAC-SHA256 of `method\npath\ntimestamp\nbody`,
-     *    keyed by the per-key signing secret (env var `FORMIE_API_SIGNING_SECRET[_*]`).
+     *    keyed by the key's signing secret.
      *
      * The signature is accepted if it matches the URL **either as received or with
      * its query parameters sorted alphabetically**. A CDN/proxy in front of the

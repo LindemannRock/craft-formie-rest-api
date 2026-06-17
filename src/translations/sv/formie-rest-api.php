@@ -49,7 +49,6 @@ return [
     // Controller messages
     "Couldn't save settings." => 'Det gick inte att spara inställningarna.',
     'Settings saved.' => 'Inställningar sparade.',
-    'Selected API key is not configured.' => 'Den valda API-nyckeln är inte konfigurerad.',
     'API key created' => 'API-nyckel skapad',
     'API key saved' => 'API-nyckel sparad',
     'API key revoked' => 'API-nyckel återkallad',
@@ -125,14 +124,11 @@ return [
     // Test page
     'Test API' => 'Testa API',
     'Test API Endpoints' => 'Testa API-slutpunkter',
-    'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Skicka en begäran till det lokala API:et med en av de konfigurerade nycklarna och granska svaret.',
+    'Send a request to the local API with one of your API keys, and inspect the response.' => 'Skicka en begäran till det lokala API:et med en av dina API-nycklar och granska svaret.',
     'Developer resources' => 'Utvecklarresurser',
     'Download the Postman collection and environment to test the Formie REST API outside Craft.' => 'Ladda ned Postman-samlingen och miljön för att testa Formie REST API utanför Craft.',
     'Download Postman collection' => 'Ladda ned Postman-samling',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'Inga API-nycklar konfigurerade. Ange FORMIE_API_KEY (och eventuellt FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) i din .env-fil, eller kör <code>php craft formie-rest-api/security/generate-key</code> (med DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'API-nyckel',
-    'Which configured key to send.' => 'Vilken konfigurerad nyckel som ska skickas.',
-    'Pasted key' => 'Inklistrad nyckel',
     'Paste an API key to test.' => 'Klistra in en API-nyckel att testa.',
     'Paste the full key (fra_...). Used for this test only — never stored.' => 'Klistra in hela nyckeln (fra_...). Används endast för detta test — sparas aldrig.',
     'Signing secret' => 'Signeringshemlighet',

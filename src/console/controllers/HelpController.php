@@ -55,27 +55,6 @@ final class HelpController extends AbstractHelpController
                         ],
                     ],
                 ],
-                [
-                    'name' => 'security',
-                    'label' => 'Security (legacy)',
-                    'description' => 'Generate legacy environment-variable API credentials. Deprecated — kept only for the env-key migration bridge; create keys with api-keys/create instead.',
-                    'commands' => [
-                        [
-                            'path' => 'security/generate-key',
-                            'summary' => 'Generate legacy env-var API keys and optional signing secrets.',
-                            'description' => 'Start an interactive generator for primary, limited, test, or all API key slots. The flow can write the generated env block to .env or print it for manual copy/paste.',
-                            'examples' => [
-                                'formie-rest-api/security/generate-key',
-                            ],
-                            'notes' => [
-                                'Deprecated: environment-variable keys will be removed in a future release.',
-                                'Primary keys can read forms and submissions; limited keys are read-forms only.',
-                                'Test keys only work when Craft devMode is enabled.',
-                                'If you generate a paired signing secret, clients must send X-Timestamp and X-Signature with each request.',
-                            ],
-                        ],
-                    ],
-                ],
             ],
         ];
     }

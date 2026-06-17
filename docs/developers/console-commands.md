@@ -48,20 +48,3 @@ php craft formie-rest-api/api-keys/create --name="Reporting" --forms="*" --no-su
 
 > [!NOTE]
 > An enabled key must allow at least one form (or `*`). An empty `--forms` is accepted only together with `--disabled`, producing a draft key you widen later.
-
-## `formie-rest-api/security/generate-key` (legacy)
-
-> [!WARNING]
-> Deprecated. This generates legacy **environment-variable** keys, kept only as a migration bridge and slated for removal. For new keys use `api-keys/create` (or the CP). See [Environment-variable keys](environment-keys.md).
-
-Interactive generator for the `primary`, `limited`, `test`, or `all` env-var key slots. It prints the generated key (and an optional paired signing secret) and can write a consolidated block to your `.env` or print it for manual paste.
-
-```bash title="PHP"
-php craft formie-rest-api/security/generate-key
-```
-
-```bash title="DDEV"
-ddev craft formie-rest-api/security/generate-key
-```
-
-Test keys only generate when Craft `devMode` is enabled.

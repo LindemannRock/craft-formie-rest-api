@@ -15,7 +15,6 @@ namespace lindemannrock\formierestapi\services;
 
 use Craft;
 use craft\base\Component;
-use craft\helpers\App;
 use craft\helpers\Db;
 use lindemannrock\formierestapi\models\ApiKey;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -25,7 +24,7 @@ class ApiKeyService extends Component
     use LoggingTrait;
 
     /**
-     * Plaintext key prefix shared by env-var and DB-managed keys.
+     * Plaintext key prefix for DB-managed keys.
      *
      * @since 3.10.0
      */
@@ -39,12 +38,6 @@ class ApiKeyService extends Component
     public const PREFIX_LENGTH = 12;
 
     /**
-     * @var array<string, array<string, mixed>>|null Memoized key map for the
-     * current request. Populated on first call to `getValidApiKeys()`.
-     */
-    private ?array $cachedKeys = null;
-
-    /**
      * @inheritdoc
      */
     public function init(): void
@@ -54,10 +47,11 @@ class ApiKeyService extends Component
     }
 
     /**
-     * Validate API key and return key data if valid
+     * Validate a presented plaintext key and return its resolved data, or
+     * false if the key is unknown, disabled, or expired (all undifferentiated
+     * so the caller can return a generic 401 with no leaked detail).
      *
-     * @param string|null $apiKey
-     * @return array|false
+     * @return array<string, mixed>|false
      */
     public function validateApiKey(?string $apiKey): array|false
     {
@@ -65,15 +59,7 @@ class ApiKeyService extends Component
             return false;
         }
 
-        // Env-var keys first (plaintext-keyed map, unchanged legacy path)
-        $validKeys = $this->getValidApiKeys();
-        if (isset($validKeys[$apiKey])) {
-            return $validKeys[$apiKey];
-        }
-
         // CP-managed DB keys: prefix lookup + constant-time hash verify.
-        // Unknown, disabled, and expired all fail undifferentiated — the
-        // caller returns a generic 401 with no leaked detail.
         $dbKey = $this->findByPlaintextKey($apiKey);
         if ($dbKey === null || !$dbKey->isStillValid()) {
             return false;
@@ -93,78 +79,14 @@ class ApiKeyService extends Component
     {
         return in_array($permission, $apiKeyData['permissions'] ?? []);
     }
-    
-    /**
-     * Get valid API keys from environment variables or database
-     *
-     * @return array
-     */
-    public function getValidApiKeys(): array
-    {
-        if ($this->cachedKeys !== null) {
-            return $this->cachedKeys;
-        }
-
-        $keys = [];
-        
-        // Primary API key with full access
-        $primaryKey = App::env('FORMIE_API_KEY');
-        if ($primaryKey) {
-            $primarySecret = $this->resolveSigningSecret('FORMIE_API_SIGNING_SECRET');
-            $keys[$primaryKey] = [
-                'name' => 'Primary API Key',
-                'permissions' => ['read_forms', 'read_submissions'],
-                'rateLimit' => $this->getRateLimitForEnvironment('primary'),
-                'environment' => Craft::$app->env,
-                'ipWhitelist' => $this->resolveIpWhitelist('FORMIE_API_IP_WHITELIST'),
-                'signingSecret' => $primarySecret,
-                'requireSignature' => $primarySecret !== null,
-            ];
-        }
-
-        // Secondary API key with limited access
-        $secondaryKey = App::env('FORMIE_API_KEY_LIMITED');
-        if ($secondaryKey) {
-            $limitedSecret = $this->resolveSigningSecret('FORMIE_API_SIGNING_SECRET_LIMITED');
-            $keys[$secondaryKey] = [
-                'name' => 'Limited Access Key',
-                'permissions' => ['read_forms'],
-                'rateLimit' => $this->getRateLimitForEnvironment('limited'),
-                'environment' => Craft::$app->env,
-                'ipWhitelist' => $this->resolveIpWhitelist('FORMIE_API_IP_WHITELIST_LIMITED'),
-                'signingSecret' => $limitedSecret,
-                'requireSignature' => $limitedSecret !== null,
-            ];
-        }
-
-        // Test key for development (only in dev mode, only if explicitly set in env)
-        if (Craft::$app->config->general->devMode) {
-            $testKey = App::env('FORMIE_API_KEY_TEST');
-            if (is_string($testKey) && $testKey !== '') {
-                $testSecret = $this->resolveSigningSecret('FORMIE_API_SIGNING_SECRET_TEST');
-                $keys[$testKey] = [
-                    'name' => 'Development Test Key',
-                    'permissions' => ['read_forms', 'read_submissions'],
-                    'rateLimit' => 1000,
-                    'environment' => 'development',
-                    'ipWhitelist' => $this->resolveIpWhitelist('FORMIE_API_IP_WHITELIST_TEST'),
-                    'signingSecret' => $testSecret,
-                    'requireSignature' => $testSecret !== null,
-                ];
-            }
-        }
-        
-        $this->cachedKeys = $keys;
-        return $keys;
-    }
 
     /**
-     * Generate a secure API key
+     * Generate a secure API key with the given prefix.
      *
      * @param string $prefix
      * @return string
      */
-    public function generateApiKey(string $prefix = 'fra_'): string
+    public function generateApiKey(string $prefix = self::KEY_PREFIX): string
     {
         return $prefix . bin2hex(random_bytes(32));
     }
@@ -293,12 +215,10 @@ class ApiKeyService extends Component
     }
 
     /**
-     * Hydrate a DB key into the same `$apiKeyData` array shape the env-var
-     * keys produce, so SecurityService (signature, IP whitelist, rate limit)
-     * and the controller permission checks work unchanged for both kinds.
-     *
-     * Extra keys vs env entries: `allowedForms` (form-handle scoping; absent
-     * for env keys = unrestricted) and `dbKey` (the model, for usage tracking).
+     * Hydrate a DB key into the `$apiKeyData` array shape consumed by
+     * SecurityService (signature, IP whitelist, rate limit) and the controller
+     * permission/scope checks. `allowedForms` carries the form-handle scoping
+     * and `dbKey` the model (for usage tracking).
      *
      * @return array<string, mixed>
      * @since 3.10.0
@@ -432,49 +352,5 @@ class ApiKeyService extends Component
         }
 
         return array_values($clean);
-    }
-
-    /**
-     * Read a signing-secret env var. Returns null if unset/empty.
-     */
-    private function resolveSigningSecret(string $envVar): ?string
-    {
-        $value = App::env($envVar);
-        return is_string($value) && $value !== '' ? $value : null;
-    }
-
-    /**
-     * Parse an IP-whitelist env var into a list of CIDR/IP entries. Empty/unset
-     * env returns an empty array (= no restriction). Whitespace-trimmed,
-     * empty entries dropped.
-     *
-     * Example value: `"203.0.113.5,192.168.1.0/24,2001:db8::/32"`
-     *
-     * @return array<int, string>
-     */
-    private function resolveIpWhitelist(string $envVar): array
-    {
-        $value = App::env($envVar);
-        if (!is_string($value) || $value === '') {
-            return [];
-        }
-        return array_values(array_filter(array_map('trim', explode(',', $value)), static fn(string $e) => $e !== ''));
-    }
-    
-    /**
-     * Get rate limit based on environment and key type
-     *
-     * @param string $keyType
-     * @return int
-     */
-    private function getRateLimitForEnvironment(string $keyType): int
-    {
-        return match ([Craft::$app->env, $keyType]) {
-            ['production', 'primary'] => 1000,
-            ['production', 'limited'] => 100,
-            ['staging', 'primary'] => 500,
-            ['staging', 'limited'] => 50,
-            default => 1000, // Development
-        };
     }
 }

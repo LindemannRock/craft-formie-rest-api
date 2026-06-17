@@ -13,8 +13,8 @@ Generic Postman collection + environment templates for the [Formie REST API](htt
 2. Open the `Formie REST API` environment.
 3. Set:
    - `base_url` → your site URL (e.g. `https://yoursite.com`, no trailing slash)
-   - `api_key` → an API key from `.env` (`FORMIE_API_KEY`, `FORMIE_API_KEY_LIMITED`, or `FORMIE_API_KEY_TEST` — paste whichever one you want to test)
-   - `signing_secret` → matching signing secret if signing is enabled for that key (`FORMIE_API_SIGNING_SECRET[_*]`). **Leave empty if signing is not enabled.**
+   - `api_key` → a key created under **Formie REST API → API Keys** (the `fra_…` value shown once at creation)
+   - `signing_secret` → the key's signing secret if it requires signing (also shown once at creation). **Leave empty if the key does not require signing.**
 4. Optionally set `form_id`, `form_handle`, `submission_id` for the relevant requests.
 5. Pick the environment from Postman's top-right dropdown and run any request.
 
@@ -44,7 +44,7 @@ That's the script that builds `hmac_ts` and `hmac_sig` before every request runs
 
 There is one environment, not one per key. To test a different key, paste a different value into `api_key` (and `signing_secret` if that key requires signing). No collection edits needed.
 
-CP-managed keys (created under **Formie REST API → API Keys**) work identically to env-var keys: paste the key into `api_key` and its signing secret into `signing_secret` — same header, same signing base. Remember both values are only shown once, at creation.
+Keys are created under **Formie REST API → API Keys**: paste the key into `api_key` and its signing secret into `signing_secret` — same `X-API-Key` header, same signing base. Remember both values are only shown once, at creation.
 
 ## Response tests
 

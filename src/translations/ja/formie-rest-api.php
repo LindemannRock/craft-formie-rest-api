@@ -49,7 +49,6 @@ return [
     // Controller messages
     "Couldn't save settings." => '設定を保存できませんでした。',
     'Settings saved.' => '設定を保存しました。',
-    'Selected API key is not configured.' => '選択された API キーが設定されていません。',
     'API key created' => 'API キーを作成しました',
     'API key saved' => 'API キーを保存しました',
     'API key revoked' => 'API キーを失効しました',
@@ -125,14 +124,11 @@ return [
     // Test page
     'Test API' => 'API テスト',
     'Test API Endpoints' => 'API エンドポイントのテスト',
-    'Send a request to the local API using one of the configured keys, and inspect the response.' => '設定済みのキーのいずれかを使用してローカル API にリクエストを送信し、レスポンスを確認します。',
+    'Send a request to the local API with one of your API keys, and inspect the response.' => 'API キーのいずれかを使用してローカル API にリクエストを送信し、レスポンスを確認します。',
     'Developer resources' => '開発者向けリソース',
     'Download the Postman collection and environment to test the Formie REST API outside Craft.' => 'Formie REST API を Craft の外部でテストするために、Postman コレクションと環境をダウンロードします。',
     'Download Postman collection' => 'Postman コレクションをダウンロードする',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'API キーが設定されていません。.env ファイルに FORMIE_API_KEY (および任意で FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) を設定するか、<code>php craft formie-rest-api/security/generate-key</code> ( DDEV の場合は <code>ddev craft formie-rest-api/security/generate-key</code> ) を実行してください。',
     'API Key' => 'API キー',
-    'Which configured key to send.' => '送信する設定済みキーを指定します。',
-    'Pasted key' => '貼り付けたキー',
     'Paste an API key to test.' => 'テストする API キーを貼り付けてください。',
     'Paste the full key (fra_...). Used for this test only — never stored.' => '完全なキー (fra_...) を貼り付けてください。このテストにのみ使用され、保存されることはありません。',
     'Signing secret' => '署名シークレット',

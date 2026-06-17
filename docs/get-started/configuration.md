@@ -50,4 +50,3 @@ return [
 |---------|-------|
 | Per-key allowed forms, signing, IP whitelist, rate limit, expiry | [API keys](../feature-tour/api-keys.md) |
 | Rate-limit kill switch (`FORMIE_API_RATE_LIMIT_DISABLED`) | [Rate limiting](../developers/rate-limiting.md) |
-| Legacy environment-variable keys | [Environment-variable keys](../developers/environment-keys.md) |

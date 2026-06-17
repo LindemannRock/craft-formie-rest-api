@@ -37,10 +37,11 @@
                 {
                     param: 'status',
                     current: statusFilter,
+                    colorSet: 'status',
                     options: [
                         {value: 'all', label: 'All'|t('formie-rest-api'), status: 'all'},
-                        {value: 'enabled', label: 'Enabled'|t('formie-rest-api'), status: 'green'},
-                        {value: 'disabled', label: 'Disabled'|t('formie-rest-api'), status: 'disabled'},
+                        {value: 'enabled', label: 'Enabled'|t('formie-rest-api'), colorKey: 'enabled'},
+                        {value: 'disabled', label: 'Disabled'|t('formie-rest-api'), colorKey: 'disabled'},
                     ],
                 },
             ],

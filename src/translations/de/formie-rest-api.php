@@ -49,7 +49,6 @@ return [
     // Controller messages
     "Couldn't save settings." => 'Einstellungen konnten nicht gespeichert werden.',
     'Settings saved.' => 'Einstellungen gespeichert.',
-    'Selected API key is not configured.' => 'Der ausgewählte API-Schlüssel ist nicht konfiguriert.',
     'API key created' => 'API-Schlüssel erstellt',
     'API key saved' => 'API-Schlüssel gespeichert',
     'API key revoked' => 'API-Schlüssel widerrufen',
@@ -125,14 +124,11 @@ return [
     // Test page
     'Test API' => 'API testen',
     'Test API Endpoints' => 'API-Endpunkte testen',
-    'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Sendet eine Anfrage an die lokale API mit einem der konfigurierten Schlüssel und zeigt die Antwort an.',
+    'Send a request to the local API with one of your API keys, and inspect the response.' => 'Sendet eine Anfrage an die lokale API mit einem Ihrer API-Schlüssel und zeigt die Antwort an.',
     'Developer resources' => 'Entwicklerressourcen',
     'Download the Postman collection and environment to test the Formie REST API outside Craft.' => 'Laden Sie die Postman-Sammlung und Umgebung herunter, um die Formie REST API außerhalb von Craft zu testen.',
     'Download Postman collection' => 'Postman-Sammlung herunterladen',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'Keine API-Schlüssel konfiguriert. Setzen Sie FORMIE_API_KEY (und optional FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in Ihrer .env-Datei oder führen Sie <code>php craft formie-rest-api/security/generate-key</code> aus (mit DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'API-Schlüssel',
-    'Which configured key to send.' => 'Welcher konfigurierte Schlüssel gesendet werden soll.',
-    'Pasted key' => 'Eingefügter Schlüssel',
     'Paste an API key to test.' => 'Fügen Sie einen API-Schlüssel zum Testen ein.',
     'Paste the full key (fra_...). Used for this test only — never stored.' => 'Fügen Sie den vollständigen Schlüssel ein (fra_...). Wird nur für diesen Test verwendet — niemals gespeichert.',
     'Signing secret' => 'Signatur-Geheimnis',

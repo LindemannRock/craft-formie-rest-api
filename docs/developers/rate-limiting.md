@@ -37,7 +37,3 @@ FORMIE_API_RATE_LIMIT_DISABLED=1
 ```
 
 When set, `checkRateLimit` returns immediately and no counter is incremented.
-
-## Legacy env-var key limits
-
-The deprecated [environment-variable keys](environment-keys.md) derive their limit from the environment and tier instead of a per-key field (e.g. production primary = 1000/hour, production limited = 100/hour). CP-managed keys always use their own configured limit (default 100).

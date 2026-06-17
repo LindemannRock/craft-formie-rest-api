@@ -49,7 +49,6 @@ return [
     // Controller messages
     "Couldn't save settings." => 'Indstillingerne kunne ikke gemmes.',
     'Settings saved.' => 'Indstillinger gemt.',
-    'Selected API key is not configured.' => 'Den valgte API-nøgle er ikke konfigureret.',
     'API key created' => 'API-nøgle oprettet',
     'API key saved' => 'API-nøgle gemt',
     'API key revoked' => 'API-nøgle tilbagekaldt',
@@ -125,14 +124,11 @@ return [
     // Test page
     'Test API' => 'Test API',
     'Test API Endpoints' => 'Test API-endpoints',
-    'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Send en anmodning til det lokale API med en af de konfigurerede nøgler, og gennemgå svaret.',
+    'Send a request to the local API with one of your API keys, and inspect the response.' => 'Send en anmodning til det lokale API med en af dine API-nøgler, og gennemgå svaret.',
     'Developer resources' => 'Udviklerressourcer',
     'Download the Postman collection and environment to test the Formie REST API outside Craft.' => 'Download Postman-samlingen og -miljøet for at teste Formie REST API uden for Craft.',
     'Download Postman collection' => 'Download Postman-samling',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'Ingen API-nøgler konfigureret. Angiv FORMIE_API_KEY (og eventuelt FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) i din .env-fil, eller kør <code>php craft formie-rest-api/security/generate-key</code> (med DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'API-nøgle',
-    'Which configured key to send.' => 'Hvilken konfigureret nøgle der skal sendes.',
-    'Pasted key' => 'Indsat nøgle',
     'Paste an API key to test.' => 'Indsæt en API-nøgle for at teste.',
     'Paste the full key (fra_...). Used for this test only — never stored.' => 'Indsæt hele nøglen (fra_...). Bruges kun til denne test — gemmes aldrig.',
     'Signing secret' => 'Signeringshemlighed',

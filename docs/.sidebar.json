@@ -30,7 +30,6 @@
             "developers/field-reference",
             "developers/permissions",
             "developers/console-commands",
-            "developers/environment-keys",
             "developers/twig-globals",
             "developers/shared-features"
         ]

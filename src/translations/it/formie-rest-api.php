@@ -49,7 +49,6 @@ return [
     // Controller messages
     "Couldn't save settings." => 'Impossibile salvare le impostazioni.',
     'Settings saved.' => 'Impostazioni salvate.',
-    'Selected API key is not configured.' => 'La chiave API selezionata non è configurata.',
     'API key created' => 'Chiave API creata',
     'API key saved' => 'Chiave API salvata',
     'API key revoked' => 'Chiave API revocata',
@@ -125,14 +124,11 @@ return [
     // Test page
     'Test API' => 'Testa API',
     'Test API Endpoints' => 'Testa endpoint API',
-    'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Invia una richiesta all\'API locale usando una delle chiavi configurate e ispeziona la risposta.',
+    'Send a request to the local API with one of your API keys, and inspect the response.' => 'Invia una richiesta all\'API locale usando una delle sue chiavi API e ispeziona la risposta.',
     'Developer resources' => 'Risorse per sviluppatori',
     'Download the Postman collection and environment to test the Formie REST API outside Craft.' => 'Scarica la raccolta e l\'ambiente Postman per testare l\'API REST di Formie fuori da Craft.',
     'Download Postman collection' => 'Scarica raccolta Postman',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'Nessuna chiave API configurata. Imposti FORMIE_API_KEY (e facoltativamente FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) nel suo file .env, oppure esegua <code>php craft formie-rest-api/security/generate-key</code> (con DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'Chiave API',
-    'Which configured key to send.' => 'Quale chiave configurata inviare.',
-    'Pasted key' => 'Chiave incollata',
     'Paste an API key to test.' => 'Incolli una chiave API da testare.',
     'Paste the full key (fra_...). Used for this test only — never stored.' => 'Incolli la chiave completa (fra_...). Usata solo per questo test — mai memorizzata.',
     'Signing secret' => 'Segreto di firma',

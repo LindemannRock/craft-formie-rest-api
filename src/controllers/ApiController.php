@@ -62,16 +62,14 @@ class ApiController extends Controller
             throw new UnauthorizedHttpException('Invalid or missing API key');
         }
 
-        // Enforce HMAC signing if this key has a signing secret configured
-        // (FORMIE_API_SIGNING_SECRET[_LIMITED|_TEST]). Opt-in per key.
+        // Enforce HMAC signing if this key requires it (per-key toggle).
         if (!empty($apiKeyData['requireSignature'])
             && !FormieRestApi::$plugin->security->validateRequestSignature($apiKeyData)
         ) {
             throw new UnauthorizedHttpException('Missing or invalid request signature');
         }
 
-        // Enforce IP whitelist if this key has one configured
-        // (FORMIE_API_IP_WHITELIST[_LIMITED|_TEST]). Opt-in per key.
+        // Enforce IP whitelist if this key has one configured (per-key).
         if (!FormieRestApi::$plugin->security->validateIpWhitelist($apiKeyData)) {
             throw new UnauthorizedHttpException('Request originates from an IP not allowed for this key');
         }
@@ -131,8 +129,8 @@ class ApiController extends Controller
     }
 
     /**
-     * The resolved key's form-handle allowlist, or null when unrestricted —
-     * env-var keys (no `allowedForms` entry) and wildcard DB keys.
+     * The resolved key's form-handle allowlist, or null when unrestricted
+     * (a wildcard `*` key; or, defensively, a key with no allowlist set).
      *
      * @return string[]|null
      */

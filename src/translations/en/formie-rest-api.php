@@ -49,7 +49,6 @@ return [
     // Controller messages
     "Couldn't save settings." => "Couldn't save settings.",
     'Settings saved.' => 'Settings saved.',
-    'Selected API key is not configured.' => 'Selected API key is not configured.',
     'API key created' => 'API key created',
     'API key saved' => 'API key saved',
     'API key revoked' => 'API key revoked',
@@ -125,14 +124,11 @@ return [
     // Test page
     'Test API' => 'Test API',
     'Test API Endpoints' => 'Test API Endpoints',
-    'Send a request to the local API using one of the configured keys, and inspect the response.' => 'Send a request to the local API using one of the configured keys, and inspect the response.',
+    'Send a request to the local API with one of your API keys, and inspect the response.' => 'Send a request to the local API with one of your API keys, and inspect the response.',
     'Developer resources' => 'Developer resources',
     'Download the Postman collection and environment to test the Formie REST API outside Craft.' => 'Download the Postman collection and environment to test the Formie REST API outside Craft.',
     'Download Postman collection' => 'Download Postman collection',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'API Key',
-    'Which configured key to send.' => 'Which configured key to send.',
-    'Pasted key' => 'Pasted key',
     'Paste an API key to test.' => 'Paste an API key to test.',
     'Paste the full key (fra_...). Used for this test only — never stored.' => 'Paste the full key (fra_...). Used for this test only — never stored.',
     'Signing secret' => 'Signing secret',

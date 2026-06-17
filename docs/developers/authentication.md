@@ -108,7 +108,3 @@ Restrict which client IPs may use a key — useful for server-to-server integrat
 ## CORS
 
 The API does **not** send `Access-Control-Allow-*` headers or handle `OPTIONS` preflight — it's designed for server-to-server consumers. A browser client on a different origin can't call it directly; proxy the request through your own backend instead.
-
-## Legacy environment-variable keys
-
-Before keys were CP-managed, they were defined via environment variables. That path still works as a migration bridge but is deprecated — see [Environment-variable keys](environment-keys.md).

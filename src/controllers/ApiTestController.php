@@ -61,14 +61,14 @@ class ApiTestController extends Controller
             throw new UnauthorizedHttpException('Invalid or missing API key');
         }
 
-        // Enforce HMAC signing if the resolved key opted in via FORMIE_API_SIGNING_SECRET[_*].
+        // Enforce HMAC signing if this key requires it (per-key toggle).
         if (!empty($apiKeyData['requireSignature'])
             && !FormieRestApi::$plugin->security->validateRequestSignature($apiKeyData)
         ) {
             throw new UnauthorizedHttpException('Missing or invalid request signature');
         }
 
-        // Enforce IP whitelist if the resolved key opted in via FORMIE_API_IP_WHITELIST[_*].
+        // Enforce IP whitelist if this key has one configured (per-key).
         if (!FormieRestApi::$plugin->security->validateIpWhitelist($apiKeyData)) {
             throw new UnauthorizedHttpException('Request originates from an IP not allowed for this key');
         }

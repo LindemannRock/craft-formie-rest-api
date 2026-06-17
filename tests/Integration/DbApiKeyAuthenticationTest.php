@@ -34,18 +34,6 @@ final class DbApiKeyAuthenticationTest extends TestCase
         parent::cleanupExternalState();
     }
 
-    public function testEnvKeyStillResolvesBeforeDbLookup(): void
-    {
-        $envKey = self::MARKER . 'env_primary';
-        $this->setEnv('FORMIE_API_KEY', $envKey);
-
-        $data = FormieRestApi::$plugin->apiKey->validateApiKey($envKey);
-
-        self::assertIsArray($data);
-        self::assertSame('Primary API Key', $data['name'], 'Env keys keep working unchanged alongside DB keys.');
-        self::assertArrayNotHasKey('dbKey', $data);
-    }
-
     public function testValidDbKeyHydratesIntoApiKeyDataShape(): void
     {
         [$key, $plaintext, $secret] = $this->seedDbKey();

@@ -9,7 +9,6 @@
 namespace lindemannrock\formierestapi\controllers;
 
 use Craft;
-use craft\helpers\App;
 use craft\helpers\Json;
 use craft\web\Controller;
 use lindemannrock\base\helpers\CpNavHelper;
@@ -88,8 +87,6 @@ class SettingsController extends Controller
     {
         return $this->renderTemplate('formie-rest-api/settings/test', [
             'settings' => FormieRestApi::$plugin->getSettings(),
-            'availableKeys' => $this->getAvailableKeys(),
-            'keyOptions' => $this->getKeyOptions(),
         ]);
     }
 
@@ -102,26 +99,18 @@ class SettingsController extends Controller
         $this->requireAcceptsJson();
 
         $request = Craft::$app->getRequest();
-        $keyChoice = (string) $request->getBodyParam('testKey', 'primary');
         $endpoint = (string) $request->getBodyParam('testEndpoint', 'forms');
 
-        if ($keyChoice === 'pasted') {
-            // CP-managed keys are stored hashed, so the server cannot recover
-            // their plaintext — the operator pastes it for this test only.
-            // Neither value is persisted or logged.
-            $apiKey = trim((string) $request->getBodyParam('testPastedKey', ''));
-            $pastedSecret = trim((string) $request->getBodyParam('testPastedSecret', ''));
-            $signingSecret = $pastedSecret !== '' ? $pastedSecret : null;
+        // CP-managed keys are stored hashed, so the server cannot recover their
+        // plaintext — the operator pastes the key (and its signing secret, if
+        // signing is required) for this test only. Neither value is persisted
+        // or logged.
+        $apiKey = trim((string) $request->getBodyParam('testPastedKey', ''));
+        $pastedSecret = trim((string) $request->getBodyParam('testPastedSecret', ''));
+        $signingSecret = $pastedSecret !== '' ? $pastedSecret : null;
 
-            if ($apiKey === '') {
-                return $this->asJson(['error' => Craft::t('formie-rest-api', 'Paste an API key to test.')]);
-            }
-        } else {
-            $apiKey = $this->resolveKey($keyChoice);
-            if ($apiKey === null) {
-                return $this->asJson(['error' => Craft::t('formie-rest-api', 'Selected API key is not configured.')]);
-            }
-            $signingSecret = $this->resolveSigningSecret($keyChoice);
+        if ($apiKey === '') {
+            return $this->asJson(['error' => Craft::t('formie-rest-api', 'Paste an API key to test.')]);
         }
 
         [$path, $query] = $this->buildEndpoint($endpoint, $request);
@@ -131,8 +120,8 @@ class SettingsController extends Controller
 
         $headers = ['X-API-Key' => $apiKey, 'Accept' => 'application/json'];
 
-        // If the key has a signing secret (env-configured or pasted), sign the
-        // request server-side so the test page works against keys that require HMAC.
+        // If a signing secret was pasted, sign the request server-side so the
+        // test page works against keys that require HMAC.
         if ($signingSecret !== null) {
             $timestamp = (string) time();
             $signatureBase = implode("\n", ['GET', $pathWithQuery, $timestamp, '']);
@@ -254,76 +243,6 @@ class SettingsController extends Controller
             ],
             default => [],
         };
-    }
-
-    /**
-     * Available key types where the env var is set.
-     */
-    private function getAvailableKeys(): array
-    {
-        $available = [];
-        if (App::env('FORMIE_API_KEY')) {
-            $available['primary'] = 'Primary (FORMIE_API_KEY)';
-        }
-        if (App::env('FORMIE_API_KEY_LIMITED')) {
-            $available['limited'] = 'Limited (FORMIE_API_KEY_LIMITED)';
-        }
-        if (App::env('FORMIE_API_KEY_TEST') && Craft::$app->getConfig()->getGeneral()->devMode) {
-            $available['test'] = 'Test (FORMIE_API_KEY_TEST)';
-        }
-        return $available;
-    }
-
-    /**
-     * Build the dropdown options array for the key picker. CP-managed keys
-     * can't be offered by name (only their hashes are stored), so a generic
-     * "Pasted key" option lets the operator supply one manually.
-     */
-    private function getKeyOptions(): array
-    {
-        $options = [];
-        foreach ($this->getAvailableKeys() as $value => $label) {
-            $options[] = ['value' => $value, 'label' => $label];
-        }
-        $options[] = ['value' => 'pasted', 'label' => Craft::t('formie-rest-api', 'Pasted key')];
-        return $options;
-    }
-
-    /**
-     * Resolve a key choice to the underlying secret.
-     */
-    private function resolveKey(string $choice): ?string
-    {
-        // Test key is only resolvable when devMode is on — defense in depth
-        // even though getAvailableKeys() already hides it from the dropdown.
-        if ($choice === 'test' && !Craft::$app->getConfig()->getGeneral()->devMode) {
-            return null;
-        }
-
-        $envVar = match ($choice) {
-            'limited' => 'FORMIE_API_KEY_LIMITED',
-            'test' => 'FORMIE_API_KEY_TEST',
-            default => 'FORMIE_API_KEY',
-        };
-
-        $value = App::env($envVar);
-        return is_string($value) && $value !== '' ? $value : null;
-    }
-
-    /**
-     * Resolve the HMAC signing secret paired with the given key choice.
-     * Returns null when the secret env var is unset (signing not enabled for this key).
-     */
-    private function resolveSigningSecret(string $choice): ?string
-    {
-        $envVar = match ($choice) {
-            'limited' => 'FORMIE_API_SIGNING_SECRET_LIMITED',
-            'test' => 'FORMIE_API_SIGNING_SECRET_TEST',
-            default => 'FORMIE_API_SIGNING_SECRET',
-        };
-
-        $value = App::env($envVar);
-        return is_string($value) && $value !== '' ? $value : null;
     }
 
     /**

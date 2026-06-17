@@ -49,7 +49,6 @@ return [
     // Controller messages
     "Couldn't save settings." => 'تعذّر حفظ الإعدادات.',
     'Settings saved.' => 'تم حفظ الإعدادات.',
-    'Selected API key is not configured.' => 'مفتاح API المحدد غير مُعدّ.',
     'API key created' => 'تم إنشاء مفتاح API',
     'API key saved' => 'تم حفظ مفتاح API',
     'API key revoked' => 'تم إبطال مفتاح API',
@@ -125,14 +124,11 @@ return [
     // Test page
     'Test API' => 'اختبار API',
     'Test API Endpoints' => 'اختبار نقاط نهاية API',
-    'Send a request to the local API using one of the configured keys, and inspect the response.' => 'أرسل طلبًا إلى API المحلية باستخدام أحد المفاتيح المكوّنة وافحص الاستجابة.',
+    'Send a request to the local API with one of your API keys, and inspect the response.' => 'أرسل طلبًا إلى API المحلية باستخدام أحد مفاتيح API الخاصة بك وافحص الاستجابة.',
     'Developer resources' => 'موارد المطورين',
     'Download the Postman collection and environment to test the Formie REST API outside Craft.' => 'نزّل مجموعة Postman والبيئة الخاصة بها لاختبار Formie REST API خارج Craft.',
     'Download Postman collection' => 'تنزيل مجموعة Postman',
-    'No API keys configured. Set FORMIE_API_KEY (and optionally FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) in your .env, or run <code>php craft formie-rest-api/security/generate-key</code> (with DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).' => 'لا توجد مفاتيح API مُعدّة. عيّن FORMIE_API_KEY (واختياريًا FORMIE_API_KEY_LIMITED / FORMIE_API_KEY_TEST) في ملف .env، أو شغّل <code>php craft formie-rest-api/security/generate-key</code> (مع DDEV: <code>ddev craft formie-rest-api/security/generate-key</code>).',
     'API Key' => 'مفتاح API',
-    'Which configured key to send.' => 'المفتاح المُعدّ المراد إرساله.',
-    'Pasted key' => 'مفتاح تم لصقه',
     'Paste an API key to test.' => 'الصق مفتاح API لاختباره.',
     'Paste the full key (fra_...). Used for this test only — never stored.' => 'الصق المفتاح الكامل (fra_...). يُستخدم لهذا الاختبار فقط — ولا يتم تخزينه أبدًا.',
     'Signing secret' => 'سر التوقيع',
