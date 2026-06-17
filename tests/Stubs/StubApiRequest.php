@@ -32,6 +32,7 @@ final class StubApiRequest extends CraftConsoleRequest
 
     /**
      * @param array<string, string> $headers
+     * @param array<string, mixed> $params GET/POST params returned by getParam()
      * @param array<string, mixed> $config
      */
     public function __construct(
@@ -42,6 +43,7 @@ final class StubApiRequest extends CraftConsoleRequest
         public string $userIp = '203.0.113.42',
         public string $userAgent = 'Mozilla/5.0 (Test) LindemannRockStub/1.0',
         public ?string $referrer = 'https://example.com/some/page',
+        public array $apiParams = [],
         array $config = [],
     ) {
         parent::__construct($config);
@@ -51,6 +53,15 @@ final class StubApiRequest extends CraftConsoleRequest
             $collection->set($name, $value);
         }
         $this->headerCollection = $collection;
+    }
+
+    /**
+     * Mirror craft\web\Request::getParam() for the controller actions that read
+     * request params directly (e.g. ApiTestController's forms/submissions).
+     */
+    public function getParam($name, $defaultValue = null): mixed
+    {
+        return $this->apiParams[$name] ?? $defaultValue;
     }
 
     public function getHeaders(): HeaderCollection

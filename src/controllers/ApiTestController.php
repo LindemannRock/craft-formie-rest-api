@@ -20,28 +20,26 @@ use craft\db\Table as CraftTable;
 use craft\web\Controller;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\formierestapi\FormieRestApi;
+use lindemannrock\formierestapi\models\ApiKey;
+use lindemannrock\formierestapi\traits\ApiKeyScopeTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\Table as FormieTable;
 use yii\db\Expression;
 use yii\web\BadRequestHttpException;
-use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\web\TooManyRequestsHttpException;
 use yii\web\UnauthorizedHttpException;
 
 class ApiTestController extends Controller
 {
+    use ApiKeyScopeTrait;
+
     /**
      * Allow anonymous access — auth is enforced via X-API-Key in beforeAction().
      * Routes are only registered when devMode is on (see FormieRestApi::init()).
      */
     protected array|int|bool $allowAnonymous = true;
-
-    /**
-     * @var array<string, mixed>|null Resolved API key data for the current request.
-     */
-    private ?array $apiKeyData = null;
 
     /**
      * @var string|null The raw X-API-Key header for the current request, cached
@@ -75,6 +73,13 @@ class ApiTestController extends Controller
 
         $this->apiKeyData = $apiKeyData;
         $this->apiKey = $apiKey;
+
+        // Track the key's last-used timestamp, mirroring the production
+        // controller so test-endpoint hits record usage too. The instanceof
+        // narrows the mixed array value to ApiKey for static analysis.
+        if (($apiKeyData['dbKey'] ?? null) instanceof ApiKey) {
+            FormieRestApi::$plugin->apiKey->recordUsage($apiKeyData['dbKey']);
+        }
 
         // Rate limiting (counter persisted in Craft cache, fixed 1-hour window)
         $allowed = FormieRestApi::$plugin->security->checkRateLimit((string) $apiKey, $apiKeyData);
@@ -110,16 +115,6 @@ class ApiTestController extends Controller
     }
 
     /**
-     * Throw 403 unless the resolved key has the given permission.
-     */
-    private function requireApiPermission(string $permission): void
-    {
-        if (!FormieRestApi::$plugin->apiKey->hasPermission($this->apiKeyData ?? [], $permission)) {
-            throw new ForbiddenHttpException("API key does not have permission: {$permission}");
-        }
-    }
-
-    /**
      * Validate a `dateFrom` / `dateTo` query param and return a `Y-m-d H:i:s`
      * string ready for use in an element-query date filter, or null if the
      * param was absent. Throws 400 on unparseable input.
@@ -152,10 +147,18 @@ class ApiTestController extends Controller
     {
         $this->requireApiPermission('read_forms');
 
+        // Read filter params + resolve form scope before the try so a 403 from
+        // an out-of-scope handle surfaces as a real ForbiddenHttpException,
+        // not swallowed into a 200 error payload by the catch below.
+        $formHandle = Craft::$app->request->getParam('handle');
+        $formId = Craft::$app->request->getParam('id');
+        $scoped = $this->scopedFormHandles();
+
+        if ($formHandle) {
+            $this->requireFormInScope((string) $formHandle);
+        }
+
         try {
-            // Get filter parameters
-            $formHandle = Craft::$app->request->getParam('handle');
-            $formId = Craft::$app->request->getParam('id');
             
             // Build query
             $query = Form::find()->status('enabled');
@@ -165,11 +168,22 @@ class ApiTestController extends Controller
                 $query->handle($formHandle);
             } elseif ($formId) {
                 $query->id($formId);
+            } elseif ($scoped !== null) {
+                // No filter requested: constrain a scoped key to its allowed forms.
+                $query->handle($scoped);
             }
             
             // Get forms
             /** @var \verbb\formie\elements\Form[] $forms */
             $forms = $query->all();
+
+            // A scoped key requesting a specific id must not see out-of-scope forms.
+            if ($formId && $scoped !== null) {
+                $forms = array_values(array_filter(
+                    $forms,
+                    static fn(Form $f): bool => in_array($f->handle, $scoped, true),
+                ));
+            }
 
             // If filtering by handle/id and no form found
             if (($formHandle || $formId) && empty($forms)) {
@@ -273,6 +287,20 @@ class ApiTestController extends Controller
                     'message' => 'Either formHandle or formId parameter is required',
                 ],
             ]);
+        }
+
+        // Form-scope check before the try so an out-of-scope 403 isn't swallowed
+        // into a 200 error payload by the catch below. A handle is checked
+        // directly; an id is resolved to its form first.
+        if ($formHandle) {
+            $this->requireFormInScope((string) $formHandle);
+        } elseif ($this->scopedFormHandles() !== null) {
+            /** @var \verbb\formie\elements\Form|null $scopedForm */
+            $scopedForm = Form::find()->id($formId)->status('enabled')->one();
+            if ($scopedForm instanceof Form) {
+                $this->requireFormInScope($scopedForm->handle);
+            }
+            // Unknown id falls through; the lookup below returns FORM_NOT_FOUND.
         }
 
         try {

@@ -20,6 +20,7 @@ use craft\web\Controller;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\formierestapi\FormieRestApi;
 use lindemannrock\formierestapi\models\ApiKey;
+use lindemannrock\formierestapi\traits\ApiKeyScopeTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\Table as FormieTable;
@@ -33,15 +34,12 @@ use yii\web\UnauthorizedHttpException;
 
 class ApiController extends Controller
 {
+    use ApiKeyScopeTrait;
+
     /**
      * Allow anonymous access with API key authentication
      */
     protected array|int|bool $allowAnonymous = true;
-
-    /**
-     * @var array<string, mixed>|null Resolved API key data for the current request.
-     */
-    private ?array $apiKeyData = null;
 
     /**
      * @var string|null The raw X-API-Key header for the current request, cached
@@ -77,7 +75,9 @@ class ApiController extends Controller
         $this->apiKeyData = $apiKeyData;
         $this->apiKey = $apiKey;
 
-        // CP-managed keys track their last use (env keys have no row to update)
+        // Track the key's last-used timestamp. The instanceof narrows the
+        // mixed array value to ApiKey for static analysis (every valid key is
+        // DB-backed, so dbKey is always present).
         if (($apiKeyData['dbKey'] ?? null) instanceof ApiKey) {
             FormieRestApi::$plugin->apiKey->recordUsage($apiKeyData['dbKey']);
         }
@@ -116,44 +116,6 @@ class ApiController extends Controller
         }
 
         return parent::afterAction($action, $result);
-    }
-
-    /**
-     * Throw 403 unless the resolved key has the given permission scope.
-     */
-    private function requireApiPermission(string $permission): void
-    {
-        if (!FormieRestApi::$plugin->apiKey->hasPermission($this->apiKeyData ?? [], $permission)) {
-            throw new ForbiddenHttpException("API key does not have permission: {$permission}");
-        }
-    }
-
-    /**
-     * The resolved key's form-handle allowlist, or null when unrestricted
-     * (a wildcard `*` key; or, defensively, a key with no allowlist set).
-     *
-     * @return string[]|null
-     */
-    private function scopedFormHandles(): ?array
-    {
-        $allowed = $this->apiKeyData['allowedForms'] ?? null;
-        if (!is_array($allowed) || in_array(ApiKey::ALL_FORMS, $allowed, true)) {
-            return null;
-        }
-
-        return $allowed;
-    }
-
-    /**
-     * Throw 403 when the resolved key is form-scoped and $formHandle is
-     * outside its allowlist. No-op for unrestricted keys.
-     */
-    private function requireFormInScope(string $formHandle): void
-    {
-        $allowed = $this->scopedFormHandles();
-        if ($allowed !== null && !in_array($formHandle, $allowed, true)) {
-            throw new ForbiddenHttpException('API key is not allowed to access this form');
-        }
     }
 
     /**
