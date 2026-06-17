@@ -236,7 +236,6 @@ class ApiKeyService extends Component
             'name' => $key->name,
             'permissions' => $permissions,
             'rateLimit' => $key->rateLimit ?? 100,
-            'environment' => Craft::$app->env,
             'ipWhitelist' => $key->ipWhitelist,
             'signingSecret' => $secret,
             'requireSignature' => $key->requireSignature && $secret !== null,
