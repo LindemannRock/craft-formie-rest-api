@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.10.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.10.0...v3.10.1) (2026-06-18)
+
+
+### Fixed
+
+* **api:** enforce form scoping and record usage on test endpoints ([4a523d4](https://github.com/LindemannRock/craft-formie-rest-api/commit/4a523d4a6e7d1e298e688dcb0dc35585c247fa0c))
+* **i18n:** correct Swedish translations for Postman collection ([82b7e38](https://github.com/LindemannRock/craft-formie-rest-api/commit/82b7e38ad274d0a66b41e411b40426b2c9e4a44a))
+
 ## [3.10.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.9.0...v3.10.0) - 2026-06-15
 
 
