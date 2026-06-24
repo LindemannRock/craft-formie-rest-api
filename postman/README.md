@@ -2,6 +2,8 @@
 
 Generic Postman collection + environment templates for the [Formie REST API](https://github.com/LindemannRock/craft-formie-rest-api) plugin.
 
+Plugin source: <https://github.com/LindemannRock/craft-formie-rest-api>
+
 ## Files
 
 - **`Formie-REST-API.postman_collection.json`** — the collection. All endpoints (production + test), each with response tests. Collection-level pre-request script signs every request via HMAC when `signing_secret` is set on the active environment.
