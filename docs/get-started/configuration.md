@@ -27,13 +27,27 @@ These control how dates and times render in the Control Panel only — they do *
 
 ## Config file
 
-Copy `vendor/lindemannrock/craft-formie-rest-api/src/config.php` to `config/formie-rest-api.php`. Values set there take precedence over the Control Panel fields, which are then shown read-only.
+For per-environment settings, copy the sample config to your project:
+
+```bash
+cp vendor/lindemannrock/craft-formie-rest-api/src/config.php config/formie-rest-api.php
+```
+
+Values set in `config/formie-rest-api.php` take precedence over the Control Panel fields, which are then shown read-only. Craft's multi-environment format is supported.
 
 ```php
 // config/formie-rest-api.php
 return [
     '*' => [
+        'pluginName' => 'Formie REST API',
         'logLevel' => 'error',
+
+        // Date/time display — inherit from LindemannRock Base unless set
+        // 'timeFormat'    => '24',
+        // 'monthFormat'   => 'short',
+        // 'dateOrder'     => 'dmy',
+        // 'dateSeparator' => '/',
+        // 'showSeconds'   => false,
     ],
     'dev' => [
         'logLevel' => 'debug',
@@ -50,3 +64,4 @@ return [
 |---------|-------|
 | Per-key allowed forms, signing, IP whitelist, rate limit, expiry | [API keys](../feature-tour/api-keys.md) |
 | Rate-limit kill switch (`FORMIE_API_RATE_LIMIT_DISABLED`) | [Rate limiting](../developers/rate-limiting.md) |
+| In-CP endpoint checks and Postman download | [Testing tools](../resources/testing-tools.md) |

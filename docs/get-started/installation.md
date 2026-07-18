@@ -28,9 +28,10 @@ ddev composer require lindemannrock/craft-formie-rest-api && ddev craft plugin/i
 
 After installing, a **Formie REST API** section appears in the Control Panel nav.
 
-## Enable log viewing (optional)
+3. **Optional** — Enable [Logging Library](https://github.com/LindemannRock/craft-logging-library) for log viewing:
 
-Every API request is written to an access log through the [Logging Library](https://github.com/LindemannRock/craft-logging-library). It's pulled in as a Composer dependency — install it to view those logs under **Formie REST API → Logs**:
+> [!NOTE]
+> Logging Library is included as a Composer dependency and downloaded automatically. Activate it in Craft to view every API request under **Formie REST API → Logs**.
 
 ```bash title="PHP"
 php craft plugin/install logging-library
@@ -42,15 +43,13 @@ ddev craft plugin/install logging-library
 
 Or via the Control Panel: **Settings → Plugins → Logging Library → Install**.
 
-## Copy config file (optional)
+## Post-Install Setup
 
-For per-environment settings (plugin name, log level, date/time display), copy the sample config to your project:
+Formie REST API works as soon as it's installed — there's no salt to generate or templates to copy.
 
-```bash
-cp vendor/lindemannrock/craft-formie-rest-api/src/config.php config/formie-rest-api.php
-```
+### Review configuration
 
-See [Configuration](configuration.md) for the available options.
+The plugin's global settings (display name, log level, date/time display) are optional; sensible defaults apply out of the box. See [Configuration](configuration.md) for the settings reference, config-file overrides, and environment-specific options.
 
 ## Quick Start
 

@@ -51,7 +51,7 @@ The API **always excludes** incomplete (draft) and spam submissions — that's t
 
 ## Test endpoints (`/api/test/formie/*`) return 404
 
-The `/api/test/formie/*` endpoints only register when Craft `devMode` is on. Use the production `/api/v1/formie/*` endpoints, or enable `devMode` locally. The in-CP [Test page](../feature-tour/test-page.md) works either way (it calls the production endpoints too).
+The `/api/test/formie/*` endpoints only register when Craft `devMode` is on. Use the production `/api/v1/formie/*` endpoints, or enable `devMode` locally. The in-CP [Testing tools](testing-tools.md) page works either way because it calls the production endpoints.
 
 ## No forms or submissions come back
 

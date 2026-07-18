@@ -90,7 +90,7 @@ const res = await fetch('https://yoursite.com' + pathQ, {
 ```
 
 > [!TIP]
-> The bundled Postman collection signs requests for you (and sorts query params). See the [Test page](../feature-tour/test-page.md) to download it.
+> The bundled Postman collection signs requests for you (and sorts query params). See [Testing tools](../resources/testing-tools.md) to download it from the Control Panel.
 
 ## IP whitelist
 

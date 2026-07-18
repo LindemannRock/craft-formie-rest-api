@@ -77,4 +77,4 @@ The plaintext key and secret print once to stdout. See [Console commands](../dev
 
 - [Authentication](../developers/authentication.md) — send the key, add HMAC signing, restrict by IP
 - [API endpoints](../developers/api-endpoints.md) — what each scope unlocks
-- [Test page](test-page.md) — try a key without leaving the CP
+- [Testing tools](../resources/testing-tools.md) — try a key without leaving the CP

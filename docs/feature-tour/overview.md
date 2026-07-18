@@ -32,7 +32,7 @@ It's a server-to-server data API — there's no form rendering or submission-wri
 
 - **[Rate limiting](../developers/rate-limiting.md)** — A per-key hourly budget with `X-RateLimit-*` headers and `429` on exceed.
 
-- **[Test page](test-page.md)** — Try any endpoint from inside the Control Panel — pick or paste a key, set filters, and inspect the status, headers, body, and equivalent `curl`. Plus a downloadable Postman collection.
+- **[Testing tools](../resources/testing-tools.md)** — Try any endpoint from inside the Control Panel — paste a key, set filters, and inspect the status, headers, body, and equivalent `curl`. Plus a downloadable Postman collection.
 
 - **Access logging** — Every request is logged (partial key fingerprint, endpoint, IP, user agent, status) through the Logging Library, viewable under **Formie REST API → Logs**.
 

@@ -134,7 +134,7 @@ These mirror the production read endpoints and exist for local verification. The
 | GET | `/api/test/formie/submissions` |
 | GET | `/api/test/formie/auth` |
 
-The in-CP [Test page](../feature-tour/test-page.md) calls these (and the production endpoints) for you.
+The in-CP [Testing tools](../resources/testing-tools.md) page calls the production endpoints for you. The `/api/test/formie/*` endpoints are still useful for local devMode-only checks.
 
 ## Status codes
 

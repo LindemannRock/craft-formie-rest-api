@@ -2,19 +2,14 @@
 
 Get Formie REST API running in under 5 minutes. By the end you'll have an API key and a working authenticated request returning your Formie forms as JSON.
 
-## 1. Install the plugin
+## Before you start
 
-See [Installation](installation.md) for full details.
+Complete [Installation & Setup](installation.md#post-install-setup) first. You should have:
 
-```bash title="Composer"
-composer require lindemannrock/craft-formie-rest-api && php craft plugin/install formie-rest-api
-```
+- Formie REST API installed and enabled (a **Formie REST API** section shows in the Control Panel nav)
+- [Formie](https://verbb.io/craft-plugins/formie) installed with at least one form
 
-```bash title="DDEV"
-ddev composer require lindemannrock/craft-formie-rest-api && ddev craft plugin/install formie-rest-api
-```
-
-## 2. Create an API key
+## 1. Create an API key
 
 In the Control Panel — no code:
 
@@ -29,7 +24,7 @@ The plaintext key (and its signing secret) are shown **once**, right after savin
 > [!TIP]
 > Prefer the command line? `php craft formie-rest-api/api-keys/create --name="Reporting" --forms="*"` prints a key the same way. See [Console commands](../developers/console-commands.md).
 
-## 3. Make your first request
+## 2. Make your first request
 
 Send the key in the `X-API-Key` header:
 
@@ -50,7 +45,7 @@ You'll get a JSON envelope listing your forms:
 }
 ```
 
-## 4. Read some submissions
+## 3. Read some submissions
 
 ```bash
 curl -H "X-API-Key: fra_your-key-here" \
@@ -62,4 +57,4 @@ curl -H "X-API-Key: fra_your-key-here" \
 - [API keys](../feature-tour/api-keys.md) — scope keys, require signing, restrict by IP, set rate limits
 - [Authentication](../developers/authentication.md) — add HMAC request signing for production
 - [API endpoints](../developers/api-endpoints.md) — every endpoint, parameter, and response shape
-- [Test page](../feature-tour/test-page.md) — try endpoints from inside the Control Panel
+- [Testing tools](../resources/testing-tools.md) — try endpoints from inside the Control Panel
