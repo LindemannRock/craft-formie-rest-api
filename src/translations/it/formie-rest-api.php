@@ -125,7 +125,7 @@ return [
     'Test API' => 'Testa API',
     'Test API Endpoints' => 'Testa endpoint API',
     'Send a request to the local API with one of your API keys, and inspect the response.' => 'Invia una richiesta all\'API locale usando una delle sue chiavi API e ispeziona la risposta.',
-    'Developer resources' => 'Risorse per sviluppatori',
+    'Developer Resources' => 'Risorse per sviluppatori',
     'Download the Postman collection and environment to test the Formie REST API outside Craft.' => 'Scarica la raccolta e l\'ambiente Postman per testare l\'API REST di Formie fuori da Craft.',
     'Download Postman collection' => 'Scarica raccolta Postman',
     'API Key' => 'Chiave API',

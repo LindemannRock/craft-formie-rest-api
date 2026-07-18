@@ -125,7 +125,7 @@ return [
     'Test API' => 'اختبار API',
     'Test API Endpoints' => 'اختبار نقاط نهاية API',
     'Send a request to the local API with one of your API keys, and inspect the response.' => 'أرسل طلبًا إلى API المحلية باستخدام أحد مفاتيح API الخاصة بك وافحص الاستجابة.',
-    'Developer resources' => 'موارد المطورين',
+    'Developer Resources' => 'موارد المطورين',
     'Download the Postman collection and environment to test the Formie REST API outside Craft.' => 'نزّل مجموعة Postman والبيئة الخاصة بها لاختبار Formie REST API خارج Craft.',
     'Download Postman collection' => 'تنزيل مجموعة Postman',
     'API Key' => 'مفتاح API',

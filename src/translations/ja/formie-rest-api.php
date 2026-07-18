@@ -125,7 +125,7 @@ return [
     'Test API' => 'API テスト',
     'Test API Endpoints' => 'API エンドポイントのテスト',
     'Send a request to the local API with one of your API keys, and inspect the response.' => 'API キーのいずれかを使用してローカル API にリクエストを送信し、レスポンスを確認します。',
-    'Developer resources' => '開発者向けリソース',
+    'Developer Resources' => '開発者向けリソース',
     'Download the Postman collection and environment to test the Formie REST API outside Craft.' => 'Formie REST API を Craft の外部でテストするために、Postman コレクションと環境をダウンロードします。',
     'Download Postman collection' => 'Postman コレクションをダウンロードする',
     'API Key' => 'API キー',
