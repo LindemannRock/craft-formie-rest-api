@@ -146,6 +146,7 @@ class ApiTestController extends Controller
     public function actionForms(): Response
     {
         $this->requireApiPermission('read_forms');
+        $includeSubmissionCount = $this->hasApiPermission('read_submissions');
 
         // Read filter params + resolve form scope before the try so a 403 from
         // an out-of-scope handle surfaces as a real ForbiddenHttpException,
@@ -203,7 +204,7 @@ class ApiTestController extends Controller
             // and excluding drafts + spam to match the /submissions endpoint contract).
             $countMap = [];
             $formIds = array_map(static fn(Form $f) => $f->id, $forms);
-            if ($formIds) {
+            if ($includeSubmissionCount && $formIds) {
                 $rows = (new Query())
                     ->from(['s' => FormieTable::FORMIE_SUBMISSIONS])
                     ->innerJoin(['e' => CraftTable::ELEMENTS], '[[s.id]] = [[e.id]]')
@@ -221,16 +222,21 @@ class ApiTestController extends Controller
 
             $formData = [];
             foreach ($forms as $form) {
-                $formData[] = [
+                $data = [
                     'id' => $form->id,
                     'uid' => $form->uid,
                     'handle' => $form->handle,
                     'title' => $form->title,
                     'dateCreated' => $form->dateCreated->format('c'),
                     'dateUpdated' => $form->dateUpdated->format('c'),
-                    'submissionCount' => (int) ($countMap[$form->id] ?? 0),
                     'fields' => FormieRestApi::$plugin->transformer->getFormFields($form),
                 ];
+
+                if ($includeSubmissionCount) {
+                    $data['submissionCount'] = (int) ($countMap[$form->id] ?? 0);
+                }
+
+                $formData[] = $data;
             }
             
             return $this->asJson([

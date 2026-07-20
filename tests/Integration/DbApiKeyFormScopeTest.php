@@ -13,6 +13,7 @@ namespace lindemannrock\formierestapi\tests\Integration;
 use lindemannrock\formierestapi\controllers\ApiController;
 use lindemannrock\formierestapi\FormieRestApi;
 use lindemannrock\formierestapi\models\ApiKey;
+use lindemannrock\formierestapi\tests\Stubs\StubApiRequest;
 use lindemannrock\formierestapi\tests\TestCase;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -125,6 +126,38 @@ final class DbApiKeyFormScopeTest extends TestCase
 
         $this->expectException(ForbiddenHttpException::class);
         $controller->actionSubmissionDetail((int) $submission->id);
+    }
+
+    public function testFormsOnlyKeyDoesNotReceiveSubmissionCounts(): void
+    {
+        $form = $this->seedForm();
+        $this->seedSubmission($form);
+        $this->installRequestStub(new StubApiRequest());
+
+        $controller = $this->controllerWithKeyData([
+            'permissions' => ['read_forms'],
+            'allowedForms' => [$form->handle],
+        ]);
+
+        $list = $controller->actionForms();
+        $detail = $controller->actionFormByHandle($form->handle);
+
+        self::assertCount(1, $list['data']);
+        self::assertArrayNotHasKey('submissionCount', $list['data'][0]);
+        self::assertArrayNotHasKey('submissionCount', $detail['data']);
+    }
+
+    public function testSubmissionReadingKeyReceivesSubmissionCounts(): void
+    {
+        $form = $this->seedForm();
+        $submission = $this->seedSubmission($form);
+
+        $controller = $this->scopedController([$form->handle]);
+        $formDetail = $controller->actionFormByHandle($form->handle);
+        $submissionDetail = $controller->actionSubmissionDetail((int) $submission->id);
+
+        self::assertSame(1, $formDetail['data']['submissionCount']);
+        self::assertSame(1, $submissionDetail['data']['form']['submissionCount']);
     }
 
     /**

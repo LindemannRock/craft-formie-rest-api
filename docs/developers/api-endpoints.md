@@ -68,7 +68,7 @@ Each form in `data`:
 }
 ```
 
-`submissionCount` counts completed, non-spam submissions (matching the submissions endpoint).
+`submissionCount` counts completed, non-spam submissions (matching the submissions endpoint). It is only included when the API key has the `read_submissions` scope; forms-only keys do not receive submission counts.
 
 ### Get a form (detail)
 

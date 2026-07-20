@@ -32,9 +32,17 @@ trait ApiKeyScopeTrait
      */
     protected function requireApiPermission(string $permission): void
     {
-        if (!FormieRestApi::$plugin->apiKey->hasPermission($this->apiKeyData ?? [], $permission)) {
+        if (!$this->hasApiPermission($permission)) {
             throw new ForbiddenHttpException("API key does not have permission: {$permission}");
         }
+    }
+
+    /**
+     * Whether the resolved key has the given permission scope.
+     */
+    protected function hasApiPermission(string $permission): bool
+    {
+        return FormieRestApi::$plugin->apiKey->hasPermission($this->apiKeyData ?? [], $permission);
     }
 
     /**

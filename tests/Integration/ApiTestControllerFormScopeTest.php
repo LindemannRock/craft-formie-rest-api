@@ -15,7 +15,9 @@ use lindemannrock\formierestapi\FormieRestApi;
 use lindemannrock\formierestapi\tests\Stubs\StubApiRequest;
 use lindemannrock\formierestapi\tests\TestCase;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use yii\web\ForbiddenHttpException;
+use yii\web\Response;
 
 /**
  * The devMode-only test endpoints must enforce the SAME per-key form scoping
@@ -62,19 +64,49 @@ final class ApiTestControllerFormScopeTest extends TestCase
         $controller->actionSubmissions();
     }
 
+    public function testFormsOnlyKeyDoesNotReceiveSubmissionCounts(): void
+    {
+        $form = $this->seedForm();
+        $controller = $this->scopedController([$form->handle], ['read_forms']);
+        $controller->response = new Response();
+        $this->installRequestStub(new StubApiRequest(apiParams: ['handle' => $form->handle]));
+
+        $response = $controller->actionForms();
+
+        self::assertIsArray($response->data);
+        self::assertArrayNotHasKey('submissionCount', $response->data['data']['forms'][0]);
+    }
+
+    public function testSubmissionReadingKeyReceivesSubmissionCounts(): void
+    {
+        $form = $this->seedForm();
+        $this->seedSubmission($form);
+        $controller = $this->scopedController([$form->handle]);
+        $controller->response = new Response();
+        $this->installRequestStub(new StubApiRequest(apiParams: ['handle' => $form->handle]));
+
+        $response = $controller->actionForms();
+
+        self::assertIsArray($response->data);
+        self::assertSame(1, $response->data['data']['forms'][0]['submissionCount']);
+    }
+
     /**
      * ApiTestController resolved with a DB-key-shaped data array scoped to
      * $forms, bypassing beforeAction() (auth is exercised elsewhere).
      *
      * @param string[] $forms
      */
-    private function scopedController(array $forms): ApiTestController
+    private function scopedController(
+        array $forms,
+        array $permissions = ['read_forms', 'read_submissions'],
+    ): ApiTestController
     {
         $controller = new ApiTestController('api-test', FormieRestApi::$plugin);
 
         $property = new \ReflectionProperty(ApiTestController::class, 'apiKeyData');
         $property->setValue($controller, [
-            'permissions' => ['read_forms', 'read_submissions'],
+            'permissions' => $permissions,
             'allowedForms' => $forms,
         ]);
 
@@ -89,5 +121,15 @@ final class ApiTestControllerFormScopeTest extends TestCase
         $this->saveTestElement($form);
 
         return $form;
+    }
+
+    private function seedSubmission(Form $form): Submission
+    {
+        $submission = new Submission();
+        $submission->setForm($form);
+        $submission->title = $this->nextTestMarker('formieApiTest', 'submission');
+        $this->saveTestElement($submission);
+
+        return $submission;
     }
 }

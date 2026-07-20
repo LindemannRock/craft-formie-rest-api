@@ -45,6 +45,8 @@ You'll get a JSON envelope listing your forms:
 }
 ```
 
+The `submissionCount` property is included because this key has **Read submissions** enabled. Forms-only keys receive the same form data without submission counts.
+
 ## 3. Read some submissions
 
 ```bash

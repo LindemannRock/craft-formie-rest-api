@@ -189,6 +189,7 @@ class ApiController extends Controller
     public function actionForms(): array
     {
         $this->requireApiPermission('read_forms');
+        $includeSubmissionCount = $this->hasApiPermission('read_submissions');
 
         $request = Craft::$app->request;
         
@@ -225,7 +226,7 @@ class ApiController extends Controller
         // and excludes drafts + spam to match the /submissions endpoint contract.
         $countMap = [];
         $formIds = array_map(static fn(Form $f) => $f->id, $forms);
-        if ($formIds) {
+        if ($includeSubmissionCount && $formIds) {
             $rows = (new Query())
                 ->from(['s' => FormieTable::FORMIE_SUBMISSIONS])
                 ->innerJoin(['e' => CraftTable::ELEMENTS], '[[s.id]] = [[e.id]]')
@@ -244,7 +245,11 @@ class ApiController extends Controller
         // Format response
         $formData = [];
         foreach ($forms as $form) {
-            $formData[] = $this->transformForm($form, false, (int) ($countMap[$form->id] ?? 0));
+            $formData[] = $this->transformForm(
+                $form,
+                submissionCount: $includeSubmissionCount ? (int) ($countMap[$form->id] ?? 0) : null,
+                includeSubmissionCount: $includeSubmissionCount,
+            );
         }
         
         return [
@@ -278,7 +283,11 @@ class ApiController extends Controller
 
         return [
             'success' => true,
-            'data' => $this->transformForm($form, true),
+            'data' => $this->transformForm(
+                $form,
+                includeFields: true,
+                includeSubmissionCount: $this->hasApiPermission('read_submissions'),
+            ),
             'meta' => [
                 'timestamp' => (new \DateTime())->format('c'),
             ],
@@ -305,7 +314,11 @@ class ApiController extends Controller
 
         return [
             'success' => true,
-            'data' => $this->transformForm($form, true),
+            'data' => $this->transformForm(
+                $form,
+                includeFields: true,
+                includeSubmissionCount: $this->hasApiPermission('read_submissions'),
+            ),
             'meta' => [
                 'timestamp' => (new \DateTime())->format('c'),
             ],
@@ -464,10 +477,14 @@ class ApiController extends Controller
      * Transform form for API response.
      *
      * Pass `$submissionCount` when batching across many forms to avoid N+1.
-     * When null (single-form detail endpoints), the count is queried inline.
+     * When included but null (single-form detail endpoints), the count is queried inline.
      */
-    private function transformForm(Form $form, bool $includeFields = false, ?int $submissionCount = null): array
-    {
+    private function transformForm(
+        Form $form,
+        bool $includeFields = false,
+        ?int $submissionCount = null,
+        bool $includeSubmissionCount = false,
+    ): array {
         $data = [
             'id' => $form->id,
             'uid' => $form->uid,
@@ -476,12 +493,15 @@ class ApiController extends Controller
             'status' => $form->status,
             'dateCreated' => $form->dateCreated->format('c'),
             'dateUpdated' => $form->dateUpdated->format('c'),
-            'submissionCount' => $submissionCount ?? (int) Submission::find()
+        ];
+
+        if ($includeSubmissionCount) {
+            $data['submissionCount'] = $submissionCount ?? (int) Submission::find()
                 ->formId($form->id)
                 ->isIncomplete(false)
                 ->isSpam(false)
-                ->count(),
-        ];
+                ->count();
+        }
         
         if ($includeFields) {
             // Form-level metadata (appearance, behaviour, privacy, restrictions)
@@ -519,7 +539,7 @@ class ApiController extends Controller
         ];
 
         if ($includeForm && $form !== null) {
-            $data['form'] = $this->transformForm($form);
+            $data['form'] = $this->transformForm($form, includeSubmissionCount: true);
         }
 
         return $data;
