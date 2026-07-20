@@ -14,6 +14,7 @@ use craft\web\Controller;
 use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\formierestapi\FormieRestApi;
 use lindemannrock\formierestapi\models\ApiKey;
+use lindemannrock\formierestapi\traits\FormieSubmissionPermissionTrait;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use verbb\formie\elements\Form;
 use yii\web\NotFoundHttpException;
@@ -41,6 +42,7 @@ use yii\web\Response;
  */
 class ApiKeysController extends Controller
 {
+    use FormieSubmissionPermissionTrait;
     use LoggingTrait;
 
     /**
@@ -103,10 +105,12 @@ class ApiKeysController extends Controller
 
         // ---- Load + filter ------------------------------------------------
         $keys = ApiKey::findAll();
+        $keys = $this->filterApiKeysByFormieSubmissionAccess($keys);
 
-        // Cached before filter narrows the collection so the beforeTable
+        // Cached before status/search filters narrow the collection so the beforeTable
         // "no API keys yet" info-box renders correctly regardless of the
-        // current filter state.
+        // current filter state. Keys outside the user's Formie ACL are not
+        // part of their manageable collection.
         $hasAnyKeys = !empty($keys);
 
         if ($statusFilter === 'enabled') {
@@ -173,6 +177,16 @@ class ApiKeysController extends Controller
             }
         }
 
+        // A limited operator must not edit a key that delegates broader Formie
+        // submission access than the operator holds.
+        if (!$isNew) {
+            $this->requireApiKeyFormieSubmissionScope($apiKey);
+        }
+
+        /** @var Form[] $allForms */
+        $allForms = Form::find()->orderBy('title')->all();
+        $allForms = $this->filterFormsByFormieSubmissionAccess($allForms);
+
         $title = $isNew
             ? Craft::t('formie-rest-api', 'New API Key')
             : Craft::t('formie-rest-api', 'Edit API Key');
@@ -186,7 +200,8 @@ class ApiKeysController extends Controller
             'apiKey' => $apiKey,
             'isNew' => $isNew,
             'title' => $title,
-            'allForms' => Form::find()->orderBy('title')->all(),
+            'allForms' => $allForms,
+            'canAllowAllForms' => $this->canViewAllFormieSubmissions(),
             'newPlaintext' => is_string($newPlaintext) ? $newPlaintext : null,
             'newSecret' => is_string($newSecret) ? $newSecret : null,
             'canCreate' => Craft::$app->getUser()->checkPermission('formieRestApi:createApiKeys'),
@@ -228,11 +243,13 @@ class ApiKeysController extends Controller
             if ($apiKey === null) {
                 throw new NotFoundHttpException(Craft::t('formie-rest-api', 'API key not found'));
             }
+            $this->requireApiKeyFormieSubmissionScope($apiKey);
             // keyHash / keyPrefix / signingSecretEnc are locked once generated —
             // rotation = revoke + create.
         }
 
         $this->populateRestrictionsFromRequest($apiKey, $request);
+        $this->requireApiKeyFormieSubmissionScope($apiKey);
 
         if (!$apiKey->save()) {
             Craft::$app->getSession()->setError(Craft::t('formie-rest-api', 'Couldn’t save API key'));
@@ -285,6 +302,8 @@ class ApiKeysController extends Controller
             throw new NotFoundHttpException(Craft::t('formie-rest-api', 'API key not found'));
         }
 
+        $this->requireApiKeyFormieSubmissionScope($apiKey);
+
         if (!$apiKey->delete()) {
             $errorMessage = Craft::t('formie-rest-api', 'Couldn’t revoke API key');
             if ($acceptsJson) {
@@ -325,6 +344,7 @@ class ApiKeysController extends Controller
         $this->requirePermission('formieRestApi:revokeApiKeys');
 
         $ids = $this->parseBulkIds(Craft::$app->getRequest()->getBodyParam('ids', []));
+        $this->requireApiKeyFormieSubmissionScopes($ids);
         $deleted = FormieRestApi::$plugin->apiKey->bulkDelete($ids);
 
         return $this->respondToBulkResult(
@@ -340,6 +360,8 @@ class ApiKeysController extends Controller
         $this->requirePermission('formieRestApi:editApiKeys');
 
         $ids = $this->parseBulkIds(Craft::$app->getRequest()->getBodyParam('ids', []));
+        $this->requireApiKeyFormieSubmissionScopes($ids);
+
         $affected = FormieRestApi::$plugin->apiKey->bulkSetEnabled($ids, $enabled);
 
         $message = $enabled
@@ -395,6 +417,22 @@ class ApiKeysController extends Controller
     // =========================================================================
     // HELPERS
     // =========================================================================
+
+    /**
+     * Require every existing key in a bulk selection to be manageable by the
+     * current user under Formie's submission ACL.
+     *
+     * @param int[] $ids
+     */
+    private function requireApiKeyFormieSubmissionScopes(array $ids): void
+    {
+        foreach ($ids as $id) {
+            $apiKey = ApiKey::findById($id);
+            if ($apiKey !== null) {
+                $this->requireApiKeyFormieSubmissionScope($apiKey);
+            }
+        }
+    }
 
     /**
      * Pull restriction fields from POST body into the model. Centralised so

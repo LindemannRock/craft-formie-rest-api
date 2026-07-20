@@ -55,6 +55,7 @@ return [
     'Couldn’t save API key' => 'تعذر حفظ مفتاح API',
     'Couldn’t revoke API key' => 'تعذر إبطال مفتاح API',
     'API key not found' => 'مفتاح API غير موجود',
+    'User does not have permission to manage this API key because it includes forms outside their Formie submission access.' => 'ليس لدى المستخدم صلاحية لإدارة مفتاح API هذا لأنه يتضمن نماذج خارج نطاق وصوله إلى إرسالات Formie.',
     '{count, plural, =1{1 API key revoked} other{# API keys revoked}}' => '{count, plural, zero{لم يتم إبطال أي مفاتيح API} one{تم إبطال مفتاح API واحد} two{تم إبطال مفتاحَي API} few{تم إبطال # مفاتيح API} many{تم إبطال # مفتاح API} other{تم إبطال # مفتاح API}}',
     '{count, plural, =1{1 API key enabled} other{# API keys enabled}}' => '{count, plural, zero{لم يتم تفعيل أي مفاتيح API} one{تم تفعيل مفتاح API واحد} two{تم تفعيل مفتاحَي API} few{تم تفعيل # مفاتيح API} many{تم تفعيل # مفتاح API} other{تم تفعيل # مفتاح API}}',
     '{count, plural, =1{1 API key disabled} other{# API keys disabled}}' => '{count, plural, zero{لم يتم تعطيل أي مفاتيح API} one{تم تعطيل مفتاح API واحد} two{تم تعطيل مفتاحَي API} few{تم تعطيل # مفاتيح API} many{تم تعطيل # مفتاح API} other{تم تعطيل # مفتاح API}}',

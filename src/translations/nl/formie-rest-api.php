@@ -55,6 +55,7 @@ return [
     'Couldn’t save API key' => 'Kan API-sleutel niet opslaan',
     'Couldn’t revoke API key' => 'Kan API-sleutel niet intrekken',
     'API key not found' => 'API-sleutel niet gevonden',
+    'User does not have permission to manage this API key because it includes forms outside their Formie submission access.' => 'De gebruiker heeft geen toestemming om deze API-sleutel te beheren, omdat deze formulieren bevat waarvoor de gebruiker geen toegang heeft tot Formie-inzendingen.',
     '{count, plural, =1{1 API key revoked} other{# API keys revoked}}' => '{count, plural, =1{1 API-sleutel ingetrokken} other{# API-sleutels ingetrokken}}',
     '{count, plural, =1{1 API key enabled} other{# API keys enabled}}' => '{count, plural, =1{1 API-sleutel ingeschakeld} other{# API-sleutels ingeschakeld}}',
     '{count, plural, =1{1 API key disabled} other{# API keys disabled}}' => '{count, plural, =1{1 API-sleutel uitgeschakeld} other{# API-sleutels uitgeschakeld}}',

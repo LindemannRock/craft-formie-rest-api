@@ -120,17 +120,19 @@
        --------------------------------------------------------------------- #}
     <h2>{{ 'Allowed forms'|t('formie-rest-api') }}</h2>
 
-    {{ forms.lightswitchField({
-        label: 'All forms (current and future)'|t('formie-rest-api'),
-        instructions: 'When on, this key can read every form — including forms created after the key. When off, choose specific forms below.'|t('formie-rest-api'),
-        id: 'allowAllForms',
-        name: 'allowAllForms',
-        on: apiKey.allowsAllForms(),
-        errors: apiKey.getErrors('allowedForms'),
-        data: {key: 'allowedForms'},
-    }) }}
+    {% if canAllowAllForms %}
+        {{ forms.lightswitchField({
+            label: 'All forms (current and future)'|t('formie-rest-api'),
+            instructions: 'When on, this key can read every form — including forms created after the key. When off, choose specific forms below.'|t('formie-rest-api'),
+            id: 'allowAllForms',
+            name: 'allowAllForms',
+            on: apiKey.allowsAllForms(),
+            errors: apiKey.getErrors('allowedForms'),
+            data: {key: 'allowedForms'},
+        }) }}
+    {% endif %}
 
-    <div id="allowed-forms-explicit" {% if apiKey.allowsAllForms() %}style="display:none;"{% endif %}>
+    <div id="allowed-forms-explicit" {% if canAllowAllForms and apiKey.allowsAllForms() %}style="display:none;"{% endif %}>
         {% if allForms|length == 0 %}
             <p class="light">{{ 'No forms exist yet. Create a form before this key can be useful.'|t('formie-rest-api') }}</p>
         {% else %}

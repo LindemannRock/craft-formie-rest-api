@@ -55,6 +55,7 @@ return [
     'Couldn’t save API key' => 'No se pudo guardar la clave API',
     'Couldn’t revoke API key' => 'No se pudo revocar la clave API',
     'API key not found' => 'Clave API no encontrada',
+    'User does not have permission to manage this API key because it includes forms outside their Formie submission access.' => 'El usuario no tiene permiso para gestionar esta clave API porque incluye formularios para los que no tiene acceso a los envíos de Formie.',
     '{count, plural, =1{1 API key revoked} other{# API keys revoked}}' => '{count, plural, =1{1 clave API revocada} other{# claves API revocadas}}',
     '{count, plural, =1{1 API key enabled} other{# API keys enabled}}' => '{count, plural, =1{1 clave API activada} other{# claves API activadas}}',
     '{count, plural, =1{1 API key disabled} other{# API keys disabled}}' => '{count, plural, =1{1 clave API desactivada} other{# claves API desactivadas}}',

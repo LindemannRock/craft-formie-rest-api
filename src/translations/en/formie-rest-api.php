@@ -55,6 +55,7 @@ return [
     'Couldn’t save API key' => 'Couldn’t save API key',
     'Couldn’t revoke API key' => 'Couldn’t revoke API key',
     'API key not found' => 'API key not found',
+    'User does not have permission to manage this API key because it includes forms outside their Formie submission access.' => 'User does not have permission to manage this API key because it includes forms outside their Formie submission access.',
     '{count, plural, =1{1 API key revoked} other{# API keys revoked}}' => '{count, plural, =1{1 API key revoked} other{# API keys revoked}}',
     '{count, plural, =1{1 API key enabled} other{# API keys enabled}}' => '{count, plural, =1{1 API key enabled} other{# API keys enabled}}',
     '{count, plural, =1{1 API key disabled} other{# API keys disabled}}' => '{count, plural, =1{1 API key disabled} other{# API keys disabled}}',

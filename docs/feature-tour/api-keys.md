@@ -18,11 +18,11 @@ In the Control Panel — no code:
 
 1. Go to **Formie REST API → API Keys** and click **New API key**.
 
-   ![API Keys list](images/api-keys-index.webp)
+   ![API Keys list](../images/api-keys-index.webp)
 
 2. Fill in the fields (below), then **Save**.
 
-   ![API key edit screen](images/api-keys-edit.webp)
+   ![API key edit screen](../images/api-keys-edit.webp)
 
 3. **Copy the key and signing secret now** — they're shown once, immediately after saving, and never again.
 
@@ -62,6 +62,10 @@ Bulk **enable**, **disable**, and **revoke** are available from the keys list fo
 ## Allowed-forms scoping
 
 A form-scoped key is constrained everywhere: it only lists its allowed forms, only reads those forms' detail, and only returns those forms' submissions. Requesting a form outside the list returns `403` whether or not that form exists — so a probe can't even confirm a form's existence. Turn on **All forms** to grant every form, including ones created later.
+
+The API Keys section also respects the current Control Panel user's Formie submission permissions. Users with Formie's global **View submissions** permission can see and manage every key, select any form, and use **All forms**. Users with per-form submission access only see forms they may delegate and only see keys whose entire form scope they may manage.
+
+That boundary applies to every management action: opening, saving, enabling, disabling, and revoking a key, including bulk actions. A direct URL or forged request for a broader key returns `403` with an explanation. The plugin never silently removes inaccessible forms from an existing key; an operator with access to every form on that key must update it.
 
 ## Creating keys from the command line
 

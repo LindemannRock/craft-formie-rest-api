@@ -46,7 +46,7 @@ Formie REST API has its own nav section:
 - **Settings → Test** — the live API tester and Postman download.
 - **Logs** — the access/request log viewer (Logging Library).
 
-![The Formie REST API control panel section](images/overview-cp-section.webp)
+![The Formie REST API control panel section](../images/overview-cp-section.webp)
 
 ## Next steps
 

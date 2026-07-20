@@ -55,6 +55,7 @@ return [
     'Couldn’t save API key' => 'API キーを保存できませんでした',
     'Couldn’t revoke API key' => 'API キーを失効できませんでした',
     'API key not found' => 'API キーが見つかりません',
+    'User does not have permission to manage this API key because it includes forms outside their Formie submission access.' => 'ユーザーには、Formie の送信へのアクセス権限がないフォームが含まれているため、この API キーを管理する権限がありません。',
     '{count, plural, =1{1 API key revoked} other{# API keys revoked}}' => '{count, plural, =1{1 件の API キーを失効しました} other{# 件の API キーを失効しました}}',
     '{count, plural, =1{1 API key enabled} other{# API keys enabled}}' => '{count, plural, =1{1 件の API キーを有効にしました} other{# 件の API キーを有効にしました}}',
     '{count, plural, =1{1 API key disabled} other{# API keys disabled}}' => '{count, plural, =1{1 件の API キーを無効にしました} other{# 件の API キーを無効にしました}}',

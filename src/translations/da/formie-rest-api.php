@@ -55,6 +55,7 @@ return [
     'Couldn’t save API key' => 'Kunne ikke gemme API-nøgle',
     'Couldn’t revoke API key' => 'Kunne ikke tilbagekalde API-nøgle',
     'API key not found' => 'API-nøgle ikke fundet',
+    'User does not have permission to manage this API key because it includes forms outside their Formie submission access.' => 'Brugeren har ikke tilladelse til at administrere denne API-nøgle, fordi den omfatter formularer, hvis Formie-indsendelser brugeren ikke har adgang til.',
     '{count, plural, =1{1 API key revoked} other{# API keys revoked}}' => '{count, plural, =1{1 API-nøgle tilbagekaldt} other{# API-nøgler tilbagekaldt}}',
     '{count, plural, =1{1 API key enabled} other{# API keys enabled}}' => '{count, plural, =1{1 API-nøgle aktiveret} other{# API-nøgler aktiveret}}',
     '{count, plural, =1{1 API key disabled} other{# API keys disabled}}' => '{count, plural, =1{1 API-nøgle deaktiveret} other{# API-nøgler deaktiveret}}',

@@ -57,3 +57,11 @@ The `/api/test/formie/*` endpoints only register when Craft `devMode` is on. Use
 
 - Confirm Formie has forms, and that the key's **Allowed forms** actually includes them.
 - For submissions, confirm there are completed, non-spam submissions for the form and within any date filter.
+
+## A form or API key is missing from API-key management
+
+The form checklist and API-key list follow the current Control Panel user's Formie submission permissions. A limited user sees only permitted forms and only keys whose entire form scope they may manage.
+
+Grant Formie's global **View submissions** permission to expose every form, every key, and the **All forms** option. Alternatively, grant the matching per-form submission permission for every form on the key. Opening a broader key by direct URL, or trying to save, enable, disable, or revoke it (including bulk actions), returns `403` explaining that the key includes forms outside the user's Formie submission access.
+
+The plugin does not silently remove those forms. Have an operator with sufficient Formie access update the key instead.

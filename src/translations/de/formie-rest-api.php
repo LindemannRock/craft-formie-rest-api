@@ -55,6 +55,7 @@ return [
     'Couldn’t save API key' => 'API-Schlüssel konnte nicht gespeichert werden',
     'Couldn’t revoke API key' => 'API-Schlüssel konnte nicht widerrufen werden',
     'API key not found' => 'API-Schlüssel nicht gefunden',
+    'User does not have permission to manage this API key because it includes forms outside their Formie submission access.' => 'Der Benutzer hat keine Berechtigung, diesen API-Schlüssel zu verwalten, da er Formulare enthält, für deren Formie-Übermittlungen der Benutzer keine Zugriffsberechtigung hat.',
     '{count, plural, =1{1 API key revoked} other{# API keys revoked}}' => '{count, plural, =1{1 API-Schlüssel widerrufen} other{# API-Schlüssel widerrufen}}',
     '{count, plural, =1{1 API key enabled} other{# API keys enabled}}' => '{count, plural, =1{1 API-Schlüssel aktiviert} other{# API-Schlüssel aktiviert}}',
     '{count, plural, =1{1 API key disabled} other{# API keys disabled}}' => '{count, plural, =1{1 API-Schlüssel deaktiviert} other{# API-Schlüssel deaktiviert}}',

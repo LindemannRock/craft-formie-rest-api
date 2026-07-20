@@ -55,6 +55,7 @@ return [
     'Couldn’t save API key' => 'Kunde inte spara API-nyckel',
     'Couldn’t revoke API key' => 'Kunde inte återkalla API-nyckel',
     'API key not found' => 'API-nyckel hittades inte',
+    'User does not have permission to manage this API key because it includes forms outside their Formie submission access.' => 'Användaren har inte behörighet att hantera denna API-nyckel eftersom den innehåller formulär vars Formie-inlämningar användaren inte har åtkomst till.',
     '{count, plural, =1{1 API key revoked} other{# API keys revoked}}' => '{count, plural, =1{1 API-nyckel återkallad} other{# API-nycklar återkallade}}',
     '{count, plural, =1{1 API key enabled} other{# API keys enabled}}' => '{count, plural, =1{1 API-nyckel aktiverad} other{# API-nycklar aktiverade}}',
     '{count, plural, =1{1 API key disabled} other{# API keys disabled}}' => '{count, plural, =1{1 API-nyckel inaktiverad} other{# API-nycklar inaktiverade}}',
