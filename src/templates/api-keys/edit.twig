@@ -85,7 +85,6 @@
 {% if apiKey.hasErrors() %}
     {% set validationSummary = include('lindemannrock-base/_partials/error-summary', {
         errors: apiKey.getErrors(),
-        linkMode: 'data-key',
     })|trim %}
 {% endif %}
 
@@ -129,6 +128,7 @@
             on: apiKey.allowsAllForms(),
             errors: apiKey.getErrors('allowedForms'),
             data: {key: 'allowedForms'},
+            fieldAttributes: {'data-error-key': 'allowedForms'},
         }) }}
     {% endif %}
 
@@ -142,6 +142,7 @@
                 name: 'allowedForms',
                 values: apiKey.allowedForms,
                 options: allForms|map(form => {value: form.handle, label: form.title}),
+                fieldAttributes: {'data-error-key': 'allowedForms'},
             }) }}
         {% endif %}
     </div>
