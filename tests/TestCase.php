@@ -12,6 +12,7 @@ namespace lindemannrock\formierestapi\tests;
 
 use Craft;
 use craft\helpers\App;
+use craft\web\Response;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\base\testing\IntegrationTestCase;
 use lindemannrock\formierestapi\tests\Stubs\StubApiRequest;
@@ -62,6 +63,12 @@ abstract class TestCase extends IntegrationTestCase
     private ?object $savedRequest = null;
 
     /**
+     * Original response component captured before a test installs a web
+     * response. The integration application normally boots in console mode.
+     */
+    private ?object $savedResponse = null;
+
+    /**
      * API keys whose rate-limit cache the test exercised. Cleared at teardown
      * so the next test starts at zero.
      *
@@ -73,6 +80,7 @@ abstract class TestCase extends IntegrationTestCase
     {
         $this->restoreSavedEnv();
         $this->restoreSavedRequest();
+        $this->restoreSavedResponse();
         // parent::tearDown() fires cleanupExternalState() before component
         // restoration — env + request restore above is independent of that.
         parent::tearDown();
@@ -113,7 +121,7 @@ abstract class TestCase extends IntegrationTestCase
     {
         if (!array_key_exists($name, $this->savedEnv)) {
             $raw = $_SERVER[$name] ?? $_ENV[$name] ?? getenv($name);
-            $this->savedEnv[$name] = ($raw === false || $raw === null) ? null : (string) $raw;
+            $this->savedEnv[$name] = $raw === false ? null : (string) $raw;
         }
 
         if ($value === null) {
@@ -139,6 +147,22 @@ abstract class TestCase extends IntegrationTestCase
             $this->savedRequest = Craft::$app->getRequest();
         }
         Craft::$app->set('request', $stub);
+    }
+
+    /**
+     * Install a fresh web response for controller lifecycle tests and return it.
+     * The original console response is restored automatically in tearDown.
+     */
+    protected function installWebResponse(): Response
+    {
+        if ($this->savedResponse === null) {
+            $this->savedResponse = Craft::$app->getResponse();
+        }
+
+        $response = new Response();
+        Craft::$app->set('response', $response);
+
+        return $response;
     }
 
     /**
@@ -190,5 +214,15 @@ abstract class TestCase extends IntegrationTestCase
             Craft::$app->set('request', $this->savedRequest);
         }
         $this->savedRequest = null;
+    }
+
+    private function restoreSavedResponse(): void
+    {
+        if ($this->savedResponse === null) {
+            return;
+        }
+
+        Craft::$app->set('response', $this->savedResponse);
+        $this->savedResponse = null;
     }
 }

@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace lindemannrock\formierestapi\tests\Integration;
 
+use craft\db\Query;
 use lindemannrock\formierestapi\controllers\ApiController;
 use lindemannrock\formierestapi\FormieRestApi;
 use lindemannrock\formierestapi\models\ApiKey;
@@ -83,6 +84,20 @@ final class DbApiKeyFormScopeTest extends TestCase
         $this->scopedController([ApiKey::ALL_FORMS])->actionFormByHandle('definitelyDoesNotExist');
     }
 
+    public function testWildcardNumericUnknownsRetainNotFoundAndEmptyListBehavior(): void
+    {
+        $controller = $this->scopedController([ApiKey::ALL_FORMS]);
+        $missingId = $this->missingElementId();
+
+        $this->assertNotFound(fn(): array => $controller->actionFormDetail($missingId));
+
+        $this->installRequestStub(new StubApiRequest(apiParams: ['formId' => $missingId]));
+        $list = $controller->actionSubmissions();
+        self::assertSame([], $list['data']);
+
+        $this->assertNotFound(fn(): array => $controller->actionSubmissionDetail($missingId));
+    }
+
     public function testFormDetailByIdHonoursScope(): void
     {
         $allowed = $this->seedForm();
@@ -95,6 +110,29 @@ final class DbApiKeyFormScopeTest extends TestCase
 
         $this->expectException(ForbiddenHttpException::class);
         $controller->actionFormDetail((int) $other->id);
+    }
+
+    public function testNumericFormIdsDoNotDiscloseExistenceToScopedKeys(): void
+    {
+        $allowed = $this->seedForm();
+        $other = $this->seedForm();
+        $controller = $this->scopedController([$allowed->handle]);
+
+        $this->assertForbidden(fn(): array => $controller->actionFormDetail((int) $other->id));
+        $this->assertForbidden(fn(): array => $controller->actionFormDetail($this->missingElementId()));
+    }
+
+    public function testSubmissionFormIdFilterDoesNotDiscloseExistenceToScopedKeys(): void
+    {
+        $allowed = $this->seedForm();
+        $other = $this->seedForm();
+        $controller = $this->scopedController([$allowed->handle]);
+
+        $this->installRequestStub(new StubApiRequest(apiParams: ['formId' => (int) $other->id]));
+        $this->assertForbidden(fn(): array => $controller->actionSubmissions());
+
+        $this->installRequestStub(new StubApiRequest(apiParams: ['formId' => $this->missingElementId()]));
+        $this->assertForbidden(fn(): array => $controller->actionSubmissions());
     }
 
     public function testSubmissionDetailHonoursScope(): void
@@ -111,6 +149,17 @@ final class DbApiKeyFormScopeTest extends TestCase
 
         $this->expectException(ForbiddenHttpException::class);
         $controller->actionSubmissionDetail((int) $otherSubmission->id);
+    }
+
+    public function testNumericSubmissionIdsDoNotDiscloseExistenceToScopedKeys(): void
+    {
+        $allowed = $this->seedForm();
+        $other = $this->seedForm();
+        $otherSubmission = $this->seedSubmission($other);
+        $controller = $this->scopedController([$allowed->handle]);
+
+        $this->assertForbidden(fn(): array => $controller->actionSubmissionDetail((int) $otherSubmission->id));
+        $this->assertForbidden(fn(): array => $controller->actionSubmissionDetail($this->missingElementId()));
     }
 
     public function testFormsOnlyKeyCannotReadSubmissions(): void
@@ -207,5 +256,30 @@ final class DbApiKeyFormScopeTest extends TestCase
         $this->saveTestElement($submission);
 
         return $submission;
+    }
+
+    private function assertForbidden(callable $action): void
+    {
+        try {
+            $action();
+            self::fail('Scoped numeric lookups must not disclose whether an object exists.');
+        } catch (ForbiddenHttpException $e) {
+            self::assertSame(403, $e->statusCode);
+        }
+    }
+
+    private function assertNotFound(callable $action): void
+    {
+        try {
+            $action();
+            self::fail('Unrestricted numeric lookups keep their not-found behavior.');
+        } catch (NotFoundHttpException $e) {
+            self::assertSame(404, $e->statusCode);
+        }
+    }
+
+    private function missingElementId(): int
+    {
+        return (int) (new Query())->from('{{%elements}}')->max('id') + 1000;
     }
 }

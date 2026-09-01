@@ -61,6 +61,10 @@
 			"@ci",
 			"@test"
 		],
+		"quality-gate": [
+			"Composer\\Config::disableProcessTimeout",
+			"bash scripts/quality-gate"
+		],
 		"install-hooks": "git config core.hooksPath .githooks 2>/dev/null || true",
 		"post-install-cmd": "@install-hooks",
 		"post-update-cmd": "@install-hooks"

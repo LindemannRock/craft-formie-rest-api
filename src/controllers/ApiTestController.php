@@ -27,6 +27,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\Table as FormieTable;
 use yii\db\Expression;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\web\TooManyRequestsHttpException;
 use yii\web\UnauthorizedHttpException;
@@ -48,11 +49,27 @@ class ApiTestController extends Controller
     private ?string $apiKey = null;
 
     /**
+     * Whether this controller has registered its request-scoped access-log
+     * finalizer on the current response.
+     */
+    private bool $accessLogFinalizerRegistered = false;
+
+    /**
+     * Prevent duplicate access events if response preparation is retried.
+     */
+    private bool $accessLogged = false;
+
+    /**
      * @inheritdoc
      */
     public function beforeAction($action): bool
     {
+        // Establish the route's response contract and final-status logging
+        // before any plugin-authored policy check can throw.
+        Craft::$app->response->format = Response::FORMAT_JSON;
         $apiKey = Craft::$app->request->getHeaders()->get('X-API-Key');
+        $this->apiKey = is_string($apiKey) ? $apiKey : null;
+        $this->registerAccessLogFinalizer();
         $apiKeyData = FormieRestApi::$plugin->apiKey->validateApiKey($apiKey);
 
         if (!$apiKeyData) {
@@ -72,7 +89,6 @@ class ApiTestController extends Controller
         }
 
         $this->apiKeyData = $apiKeyData;
-        $this->apiKey = $apiKey;
 
         // Track the key's last-used timestamp, mirroring the production
         // controller so test-endpoint hits record usage too. The instanceof
@@ -97,21 +113,30 @@ class ApiTestController extends Controller
     }
 
     /**
-     * @inheritdoc
+     * Register one callback that observes the response only after its final
+     * status and payload have been prepared, including exception responses.
      */
-    public function afterAction($action, $result)
+    private function registerAccessLogFinalizer(): void
     {
-        $apiKey = $this->apiKey;
-        if (is_string($apiKey) && $apiKey !== '') {
-            FormieRestApi::$plugin->security->logApiAccess(
-                $apiKey,
-                Craft::$app->request->getUrl(),
-                Craft::$app->request->getQueryParams(),
-                Craft::$app->response->statusCode,
-            );
+        if ($this->accessLogFinalizerRegistered) {
+            return;
         }
 
-        return parent::afterAction($action, $result);
+        $this->accessLogFinalizerRegistered = true;
+        $response = Craft::$app->getResponse();
+        $response->on(Response::EVENT_AFTER_PREPARE, function() use ($response): void {
+            if ($this->accessLogged) {
+                return;
+            }
+
+            $this->accessLogged = true;
+            FormieRestApi::$plugin->security->logApiAccess(
+                $this->apiKey ?? '',
+                Craft::$app->request->getUrl(),
+                Craft::$app->request->getQueryParams(),
+                $response->statusCode,
+            );
+        });
     }
 
     /**
@@ -137,6 +162,50 @@ class ApiTestController extends Controller
     }
 
     /**
+     * Read a supplied integer query parameter without lossy casting.
+     *
+     * Omitted parameters retain their endpoint-specific default. Supplied
+     * values must use integer syntax and fall within the declared range.
+     */
+    private function queryInteger(string $name, int $default, int $minimum, ?int $maximum = null): int
+    {
+        $raw = Craft::$app->request->getParam($name, null);
+        if ($raw === null) {
+            return $default;
+        }
+
+        if (is_int($raw)) {
+            $value = $raw;
+        } elseif (is_string($raw) && preg_match('/^-?\d+$/D', $raw) === 1) {
+            $filtered = filter_var($raw, FILTER_VALIDATE_INT);
+            if ($filtered === false) {
+                throw new BadRequestHttpException("Invalid {$name}: expected an integer");
+            }
+            $value = $filtered;
+        } else {
+            throw new BadRequestHttpException("Invalid {$name}: expected an integer");
+        }
+
+        if ($value < $minimum || ($maximum !== null && $value > $maximum)) {
+            $range = $maximum === null ? "{$minimum} or greater" : "between {$minimum} and {$maximum}";
+            throw new BadRequestHttpException("Invalid {$name}: expected an integer {$range}");
+        }
+
+        return $value;
+    }
+
+    /**
+     * Return an existing diagnostic payload with an explicit failure status.
+     *
+     * @param array<string, mixed> $payload
+     */
+    private function errorResponse(array $payload, int $statusCode): Response
+    {
+        Craft::$app->response->statusCode = $statusCode;
+        return $this->asJson($payload);
+    }
+
+    /**
      * Test endpoint to show available forms
      * URL: /api/test/formie/forms
      * URL: /api/test/formie/forms?handle=customerFeedback
@@ -157,6 +226,11 @@ class ApiTestController extends Controller
 
         if ($formHandle) {
             $this->requireFormInScope((string) $formHandle);
+        } elseif ($formId && $scoped !== null) {
+            $scopedForm = Form::find()->id($formId)->handle($scoped)->status('enabled')->one();
+            if (!$scopedForm instanceof Form) {
+                throw new ForbiddenHttpException('API key is not allowed to access this form');
+            }
         }
 
         try {
@@ -178,17 +252,9 @@ class ApiTestController extends Controller
             /** @var \verbb\formie\elements\Form[] $forms */
             $forms = $query->all();
 
-            // A scoped key requesting a specific id must not see out-of-scope forms.
-            if ($formId && $scoped !== null) {
-                $forms = array_values(array_filter(
-                    $forms,
-                    static fn(Form $f): bool => in_array($f->handle, $scoped, true),
-                ));
-            }
-
             // If filtering by handle/id and no form found
             if (($formHandle || $formId) && empty($forms)) {
-                return $this->asJson([
+                return $this->errorResponse([
                     'success' => false,
                     'error' => [
                         'code' => 'NOT_FOUND',
@@ -196,7 +262,7 @@ class ApiTestController extends Controller
                             ? "Form with handle '{$formHandle}' not found"
                             : "Form with ID '{$formId}' not found",
                     ],
-                ]);
+                ], 404);
             }
             
             // Batch-fetch submission counts to avoid N+1 (one grouped query, joined
@@ -253,14 +319,14 @@ class ApiTestController extends Controller
         } catch (\Throwable $e) {
             Craft::error('API Test Error: ' . $e->getMessage(), __METHOD__);
 
-            return $this->asJson([
+            return $this->errorResponse([
                 'success' => false,
                 'error' => [
                     'code' => 'FORMS_FETCH_ERROR',
                     'message' => 'Failed to fetch forms',
                     'detail' => Craft::$app->config->general->devMode ? $e->getMessage() : null,
                 ],
-            ]);
+            ], 500);
         }
     }
     
@@ -276,8 +342,8 @@ class ApiTestController extends Controller
         $request = Craft::$app->request;
         $formHandle = $request->getParam('formHandle');
         $formId = $request->getParam('formId');
-        $limit = max(1, (int) $request->getParam('limit', 10));
-        $page = max(1, (int) $request->getParam('page', 1));
+        $limit = $this->queryInteger('limit', 10, 1, 100);
+        $page = $this->queryInteger('page', 1, 1);
         $status = $request->getParam('status');
 
         // Validate date params before entering the try block — `BadRequestHttpException`
@@ -286,13 +352,13 @@ class ApiTestController extends Controller
         $dateToStr = $this->parseDateFilter($request->getParam('dateTo'), 'dateTo', true);
 
         if (!$formHandle && !$formId) {
-            return $this->asJson([
+            return $this->errorResponse([
                 'success' => false,
                 'error' => [
                     'code' => 'MISSING_PARAMETER',
                     'message' => 'Either formHandle or formId parameter is required',
                 ],
-            ]);
+            ], 400);
         }
 
         // Form-scope check before the try so an out-of-scope 403 isn't swallowed
@@ -301,12 +367,11 @@ class ApiTestController extends Controller
         if ($formHandle) {
             $this->requireFormInScope((string) $formHandle);
         } elseif ($this->scopedFormHandles() !== null) {
-            /** @var \verbb\formie\elements\Form|null $scopedForm */
-            $scopedForm = Form::find()->id($formId)->status('enabled')->one();
-            if ($scopedForm instanceof Form) {
-                $this->requireFormInScope($scopedForm->handle);
+            $scoped = $this->scopedFormHandles();
+            $scopedForm = Form::find()->id($formId)->handle($scoped)->status('enabled')->one();
+            if (!$scopedForm instanceof Form) {
+                throw new ForbiddenHttpException('API key is not allowed to access this form');
             }
-            // Unknown id falls through; the lookup below returns FORM_NOT_FOUND.
         }
 
         try {
@@ -323,7 +388,7 @@ class ApiTestController extends Controller
             $form = $formQuery->one();
 
             if (!$form) {
-                return $this->asJson([
+                return $this->errorResponse([
                     'success' => false,
                     'error' => [
                         'code' => 'FORM_NOT_FOUND',
@@ -331,7 +396,7 @@ class ApiTestController extends Controller
                             ? "Form with handle '{$formHandle}' not found"
                             : "Form with ID '{$formId}' not found",
                     ],
-                ]);
+                ], 404);
             }
 
             // Build query without limit/offset so count reflects the full result set
@@ -402,14 +467,14 @@ class ApiTestController extends Controller
         } catch (\Throwable $e) {
             Craft::error('API Test Error: ' . $e->getMessage(), __METHOD__);
 
-            return $this->asJson([
+            return $this->errorResponse([
                 'success' => false,
                 'error' => [
                     'code' => 'SUBMISSIONS_FETCH_ERROR',
                     'message' => 'Failed to fetch submissions',
                     'detail' => Craft::$app->config->general->devMode ? $e->getMessage() : null,
                 ],
-            ]);
+            ], 500);
         }
     }
     

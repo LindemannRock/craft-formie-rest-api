@@ -41,6 +41,12 @@ The key used its hourly budget. Check the `X-RateLimit-Remaining` and `X-RateLim
 
 `dateFrom` / `dateTo` must be `YYYY-MM-DD`, `YYYY-MM-DD HH:MM:SS`, or ISO 8601. Anything else returns `400`. A date-only `dateTo` is inclusive of the whole day.
 
+## 400 — invalid pagination
+
+Production list endpoints accept `limit` from `1` through `100` and `offset` greater than or equal to `0`. The devMode submissions endpoint accepts the same `limit` range and a `page` greater than or equal to `1`.
+
+Send whole integers only. Empty values, decimals, negative values, zero where the minimum is one, and limits above 100 return `400`; values are not silently clamped. For larger result sets, request at most 100 items at a time and advance `offset` (production) or `page` (devMode).
+
 ## 400 — form handle not found
 
 The submissions endpoint's `formHandle` filter doesn't match any form. Check the handle (the slug, not the title) and that the form exists.

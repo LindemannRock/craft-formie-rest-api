@@ -39,6 +39,7 @@
         "open": false,
         "children": [
             "resources/testing-tools",
+            "resources/logging",
             "resources/troubleshooting",
             "resources/translations"
         ]

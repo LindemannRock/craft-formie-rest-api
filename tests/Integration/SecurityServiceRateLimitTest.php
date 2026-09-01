@@ -27,6 +27,111 @@ use lindemannrock\formierestapi\tests\TestCase;
  */
 final class SecurityServiceRateLimitTest extends TestCase
 {
+    public function testConcurrentAttemptsCannotCollectivelyExceedBudget(): void
+    {
+        $apiKey = self::MARKER . 'concurrent_' . bin2hex(random_bytes(8));
+        $this->trackRateLimitKey($apiKey);
+        $this->setEnv('FORMIE_API_RATE_LIMIT_DISABLED', null);
+        $limit = 2;
+        $attempts = 6;
+        $sharedCachePath = sys_get_temp_dir()
+            . '/lindemannrock-base-phpunit-cache.'
+            . bin2hex(random_bytes(8));
+        \craft\helpers\FileHelper::createDirectory($sharedCachePath);
+        $this->trackTempPath($sharedCachePath);
+        $this->setEnv('LINDEMANNROCK_BASE_TEST_CACHE_PATH', $sharedCachePath);
+        $tempDirectory = $this->createTrackedTempDirectory('__formieapi_rate_limit_');
+        $socketPath = $tempDirectory . '/barrier.sock';
+        $socketUri = 'unix://' . $socketPath;
+        $errorCode = 0;
+        $errorMessage = '';
+        $server = stream_socket_server($socketUri, $errorCode, $errorMessage);
+        self::assertIsResource($server, "Barrier socket must open: {$errorCode} {$errorMessage}");
+
+        /** @var list<resource> $connections */
+        $connections = [];
+        /** @var list<array{process: resource, pipes: array<int, resource>}> $workers */
+        $workers = [];
+
+        try {
+            $workerPath = dirname(__DIR__) . '/Support/RateLimitAttemptWorker.php';
+            for ($i = 0; $i < $attempts; $i++) {
+                $pipes = [];
+                $process = proc_open(
+                    [PHP_BINARY, $workerPath, $socketUri, $apiKey, (string) $limit],
+                    [
+                        0 => ['file', '/dev/null', 'r'],
+                        1 => ['pipe', 'w'],
+                        2 => ['pipe', 'w'],
+                    ],
+                    $pipes,
+                    dirname(__DIR__, 2),
+                );
+                self::assertIsResource($process, "Worker {$i} must start.");
+                $workers[] = ['process' => $process, 'pipes' => $pipes];
+            }
+
+            for ($i = 0; $i < $attempts; $i++) {
+                $connection = stream_socket_accept($server, 15);
+                self::assertIsResource($connection, "Worker {$i} must reach the barrier.");
+                stream_set_timeout($connection, 15);
+                self::assertSame("READY\n", fgets($connection), "Worker {$i} must report ready.");
+                $connections[] = $connection;
+            }
+
+            foreach ($connections as $connection) {
+                self::assertSame(3, fwrite($connection, "GO\n"));
+            }
+
+            $allowed = 0;
+            foreach ($connections as $i => $connection) {
+                $result = fgets($connection);
+                self::assertContains($result, ["ALLOWED\n", "REJECTED\n"], "Worker {$i} must return a result.");
+                $allowed += $result === "ALLOWED\n" ? 1 : 0;
+            }
+
+            foreach ($connections as $connection) {
+                self::assertSame(6, fwrite($connection, "CLOSE\n"));
+            }
+
+            foreach ($workers as $i => $worker) {
+                $stdout = stream_get_contents($worker['pipes'][1]);
+                $stderr = stream_get_contents($worker['pipes'][2]);
+                fclose($worker['pipes'][1]);
+                fclose($worker['pipes'][2]);
+                $exitCode = proc_close($worker['process']);
+                self::assertSame(0, $exitCode, "Worker {$i} failed. stdout={$stdout} stderr={$stderr}");
+            }
+            $workers = [];
+
+            self::assertSame($limit, $allowed, 'Simultaneous attempts cannot collectively exceed the shared budget.');
+        } finally {
+            foreach ($connections as $connection) {
+                if (is_resource($connection)) {
+                    fclose($connection);
+                }
+            }
+            if (is_resource($server)) {
+                fclose($server);
+            }
+            foreach ($workers as $worker) {
+                foreach ($worker['pipes'] as $pipe) {
+                    if (is_resource($pipe)) {
+                        fclose($pipe);
+                    }
+                }
+                $status = proc_get_status($worker['process']);
+                if ($status['running']) {
+                    proc_terminate($worker['process']);
+                }
+                proc_close($worker['process']);
+            }
+            if (file_exists($socketPath)) {
+                unlink($socketPath);
+            }
+        }
+    }
+
     public function testIncrementsUpToBudgetThenRejects(): void
     {
         $apiKey = self::MARKER . 'ratelimit_' . uniqid('', true);

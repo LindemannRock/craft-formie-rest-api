@@ -88,9 +88,9 @@ final class DbApiKeyAuthenticationTest extends TestCase
 
         self::assertIsArray($data);
         self::assertNull($data['signingSecret']);
-        self::assertFalse(
+        self::assertTrue(
             $data['requireSignature'],
-            'requireSignature reports false when the secret is unrecoverable — the signature check itself then fails closed.',
+            'The persisted signature requirement remains authoritative when the secret is unrecoverable.',
         );
         self::assertFalse(
             FormieRestApi::$plugin->security->validateRequestSignature($data),

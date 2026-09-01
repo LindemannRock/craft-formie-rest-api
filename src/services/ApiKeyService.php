@@ -238,7 +238,7 @@ class ApiKeyService extends Component
             'rateLimit' => $key->rateLimit ?? 100,
             'ipWhitelist' => $key->ipWhitelist,
             'signingSecret' => $secret,
-            'requireSignature' => $key->requireSignature && $secret !== null,
+            'requireSignature' => $key->requireSignature,
             'allowedForms' => $key->allowedForms,
             'dbKey' => $key,
         ];

@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORKFLOW="${1:-.github/workflows/ci.yml}"
+if [ ! -f "$WORKFLOW" ]; then
+    echo "CI workflow not found: $WORKFLOW" >&2
+    exit 1
+fi
+
+target_job_count="$(awk '
+    /^jobs:[[:space:]]*(#.*)?$/ { in_jobs = 1; next }
+    in_jobs && /^[^[:space:]#][^:]*:/ { in_jobs = 0 }
+    in_jobs && /^  quality-gates:[[:space:]]*(#.*)?$/ { count++ }
+    END { print count + 0 }
+' "$WORKFLOW")"
+if [ "$target_job_count" -ne 1 ]; then
+    echo "The CI workflow must define jobs.quality-gates exactly once." >&2
+    exit 1
+fi
+
+target_job="$(awk '
+    /^jobs:[[:space:]]*(#.*)?$/ { in_jobs = 1; next }
+    in_jobs && /^[^[:space:]#][^:]*:/ { in_jobs = 0; in_target = 0 }
+    in_jobs && /^  [A-Za-z0-9_-]+:[[:space:]]*(#.*)?$/ {
+        in_target = ($0 ~ /^  quality-gates:/)
+    }
+    in_target { print }
+' "$WORKFLOW")"
+
+count_target_pattern() {
+    printf '%s\n' "$target_job" | grep -Ec "$1" || true
+}
+
+canonical_count="$(count_target_pattern '^[[:space:]]*(-[[:space:]]+)?run:[[:space:]]+composer quality-gate[[:space:]]*$')"
+if [ "$canonical_count" -ne 1 ]; then
+    echo "The CI quality-gates job must invoke 'composer quality-gate' exactly once." >&2
+    exit 1
+fi
+
+if printf '%s\n' "$target_job" | grep -Eq 'safe[.]directory[^[:cntrl:]]*[*]'; then
+    echo "The CI quality-gates job must never use wildcard safe.directory trust." >&2
+    exit 1
+fi
+
+container_count="$(awk '
+    /^    container:/ { count++ }
+    END { print count + 0 }
+' <<< "$target_job")"
+safe_count="$(count_target_pattern 'safe[.]directory')"
+exact_trust_count="$(count_target_pattern '^[[:space:]]*(-[[:space:]]+)?run:[[:space:]]+git config --global --add safe[.]directory "[$]GITHUB_WORKSPACE"[[:space:]]*$')"
+
+if [ "$container_count" -gt 0 ]; then
+    if [ "$container_count" -ne 1 ] || [ "$safe_count" -ne 1 ] || [ "$exact_trust_count" -ne 1 ]; then
+        echo 'A containerized quality-gates job must trust exactly "$GITHUB_WORKSPACE" once.' >&2
+        exit 1
+    fi
+
+    checkout_line="$(printf '%s\n' "$target_job" | grep -nE '^[[:space:]]*-[[:space:]]+uses:[[:space:]]+actions/checkout@v6[[:space:]]*$' | head -n 1 | cut -d: -f1)"
+    trust_line="$(printf '%s\n' "$target_job" | grep -nE '^[[:space:]]*(-[[:space:]]+)?run:[[:space:]]+git config --global --add safe[.]directory "[$]GITHUB_WORKSPACE"[[:space:]]*$' | head -n 1 | cut -d: -f1)"
+    gate_line="$(printf '%s\n' "$target_job" | grep -nE '^[[:space:]]*(-[[:space:]]+)?run:[[:space:]]+composer quality-gate[[:space:]]*$' | head -n 1 | cut -d: -f1)"
+    if [ -z "$checkout_line" ] || [ -z "$trust_line" ] || [ -z "$gate_line" ] \
+        || [ "$trust_line" -le "$checkout_line" ] || [ "$trust_line" -ge "$gate_line" ]; then
+        echo 'The exact "$GITHUB_WORKSPACE" trust must run after checkout and before composer quality-gate.' >&2
+        exit 1
+    fi
+elif [ "$safe_count" -ne 0 ]; then
+    echo "A non-containerized quality-gates job must not add safe.directory trust for Act." >&2
+    exit 1
+fi
+
+install_count="$(count_target_pattern 'uses:[[:space:]]+ramsey/composer-install@v4[[:space:]]*$')"
+if [ "$install_count" -ne 1 ]; then
+    echo "The CI quality-gates job must use ramsey/composer-install@v4 exactly once." >&2
+    exit 1
+fi
+
+if printf '%s\n' "$target_job" | grep -Eq '^[[:space:]]*(-[[:space:]]+)?run:[[:space:]]+composer (audit|phpstan|check-cs|test|ci|ci:full)([[:space:]]|$)'; then
+    echo "CI must delegate package verification to composer quality-gate without partial duplicate constituents." >&2
+    exit 1
+fi
+
+echo "CI workflow contract passed."

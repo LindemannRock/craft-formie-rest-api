@@ -156,13 +156,14 @@ class SecurityService extends Component
      */
     private function ipMatches(string $ip, string $pattern): bool
     {
-        if ($ip === $pattern) {
-            return true;
-        }
-
-        // Single-IP entry that didn't match exactly above
         if (!str_contains($pattern, '/')) {
-            return false;
+            $ipBin = @inet_pton($ip);
+            $patternBin = @inet_pton($pattern);
+
+            return $ipBin !== false
+                && $patternBin !== false
+                && strlen($ipBin) === strlen($patternBin)
+                && $ipBin === $patternBin;
         }
 
         [$subnet, $maskStr] = explode('/', $pattern, 2);
@@ -213,7 +214,7 @@ class SecurityService extends Component
         unset($params['password'], $params['token'], $params['secret']);
         
         $this->logInfo('API access', [
-            'api_key' => substr($apiKey, 0, 10) . '...', // Only log partial key
+            'api_key' => $apiKey !== '' ? substr($apiKey, 0, 10) . '...' : '(missing)',
             'endpoint' => $endpoint,
             'method' => Craft::$app->request->getMethod(),
             'ip' => Craft::$app->request->getUserIP(),

@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace lindemannrock\formierestapi\tests\Integration;
 
+use craft\db\Query;
+use craft\web\Response;
 use lindemannrock\formierestapi\controllers\ApiTestController;
 use lindemannrock\formierestapi\FormieRestApi;
 use lindemannrock\formierestapi\tests\Stubs\StubApiRequest;
@@ -17,7 +19,6 @@ use lindemannrock\formierestapi\tests\TestCase;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use yii\web\ForbiddenHttpException;
-use yii\web\Response;
 
 /**
  * The devMode-only test endpoints must enforce the SAME per-key form scoping
@@ -64,6 +65,32 @@ final class ApiTestControllerFormScopeTest extends TestCase
         $controller->actionSubmissions();
     }
 
+    public function testNumericFormIdsDoNotDiscloseExistence(): void
+    {
+        $allowed = $this->seedForm();
+        $other = $this->seedForm();
+        $controller = $this->scopedController([$allowed->handle]);
+
+        $this->installRequestStub(new StubApiRequest(apiParams: ['id' => (int) $other->id]));
+        $this->assertForbidden(fn() => $controller->actionForms());
+
+        $this->installRequestStub(new StubApiRequest(apiParams: ['id' => $this->missingElementId()]));
+        $this->assertForbidden(fn() => $controller->actionForms());
+    }
+
+    public function testNumericSubmissionFormIdsDoNotDiscloseExistence(): void
+    {
+        $allowed = $this->seedForm();
+        $other = $this->seedForm();
+        $controller = $this->scopedController([$allowed->handle]);
+
+        $this->installRequestStub(new StubApiRequest(apiParams: ['formId' => (int) $other->id]));
+        $this->assertForbidden(fn() => $controller->actionSubmissions());
+
+        $this->installRequestStub(new StubApiRequest(apiParams: ['formId' => $this->missingElementId()]));
+        $this->assertForbidden(fn() => $controller->actionSubmissions());
+    }
+
     public function testFormsOnlyKeyDoesNotReceiveSubmissionCounts(): void
     {
         $form = $this->seedForm();
@@ -100,8 +127,7 @@ final class ApiTestControllerFormScopeTest extends TestCase
     private function scopedController(
         array $forms,
         array $permissions = ['read_forms', 'read_submissions'],
-    ): ApiTestController
-    {
+    ): ApiTestController {
         $controller = new ApiTestController('api-test', FormieRestApi::$plugin);
 
         $property = new \ReflectionProperty(ApiTestController::class, 'apiKeyData');
@@ -131,5 +157,20 @@ final class ApiTestControllerFormScopeTest extends TestCase
         $this->saveTestElement($submission);
 
         return $submission;
+    }
+
+    private function assertForbidden(callable $action): void
+    {
+        try {
+            $action();
+            self::fail('Scoped numeric lookups must not disclose whether an object exists.');
+        } catch (ForbiddenHttpException $e) {
+            self::assertSame(403, $e->statusCode);
+        }
+    }
+
+    private function missingElementId(): int
+    {
+        return (int) (new Query())->from('{{%elements}}')->max('id') + 1000;
     }
 }

@@ -48,12 +48,29 @@ class ApiController extends Controller
     private ?string $apiKey = null;
 
     /**
+     * Whether this controller has registered its request-scoped access-log
+     * finalizer on the current response.
+     */
+    private bool $accessLogFinalizerRegistered = false;
+
+    /**
+     * Prevent duplicate access events if response preparation is retried.
+     */
+    private bool $accessLogged = false;
+
+    /**
      * @inheritdoc
      */
     public function beforeAction($action): bool
     {
-        // Validate API key for all actions
+        // Establish the route's response contract and final-status logging
+        // before any plugin-authored policy check can throw.
+        Craft::$app->response->format = Response::FORMAT_JSON;
         $apiKey = Craft::$app->request->getHeaders()->get('X-API-Key');
+        $this->apiKey = is_string($apiKey) ? $apiKey : null;
+        $this->registerAccessLogFinalizer();
+
+        // Validate API key for all actions
         $apiKeyData = FormieRestApi::$plugin->apiKey->validateApiKey($apiKey);
 
         if (!$apiKeyData) {
@@ -73,7 +90,6 @@ class ApiController extends Controller
         }
 
         $this->apiKeyData = $apiKeyData;
-        $this->apiKey = $apiKey;
 
         // Track the key's last-used timestamp. The instanceof narrows the
         // mixed array value to ApiKey for static analysis (every valid key is
@@ -81,9 +97,6 @@ class ApiController extends Controller
         if (($apiKeyData['dbKey'] ?? null) instanceof ApiKey) {
             FormieRestApi::$plugin->apiKey->recordUsage($apiKeyData['dbKey']);
         }
-
-        // Set response format to JSON
-        Craft::$app->response->format = Response::FORMAT_JSON;
 
         // Rate limiting (counter persisted in Craft cache, fixed 1-hour window)
         $allowed = FormieRestApi::$plugin->security->checkRateLimit((string) $apiKey, $apiKeyData);
@@ -101,21 +114,30 @@ class ApiController extends Controller
     }
 
     /**
-     * @inheritdoc
+     * Register one callback that observes the response only after its final
+     * status and payload have been prepared, including exception responses.
      */
-    public function afterAction($action, $result)
+    private function registerAccessLogFinalizer(): void
     {
-        $apiKey = $this->apiKey;
-        if (is_string($apiKey) && $apiKey !== '') {
-            FormieRestApi::$plugin->security->logApiAccess(
-                $apiKey,
-                Craft::$app->request->getUrl(),
-                Craft::$app->request->getQueryParams(),
-                Craft::$app->response->statusCode,
-            );
+        if ($this->accessLogFinalizerRegistered) {
+            return;
         }
 
-        return parent::afterAction($action, $result);
+        $this->accessLogFinalizerRegistered = true;
+        $response = Craft::$app->getResponse();
+        $response->on(Response::EVENT_AFTER_PREPARE, function() use ($response): void {
+            if ($this->accessLogged) {
+                return;
+            }
+
+            $this->accessLogged = true;
+            FormieRestApi::$plugin->security->logApiAccess(
+                $this->apiKey ?? '',
+                Craft::$app->request->getUrl(),
+                Craft::$app->request->getQueryParams(),
+                $response->statusCode,
+            );
+        });
     }
 
     /**
@@ -141,6 +163,39 @@ class ApiController extends Controller
             $dt->setTime(23, 59, 59);
         }
         return $dt->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * Read a supplied integer query parameter without lossy casting.
+     *
+     * Omitted parameters retain their endpoint-specific default. Supplied
+     * values must use integer syntax and fall within the declared range.
+     */
+    private function queryInteger(string $name, int $default, int $minimum, ?int $maximum = null): int
+    {
+        $raw = Craft::$app->request->getParam($name, null);
+        if ($raw === null) {
+            return $default;
+        }
+
+        if (is_int($raw)) {
+            $value = $raw;
+        } elseif (is_string($raw) && preg_match('/^-?\d+$/D', $raw) === 1) {
+            $filtered = filter_var($raw, FILTER_VALIDATE_INT);
+            if ($filtered === false) {
+                throw new BadRequestHttpException("Invalid {$name}: expected an integer");
+            }
+            $value = $filtered;
+        } else {
+            throw new BadRequestHttpException("Invalid {$name}: expected an integer");
+        }
+
+        if ($value < $minimum || ($maximum !== null && $value > $maximum)) {
+            $range = $maximum === null ? "{$minimum} or greater" : "between {$minimum} and {$maximum}";
+            throw new BadRequestHttpException("Invalid {$name}: expected an integer {$range}");
+        }
+
+        return $value;
     }
 
     /**
@@ -194,8 +249,8 @@ class ApiController extends Controller
         $request = Craft::$app->request;
         
         // Get query parameters
-        $limit = (int) $request->getParam('limit', 100);
-        $offset = (int) $request->getParam('offset', 0);
+        $limit = $this->queryInteger('limit', 100, 1, 100);
+        $offset = $this->queryInteger('offset', 0, 0);
         $status = $request->getParam('status', 'enabled');
         
         // Build query
@@ -272,14 +327,21 @@ class ApiController extends Controller
     {
         $this->requireApiPermission('read_forms');
 
-        /** @var \verbb\formie\elements\Form|null $form */
-        $form = Form::find()->id($formId)->one();
-
-        if (!$form) {
-            throw new NotFoundHttpException("Form with ID {$formId} not found");
+        $scoped = $this->scopedFormHandles();
+        $query = Form::find()->id($formId);
+        if ($scoped !== null) {
+            $query->handle($scoped);
         }
 
-        $this->requireFormInScope($form->handle);
+        /** @var \verbb\formie\elements\Form|null $form */
+        $form = $query->one();
+
+        if (!$form) {
+            if ($scoped !== null) {
+                throw new ForbiddenHttpException('API key is not allowed to access this form');
+            }
+            throw new NotFoundHttpException("Form with ID {$formId} not found");
+        }
 
         return [
             'success' => true,
@@ -339,8 +401,8 @@ class ApiController extends Controller
         $formId = $request->getParam('formId');
         $formHandle = $request->getParam('formHandle');
         $status = $request->getParam('status', 'live');
-        $limit = (int) $request->getParam('limit', 100);
-        $offset = (int) $request->getParam('offset', 0);
+        $limit = $this->queryInteger('limit', 100, 1, 100);
+        $offset = $this->queryInteger('offset', 0, 0);
         $dateFrom = $request->getParam('dateFrom');
         $dateTo = $request->getParam('dateTo');
         // Sparse fieldset — null means "all fields".
@@ -364,14 +426,11 @@ class ApiController extends Controller
             }
             $query->formId($form->id);
         } elseif ($formId) {
-            if ($this->scopedFormHandles() !== null) {
-                /** @var \verbb\formie\elements\Form|null $form */
-                $form = Form::find()->id($formId)->one();
-                if ($form) {
-                    $this->requireFormInScope($form->handle);
+            if (($scoped = $this->scopedFormHandles()) !== null) {
+                $form = Form::find()->id($formId)->handle($scoped)->one();
+                if (!$form) {
+                    throw new ForbiddenHttpException('API key is not allowed to access this form');
                 }
-                // Unknown id falls through to an empty result set, same as
-                // for unrestricted keys.
             }
             $query->formId($formId);
         } elseif (($scoped = $this->scopedFormHandles()) !== null) {
@@ -442,21 +501,31 @@ class ApiController extends Controller
     {
         $this->requireApiPermission('read_submissions');
 
-        /** @var \verbb\formie\elements\Submission|null $submission */
-        $submission = Submission::find()
+        $query = Submission::find()
             ->id($submissionId)
             ->isIncomplete(false)
-            ->isSpam(false)
-            ->one();
+            ->isSpam(false);
+
+        $scoped = $this->scopedFormHandles();
+        if ($scoped !== null) {
+            $scopedIds = Form::find()->handle($scoped)->ids();
+            $query->formId($scopedIds ?: [0]);
+        }
+
+        /** @var \verbb\formie\elements\Submission|null $submission */
+        $submission = $query->one();
 
         if (!$submission) {
+            if ($scoped !== null) {
+                throw new ForbiddenHttpException('API key is not allowed to access this form');
+            }
             throw new NotFoundHttpException("Submission with ID {$submissionId} not found");
         }
 
         $form = $submission->getForm();
         if ($form !== null) {
             $this->requireFormInScope($form->handle);
-        } elseif ($this->scopedFormHandles() !== null) {
+        } elseif ($scoped !== null) {
             // Orphaned submission with no resolvable form: a scoped key has no
             // basis to claim it — fail closed.
             throw new ForbiddenHttpException('API key is not allowed to access this form');

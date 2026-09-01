@@ -73,6 +73,28 @@ final class SecurityServiceIpWhitelistTest extends TestCase
         );
     }
 
+    public function testExactIpv6MatchesEquivalentTextRepresentations(): void
+    {
+        $service = new SecurityService();
+
+        $this->installRequestStub(new StubApiRequest(userIp: '2001:db8::a'));
+        $this->assertTrue(
+            $service->validateIpWhitelist(['ipWhitelist' => ['2001:0DB8:0000:0000:0000:0000:0000:000A']]),
+            'Expanded uppercase and compressed lowercase forms identify the same IPv6 address.',
+        );
+
+        $this->installRequestStub(new StubApiRequest(userIp: '2001:DB8::BEEF'));
+        $this->assertTrue(
+            $service->validateIpWhitelist(['ipWhitelist' => ['2001:db8:0:0:0:0:0:beef']]),
+            'IPv6 hexadecimal case must not affect exact-address identity.',
+        );
+
+        $this->assertFalse(
+            $service->validateIpWhitelist(['ipWhitelist' => ['2001:db8::beee']]),
+            'A different IPv6 address remains outside the whitelist.',
+        );
+    }
+
     public function testCrossFamilyEntriesNeverMatch(): void
     {
         // Pins the audit 1.7 fix: an IPv4 client must NOT match an IPv6

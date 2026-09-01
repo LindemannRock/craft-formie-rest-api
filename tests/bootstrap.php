@@ -3,16 +3,22 @@
 /**
  * PHPUnit bootstrap for the formie-rest-api plugin.
  *
- * Delegates to the shared base-plugin bootstrap, which initialises Craft as a
- * console application. Tests run against the live DDEV database — there is no
- * transactional rollback. Cleanup is by marker (see `tests/TestCase.php`).
+ * Delegates to the shared Base integration bootstrap. Workspace runs use the
+ * Craft project root; standalone CI supplies an exact disposable project root.
  *
  * @since 3.5.0
  */
 
 declare(strict_types=1);
 
-$baseBootstrap = dirname(__DIR__, 3) . '/vendor/lindemannrock/craft-plugin-base/src/testing/bootstrap.php';
+$packageRoot = dirname(__DIR__);
+$configuredProjectRoot = $_SERVER['FORMIE_REST_API_TEST_PROJECT_ROOT']
+    ?? $_ENV['FORMIE_REST_API_TEST_PROJECT_ROOT']
+    ?? null;
+$projectRoot = is_string($configuredProjectRoot) && $configuredProjectRoot !== ''
+    ? $configuredProjectRoot
+    : dirname($packageRoot, 2);
+$baseBootstrap = $projectRoot . '/vendor/lindemannrock/craft-plugin-base/src/testing/bootstrap.php';
 
 if (!file_exists($baseBootstrap)) {
     fwrite(STDERR, "Base plugin testing bootstrap not found at {$baseBootstrap}\n");
@@ -22,4 +28,4 @@ if (!file_exists($baseBootstrap)) {
 
 require_once $baseBootstrap;
 
-\lindemannrock\base\testing\bootstrap();
+\lindemannrock\base\testing\bootstrap($projectRoot);

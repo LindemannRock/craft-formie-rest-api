@@ -50,8 +50,8 @@ A key that is form-scoped only ever sees its allowed forms — on every endpoint
 | Param | Default | Description |
 |-------|---------|-------------|
 | `status` | `enabled` | Form status. Pass `all` for any status |
-| `limit` | `100` | Page size |
-| `offset` | `0` | Page offset |
+| `limit` | `100` | Page size. Must be an integer from `1` through `100` |
+| `offset` | `0` | Page offset. Must be an integer greater than or equal to `0` |
 
 Each form in `data`:
 
@@ -84,12 +84,14 @@ Returns the same form object plus full metadata: `appearance`, `behaviour`, `pri
 |-------|---------|-------------|
 | `formHandle` / `formId` | (none) | Restrict to a single form |
 | `status` | `live` | Submission status. Pass `all` for any status |
-| `limit` | `100` | Page size |
-| `offset` | `0` | Page offset |
+| `limit` | `100` | Page size. Must be an integer from `1` through `100` |
+| `offset` | `0` | Page offset. Must be an integer greater than or equal to `0` |
 | `dateFrom` / `dateTo` | (none) | Filter by `dateCreated`. Accepts `YYYY-MM-DD`, `YYYY-MM-DD HH:MM:SS`, or ISO 8601. A date-only `dateTo` is inclusive of the whole day |
 | `fields` | (all) | **Sparse fieldset** — comma-separated field handles (`fields=rating,email`). The `fields` map then contains only those handles; unknown handles are ignored |
 
 Results are ordered newest first (`dateCreated DESC`). **Incomplete (draft) and spam submissions are always excluded** — this is the fixed API contract, with no opt-in to include them.
+
+Pagination is strict: malformed values, `limit=0`, `limit=101`, and negative offsets return `400` instead of being clamped. Split larger result sets into requests of at most 100 items and advance `offset` between requests.
 
 > [!TIP]
 > Use `dateFrom` for incremental sync — pull only submissions created since your last run instead of re-fetching everything. Combine with a sparse `fields` list to make large pulls faster.
@@ -136,12 +138,14 @@ These mirror the production read endpoints and exist for local verification. The
 
 The in-CP [Testing tools](../resources/testing-tools.md) page calls the production endpoints for you. The `/api/test/formie/*` endpoints are still useful for local devMode-only checks.
 
+The test submissions endpoint uses `limit=10` and `page=1` by default. Its supplied `limit` must be an integer from `1` through `100`, and `page` must be an integer greater than or equal to `1`. Invalid values return `400` rather than being clamped. Missing required form parameters return `400`, unknown forms return `404`, and an operational failure returns `500` with dev-only detail.
+
 ## Status codes
 
 | Code | When |
 |------|------|
 | `200` | Success |
-| `400` | Bad request — an unparseable `dateFrom`/`dateTo`, or a `formHandle` filter that doesn't match a form |
+| `400` | Bad request — invalid pagination, an unparseable `dateFrom`/`dateTo`, a production `formHandle` filter that doesn't match a form, or a missing required test-endpoint form parameter |
 | `401` | Missing or invalid API key, missing/invalid HMAC signature, or a client IP outside the key's whitelist |
 | `403` | The key lacks the required scope (`read_forms` / `read_submissions`) or the form is outside its allowlist |
 | `404` | The requested form or submission doesn't exist |

@@ -32,7 +32,7 @@ final class StubApiRequest extends CraftConsoleRequest
 
     /**
      * @param array<string, string> $headers
-     * @param array<string, mixed> $params GET/POST params returned by getParam()
+     * @param array<string, mixed> $apiParams GET/POST params returned by getParam()
      * @param array<string, mixed> $config
      */
     public function __construct(
@@ -67,6 +67,17 @@ final class StubApiRequest extends CraftConsoleRequest
     public function getHeaders(): HeaderCollection
     {
         return $this->headerCollection;
+    }
+
+    /** @return array<string, mixed> */
+    public function getQueryParams(): array
+    {
+        return $this->apiParams;
+    }
+
+    public function hasValidSiteToken(): bool
+    {
+        return true;
     }
 
     public function getMethod(): string
