@@ -17,7 +17,7 @@ use Symfony\Component\Process\Process;
 /**
  * Protects aggregate-gate ordering, CI delegation, Act cleanup, and temp cleanup.
  *
- * @since 3.11.0
+ * @since 3.10.2
  */
 final class QualityGateOrchestrationTest extends TestCase
 {

@@ -20,7 +20,7 @@ require_once dirname(__DIR__) . '/bootstrap.php';
 /**
  * One isolated rate-limit attempt released by a parent-owned socket barrier.
  *
- * @since 3.11.0
+ * @since 3.10.2
  */
 final class RateLimitAttemptWorker
 {

@@ -32,7 +32,7 @@ use yii\web\UnauthorizedHttpException;
  * Public and dev REST controllers establish JSON before policy checks and log
  * the final HTTP status exactly once after response preparation.
  *
- * @since 3.11.0
+ * @since 3.10.2
  */
 final class ApiControllerRequestLifecycleTest extends TestCase
 {

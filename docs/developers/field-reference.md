@@ -38,6 +38,7 @@ The `value` shape depends on the Formie field `type`:
 | Repeater | Array of rows, each an object of inner-field handles → values |
 | Table | Array of rows, each keyed by your column handles (typed per column) |
 | Password | Always `null` — never returned, even hashed |
+| Signature | Formie's stored signature image string, normally a `data:image/...;base64,...` URL; `null` when empty |
 | Anything else | String, or JSON-encoded value as a fallback |
 
 Structural/decorative fields (HTML, Heading, Section, Summary, Paragraph) carry no value and are omitted from the map entirely.
@@ -47,6 +48,12 @@ Structural/decorative fields (HTML, Heading, Section, Summary, Paragraph) carry 
 ### Table cells
 
 Each table cell is cast by its column type: `number` → float, `date`/`time` → ISO 8601, `color` → `#rrggbb`, `checkbox` → boolean, everything else → string. Heading columns are decorative and omitted.
+
+### Signature values
+
+A Signature value is the exact image string Formie stored with the submission. It is returned unchanged only to clients whose key has `read_submissions` permission and access to the submission's form. It is separate from the API's `X-Signature` request header and HMAC signing secret; neither of those authentication values appears in submission field content.
+
+Signature data URLs can be large and may contain sensitive personal content. Use a sparse `fields=` query to request the Signature handle only when a client needs it. Leave that handle out to avoid retrieving and transferring the image.
 
 ## Form field metadata
 

@@ -15,7 +15,7 @@ use lindemannrock\formierestapi\services\SecurityService;
 /**
  * Records controller security-policy calls and structured access events.
  *
- * @since 3.11.0
+ * @since 3.10.2
  */
 final class RecordingSecurityService extends SecurityService
 {

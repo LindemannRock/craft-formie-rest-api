@@ -16,7 +16,7 @@ use Symfony\Component\Process\Process;
 /**
  * Protects read-only workspace and standalone pre-commit routing.
  *
- * @since 3.11.0
+ * @since 3.10.2
  */
 final class PreCommitHookTest extends TestCase
 {

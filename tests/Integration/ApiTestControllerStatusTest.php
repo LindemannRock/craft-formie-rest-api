@@ -26,7 +26,7 @@ use yii\base\InlineAction;
  * Dev-only diagnostics preserve their JSON payloads while reporting truthful
  * HTTP failure statuses to clients and structured access logging.
  *
- * @since 3.11.0
+ * @since 3.10.2
  */
 final class ApiTestControllerStatusTest extends TestCase
 {

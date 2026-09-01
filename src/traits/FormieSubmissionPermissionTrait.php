@@ -16,7 +16,7 @@ use yii\web\ForbiddenHttpException;
 /**
  * Prevents CP users from delegating more Formie submission access than they hold.
  *
- * @since 3.11.0
+ * @since 3.10.2
  */
 trait FormieSubmissionPermissionTrait
 {

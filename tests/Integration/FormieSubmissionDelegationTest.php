@@ -23,7 +23,7 @@ use yii\web\ForbiddenHttpException;
 /**
  * Verifies that CP users cannot delegate broader Formie submission access.
  *
- * @since 3.11.0
+ * @since 3.10.2
  */
 final class FormieSubmissionDelegationTest extends TestCase
 {
@@ -233,7 +233,7 @@ final class FormieSubmissionDelegationTest extends TestCase
 /**
  * Test harness exposing the trait's protected behavioral contract.
  *
- * @since 3.11.0
+ * @since 3.10.2
  */
 final class FormieSubmissionDelegationHarness
 {
@@ -266,7 +266,7 @@ final class FormieSubmissionDelegationHarness
 /**
  * Craft user component with an explicit permission set.
  *
- * @since 3.11.0
+ * @since 3.10.2
  */
 final class FormieSubmissionDelegationUser extends ConsoleUser
 {

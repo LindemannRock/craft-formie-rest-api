@@ -23,7 +23,7 @@ use yii\web\BadRequestHttpException;
  * List endpoints accept only bounded integer pagination while preserving their
  * established defaults and response metadata.
  *
- * @since 3.11.0
+ * @since 3.10.2
  */
 final class ApiPaginationContractTest extends TestCase
 {
