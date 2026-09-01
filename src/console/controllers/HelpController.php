@@ -13,7 +13,7 @@ use lindemannrock\base\console\controllers\AbstractHelpController;
 /**
  * Console help for Formie REST API commands.
  *
- * @since 3.4.0
+ * @since 3.6.0
  */
 final class HelpController extends AbstractHelpController
 {
