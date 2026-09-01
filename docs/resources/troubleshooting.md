@@ -59,6 +59,12 @@ The API **always excludes** incomplete (draft) and spam submissions — that's t
 
 The `/api/test/formie/*` endpoints only register when Craft `devMode` is on. Use the production `/api/v1/formie/*` endpoints, or enable `devMode` locally. The in-CP [Testing tools](testing-tools.md) page works either way because it calls the production endpoints.
 
+## Settings → Test shows an input or connection error
+
+The in-CP testing tool validates detail identifiers before contacting the API. Form and submission IDs must be positive whole numbers; a form handle may contain letters, numbers, underscores, and hyphens. Correct the reported input and run the test again.
+
+Connection, DNS, TLS, and timeout errors mean the local Craft process could not complete the request to its configured site URL. Confirm the current site's base URL is reachable from the PHP container, then check local DNS, certificates, and firewall rules. API responses such as `401`, `403`, `404`, and `429` are not connection errors: the result pane keeps their real status, headers, and body for diagnosis.
+
 ## No forms or submissions come back
 
 - Confirm Formie has forms, and that the key's **Allowed forms** actually includes them.

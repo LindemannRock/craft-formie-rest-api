@@ -1,6 +1,6 @@
 # Testing tools
 
-Use **Formie REST API → Settings → Test** to try authenticated Formie API requests from inside Craft before you wire up a consumer. Paste a key, choose an endpoint, set the relevant filters, and inspect the exact status, headers, body, and equivalent `curl` command.
+Use **Formie REST API → Settings → Test** to try authenticated Formie API requests from inside Craft before you wire up a consumer. Paste a key, choose an endpoint, set the relevant filters, and inspect the exact status, headers, body, and sanitized request outline.
 
 ![The Formie REST API Settings → Test page with endpoint fields and result output](../images/testing-tools-api-test.webp)
 
@@ -25,13 +25,17 @@ Open **Formie REST API → Settings → Test**.
    - `GET /api/v1/formie/submissions`
    - `GET /api/v1/formie/submissions/{id}`
 4. Fill in the fields that appear for that endpoint:
-   - **ID** for form or submission detail by ID
-   - **Form handle** for form detail by handle
+   - A positive whole-number **ID** for form or submission detail by ID
+   - A nonempty **Form handle** containing letters, numbers, underscores, or hyphens for form detail by handle
    - **formHandle (optional)**, **dateFrom (optional)**, **dateTo (optional)**, and **fields (optional)** for submission-list tests
    - **limit** and **offset** for list endpoints
 5. Click **Run Test**.
 
-The result pane shows **Status**, **Time**, **Equivalent curl**, **Response headers**, and **Response body**. When a signing secret is pasted, the controller signs the request server-side with `X-Timestamp` and `X-Signature` for this test.
+The result pane shows **Status**, **Time**, a **Sanitized request outline**, **Response headers**, and **Response body**. The outline records the exact `GET` URL and header shape without becoming a runnable command: the pasted key appears as `<API_KEY>`, and signed requests use `<TIMESTAMP>` and `<SIGNATURE>`. Unsigned outlines omit the signing headers entirely.
+
+When a signing secret is pasted, the controller signs the real request server-side with live `X-Timestamp` and `X-Signature` values. Those values—and the API key and signing secret—never appear in the outline.
+
+Missing or malformed detail values are rejected locally before any request is sent. Connection, DNS, TLS, timeout, and other client failures appear as errors above the form. A response received from the API remains a diagnostic result even when its status is `400`, `401`, `403`, `404`, or `429`, so you can inspect its real headers and body.
 
 The page calls the production `/api/v1/formie/*` endpoints, so it works regardless of `devMode`. The separate `/api/test/formie/*` endpoints are still devMode-only and are documented in [API endpoints](../developers/api-endpoints.md).
 

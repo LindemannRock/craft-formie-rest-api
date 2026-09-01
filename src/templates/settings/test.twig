@@ -143,8 +143,9 @@
                     <span class="light" style="margin-left: 16px;"><strong>{{ 'Time:'|t('formie-rest-api') }}</strong> <span id="resultTime"></span> ms</span>
                 </p>
 
-                <h4>{{ 'Equivalent curl'|t('formie-rest-api') }}</h4>
-                <pre id="resultCurl" class="lr-code-block frapi-pre-wrap"></pre>
+                <h4>{{ 'Sanitized request outline'|t('formie-rest-api') }}</h4>
+                <p class="light">{{ 'This outline is not executable. Credential and signing values are replaced with placeholders.'|t('formie-rest-api') }}</p>
+                <pre id="resultRequestOutline" class="lr-code-block frapi-pre-wrap"></pre>
 
                 <h4>{{ 'Response headers'|t('formie-rest-api') }}</h4>
                 <pre id="resultHeaders" class="lr-code-block frapi-pre-scroll"></pre>
@@ -210,13 +211,28 @@ testButton.addEventListener('click', async () => {
         const response = await Craft.sendActionRequest('POST', 'formie-rest-api/settings/run-test', { data: payload });
         const data = response.data;
 
+        if (data?.error) {
+            throw new Error(data.error);
+        }
+        if (
+            typeof data?.status !== 'number'
+            || typeof data?.timeMs !== 'number'
+            || !data?.headers
+            || typeof data.headers !== 'object'
+            || Array.isArray(data.headers)
+            || typeof data?.body !== 'string'
+            || typeof data?.requestOutline !== 'string'
+        ) {
+            throw new Error({{ 'The diagnostic tool returned an unexpected response.'|t('formie-rest-api')|json_encode|raw }});
+        }
+
         const resultStatus = document.getElementById('resultStatus');
         const isOk = data.status >= 200 && data.status < 300;
         resultStatus.textContent = data.status;
         resultStatus.classList.toggle('lr-text-green', isOk);
         resultStatus.classList.toggle('lr-text-red', !isOk);
         document.getElementById('resultTime').textContent = data.timeMs;
-        document.getElementById('resultCurl').textContent = data.curl;
+        document.getElementById('resultRequestOutline').textContent = data.requestOutline;
         document.getElementById('resultHeaders').textContent = Object.entries(data.headers)
             .map(([k, v]) => `${k}: ${v}`)
             .join('\n');

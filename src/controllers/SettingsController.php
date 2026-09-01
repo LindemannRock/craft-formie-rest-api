@@ -11,6 +11,8 @@ namespace lindemannrock\formierestapi\controllers;
 use Craft;
 use craft\helpers\Json;
 use craft\web\Controller;
+use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\GuzzleException;
 use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\base\helpers\SettingsPostHelper;
@@ -110,10 +112,15 @@ class SettingsController extends Controller
         $signingSecret = $pastedSecret !== '' ? $pastedSecret : null;
 
         if ($apiKey === '') {
-            return $this->asJson(['error' => Craft::t('formie-rest-api', 'Paste an API key to test.')]);
+            return $this->asToolError(Craft::t('formie-rest-api', 'Paste an API key to test.'), 400);
         }
 
-        [$path, $query] = $this->buildEndpoint($endpoint, $request);
+        try {
+            [$path, $query] = $this->buildEndpoint($endpoint, $request);
+        } catch (\InvalidArgumentException $e) {
+            return $this->asToolError($e->getMessage(), 422);
+        }
+
         $baseUrl = rtrim(Craft::$app->getSites()->getCurrentSite()->getBaseUrl() ?? '', '/');
         $url = $baseUrl . $path . ($query !== '' ? '?' . $query : '');
         $pathWithQuery = $path . ($query !== '' ? '?' . $query : '');
@@ -129,7 +136,7 @@ class SettingsController extends Controller
             $headers['X-Signature'] = hash_hmac('sha256', $signatureBase, $signingSecret);
         }
 
-        $client = Craft::createGuzzleClient(['http_errors' => false, 'timeout' => 15]);
+        $client = $this->createHttpClient();
         $start = microtime(true);
 
         try {
@@ -154,10 +161,19 @@ class SettingsController extends Controller
                 'timeMs' => $timeMs,
                 'headers' => $responseHeaders,
                 'body' => $body,
-                'curl' => $this->buildCurl($url, $apiKey),
+                'requestOutline' => $this->buildRequestOutline($url, $signingSecret !== null),
             ]);
-        } catch (\Throwable $e) {
-            return $this->asJson(['error' => $e->getMessage()]);
+        } catch (GuzzleException $e) {
+            $detail = $this->sanitizeClientError($e->getMessage(), $headers, $signingSecret);
+
+            return $this->asToolError(Craft::t('formie-rest-api', 'API request failed: {error}', [
+                'error' => $detail,
+            ]), 502);
+        } catch (\Throwable) {
+            return $this->asToolError(
+                Craft::t('formie-rest-api', 'The diagnostic request could not be completed.'),
+                500,
+            );
         }
     }
 
@@ -252,8 +268,8 @@ class SettingsController extends Controller
      */
     private function buildEndpoint(string $choice, \craft\web\Request $request): array
     {
-        $id = (string) $request->getBodyParam('testId', '');
-        $handle = (string) $request->getBodyParam('testHandle', '');
+        $id = $request->getBodyParam('testId', '');
+        $handle = $request->getBodyParam('testHandle', '');
         $formHandle = (string) $request->getBodyParam('testFormHandle', '');
         $dateFrom = (string) $request->getBodyParam('testDateFrom', '');
         $dateTo = (string) $request->getBodyParam('testDateTo', '');
@@ -263,9 +279,9 @@ class SettingsController extends Controller
 
         $params = [];
         $path = match ($choice) {
-            'form-id' => '/api/v1/formie/forms/' . urlencode($id),
-            'form-handle' => '/api/v1/formie/forms/' . urlencode($handle),
-            'submission-id' => '/api/v1/formie/submissions/' . urlencode($id),
+            'form-id' => '/api/v1/formie/forms/' . $this->positiveIntegerIdentifier($id),
+            'form-handle' => '/api/v1/formie/forms/' . urlencode($this->formHandleIdentifier($handle)),
+            'submission-id' => '/api/v1/formie/submissions/' . $this->positiveIntegerIdentifier($id),
             'submissions' => '/api/v1/formie/submissions',
             default => '/api/v1/formie/forms',
         };
@@ -301,11 +317,86 @@ class SettingsController extends Controller
     }
 
     /**
-     * Build a copy-pasteable curl command (key partially masked).
+     * Create the package-local HTTP client used by the diagnostic tool.
+     *
+     * Kept as a narrow seam so supported transport failures can be exercised
+     * without opening a real network connection in behavioral tests.
      */
-    private function buildCurl(string $url, string $apiKey): string
+    protected function createHttpClient(): ClientInterface
     {
-        $masked = substr($apiKey, 0, 10) . '...';
-        return sprintf('curl -i -H "X-API-Key: %s" "%s"', $masked, $url);
+        return Craft::createGuzzleClient(['http_errors' => false, 'timeout' => 15]);
+    }
+
+    private function positiveIntegerIdentifier(mixed $value): string
+    {
+        if (!is_string($value) && !is_int($value)) {
+            throw new \InvalidArgumentException(Craft::t('formie-rest-api', 'Enter a positive integer ID.'));
+        }
+
+        $value = trim((string) $value);
+        $validated = filter_var($value, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1],
+        ]);
+        if ($validated === false || (string) $validated !== $value) {
+            throw new \InvalidArgumentException(Craft::t('formie-rest-api', 'Enter a positive integer ID.'));
+        }
+
+        return (string) $validated;
+    }
+
+    private function formHandleIdentifier(mixed $value): string
+    {
+        if (!is_string($value)) {
+            throw new \InvalidArgumentException(Craft::t('formie-rest-api', 'Enter a valid form handle.'));
+        }
+
+        $value = trim($value);
+        if ($value === '' || preg_match('/^[A-Za-z0-9_-]+$/D', $value) !== 1) {
+            throw new \InvalidArgumentException(Craft::t('formie-rest-api', 'Enter a valid form handle.'));
+        }
+
+        return $value;
+    }
+
+    private function buildRequestOutline(string $url, bool $signed): string
+    {
+        $lines = [
+            'GET ' . $url,
+            'Accept: application/json',
+            'X-API-Key: <API_KEY>',
+        ];
+
+        if ($signed) {
+            $lines[] = 'X-Timestamp: <TIMESTAMP>';
+            $lines[] = 'X-Signature: <SIGNATURE>';
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * @param array<string, string> $headers
+     */
+    private function sanitizeClientError(string $message, array $headers, ?string $signingSecret): string
+    {
+        $redactions = array_filter([
+            $headers['X-API-Key'] ?? null,
+            $headers['X-Timestamp'] ?? null,
+            $headers['X-Signature'] ?? null,
+            $signingSecret,
+        ], static fn(?string $value): bool => is_string($value) && $value !== '');
+
+        $message = str_replace($redactions, '<REDACTED>', $message);
+        $message = preg_replace('/\s+/', ' ', trim($message)) ?? '';
+        if ($message === '') {
+            return Craft::t('formie-rest-api', 'Unknown error');
+        }
+
+        return mb_substr($message, 0, 300);
+    }
+
+    private function asToolError(string $message, int $statusCode): Response
+    {
+        return $this->asJson(['error' => $message])->setStatusCode($statusCode);
     }
 }
