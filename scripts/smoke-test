@@ -1,0 +1,237 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SMOKE_RUN_ID="$(php -r 'echo bin2hex(random_bytes(8));')"
+SMOKE_KEY_NAME="formie-rest-api-compat-$SMOKE_RUN_ID"
+SMOKE_POSTMAN_FORMS_NAME="formie-rest-api-postman-forms-$SMOKE_RUN_ID"
+SMOKE_POSTMAN_SUBMISSIONS_NAME="formie-rest-api-postman-submissions-$SMOKE_RUN_ID"
+SMOKE_KEY_NAMES="$SMOKE_KEY_NAME,$SMOKE_POSTMAN_FORMS_NAME,$SMOKE_POSTMAN_SUBMISSIONS_NAME"
+SMOKE_CLEANED=false
+
+cleanup_smoke_key() {
+  primary_status=$?
+  cleanup_status=0
+  trap - EXIT INT TERM HUP
+  set +e
+
+  if [[ "$SMOKE_CLEANED" != true ]]; then
+    FORMIE_REST_API_SMOKE_NAMES="$SMOKE_KEY_NAMES" php craft exec '
+use lindemannrock\formierestapi\models\ApiKey;
+
+$rawNames = $_SERVER["FORMIE_REST_API_SMOKE_NAMES"] ?? "";
+$names = is_string($rawNames) ? explode(",", $rawNames) : [];
+if (count($names) !== 3) {
+    throw new RuntimeException("Expected exactly three smoke-owned API key names.");
+}
+foreach ($names as $name) {
+    if (preg_match("/^formie-rest-api-(compat|postman-(forms|submissions))-[a-f0-9]{16}$/", $name) !== 1) {
+        throw new RuntimeException("Refusing an invalid smoke-owned API key name.");
+    }
+}
+foreach (ApiKey::findAll() as $key) {
+    if (in_array($key->name, $names, true) && !$key->delete()) {
+        throw new RuntimeException("Unable to delete the smoke-owned API key.");
+    }
+}
+foreach (ApiKey::findAll() as $key) {
+    if (in_array($key->name, $names, true)) {
+        throw new RuntimeException("The smoke-owned API key remains after cleanup.");
+    }
+}
+'
+    cleanup_status=$?
+    if [[ "$cleanup_status" -eq 0 ]]; then
+      SMOKE_CLEANED=true
+      echo "Removed all smoke-owned API keys for run: $SMOKE_RUN_ID"
+    fi
+  fi
+
+  if [[ "$primary_status" -ne 0 ]]; then
+    exit "$primary_status"
+  fi
+  exit "$cleanup_status"
+}
+
+trap cleanup_smoke_key EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
+
+php craft plugin/list
+
+# Formie is a required Craft plugin, but Craft dependency resolution only
+# downloads its package. Ensure the disposable project installs/enables it
+# before exercising Formie-backed runtime behavior.
+if ! php craft plugin/list | grep -Eq '[[:space:]]formie[[:space:]].*[[:space:]]Yes[[:space:]]+Yes'; then
+  php craft plugin/install formie
+fi
+
+SMOKE_PROVISION_OUTPUT="$(FORMIE_REST_API_SMOKE_NAME="$SMOKE_KEY_NAME" php craft exec '
+use Craft;
+use lindemannrock\formierestapi\FormieRestApi;
+use lindemannrock\formierestapi\models\ApiKey;
+use lindemannrock\formierestapi\models\Settings;
+use lindemannrock\logginglibrary\LoggingLibrary;
+use verbb\formie\Formie;
+
+$name = $_SERVER["FORMIE_REST_API_SMOKE_NAME"] ?? "";
+if (!is_string($name) || preg_match("/^formie-rest-api-compat-[a-f0-9]{16}$/", $name) !== 1) {
+    throw new RuntimeException("Invalid smoke-owned API key name.");
+}
+
+$plugins = Craft::$app->getPlugins();
+$plugin = $plugins->getPlugin("formie-rest-api");
+if (!$plugin instanceof FormieRestApi) {
+    throw new RuntimeException("Formie REST API plugin class was not loaded.");
+}
+foreach (["formie", "logging-library", "formie-rest-api"] as $handle) {
+    if (!$plugins->isPluginInstalled($handle) || !$plugins->isPluginEnabled($handle)) {
+        throw new RuntimeException("Required Craft plugin is not installed and enabled: {$handle}");
+    }
+}
+if (!$plugins->getPlugin("formie") instanceof Formie) {
+    throw new RuntimeException("Formie dependency was not loaded.");
+}
+if (!$plugins->getPlugin("logging-library") instanceof LoggingLibrary) {
+    throw new RuntimeException("Logging Library dependency was not loaded.");
+}
+if (!Craft::$app->getModule("lindemannrock-base") instanceof \yii\base\Module) {
+    throw new RuntimeException("Base module was not registered.");
+}
+
+$settings = $plugin->getSettings();
+if (!$settings instanceof Settings || $settings->pluginName !== "Formie REST API" || $settings->logLevel !== "error") {
+    throw new RuntimeException("Fresh-install Formie REST API settings defaults are not intact.");
+}
+foreach (["apiKey", "security", "transformer"] as $component) {
+    if (!$plugin->has($component)) {
+        throw new RuntimeException("Missing Formie REST API service component: {$component}");
+    }
+    $plugin->get($component);
+}
+
+$generated = $plugin->apiKey->generateDbKey();
+$secret = $plugin->apiKey->generateSigningSecret();
+$key = new ApiKey();
+$key->name = $name;
+$key->enabled = true;
+$key->keyHash = $generated["hash"];
+$key->keyPrefix = $generated["prefix"];
+$key->signingSecretEnc = $plugin->apiKey->encryptSigningSecret($secret);
+$key->requireSignature = false;
+$key->canReadSubmissions = false;
+$key->allowedForms = [ApiKey::ALL_FORMS];
+$key->rateLimit = 10;
+if (!$key->save()) {
+    throw new RuntimeException("Unable to save the smoke-owned API key: " . json_encode($key->getErrors(), JSON_THROW_ON_ERROR));
+}
+
+$resolved = $plugin->apiKey->validateApiKey($generated["plaintext"]);
+if (!is_array($resolved)
+    || $resolved["permissions"] !== ["read_forms"]
+    || $resolved["requireSignature"] !== false
+    || $resolved["allowedForms"] !== [ApiKey::ALL_FORMS]) {
+    throw new RuntimeException("The smoke-owned API key did not hydrate into the expected forms-only contract.");
+}
+
+echo $generated["plaintext"];
+')"
+
+SMOKE_API_KEY="$(php -r '
+preg_match_all("/fra_[a-f0-9]{64}/", $argv[1], $matches);
+if (count($matches[0]) !== 1) {
+    fwrite(STDERR, "Expected exactly one provisioned API key in Craft output.\n");
+    exit(1);
+}
+echo $matches[0][0];
+' "$SMOKE_PROVISION_OUTPUT")"
+
+if [[ ! "$SMOKE_API_KEY" =~ ^fra_[a-f0-9]{64}$ ]]; then
+  echo "API-key provisioning returned an unexpected plaintext shape." >&2
+  exit 1
+fi
+
+SMOKE_BASE_URL="$DDEV_PRIMARY_URL"
+if [[ -z "$SMOKE_BASE_URL" ]]; then
+  echo "DDEV_PRIMARY_URL is required for the authenticated HTTP smoke." >&2
+  exit 1
+fi
+
+SMOKE_RESPONSE="$(curl --fail --silent --show-error --insecure \
+  --header "X-API-Key: $SMOKE_API_KEY" \
+  "$SMOKE_BASE_URL/api/v1/formie/forms")"
+
+php -r '
+$payload = json_decode($argv[1], true, flags: JSON_THROW_ON_ERROR);
+if (($payload["success"] ?? null) !== true
+    || ($payload["data"] ?? null) !== []
+    || ($payload["meta"]["total"] ?? null) !== 0
+    || ($payload["meta"]["limit"] ?? null) !== 100
+    || ($payload["meta"]["offset"] ?? null) !== 0
+    || !is_string($payload["meta"]["timestamp"] ?? null)) {
+    throw new RuntimeException("Authenticated forms endpoint returned an unexpected fresh-install contract.");
+}
+' "$SMOKE_RESPONSE"
+
+echo "Formie REST API fresh-install provisioning and authenticated endpoint smoke passed."
+
+extract_api_key() {
+  php -r '
+preg_match_all("/fra_[a-f0-9]{64}/", $argv[1], $matches);
+if (count($matches[0]) !== 1) {
+    fwrite(STDERR, "Expected exactly one API key in the provisioning output.\n");
+    exit(1);
+}
+echo $matches[0][0];
+' "$1"
+}
+
+POSTMAN_FORMS_OUTPUT="$(php craft formie-rest-api/api-keys/create \
+  --name="$SMOKE_POSTMAN_FORMS_NAME" \
+  --forms='*' \
+  --no-submissions \
+  --no-signing)"
+POSTMAN_FORMS_API_KEY="$(extract_api_key "$POSTMAN_FORMS_OUTPUT")"
+
+POSTMAN_SUBMISSIONS_OUTPUT="$(php craft formie-rest-api/api-keys/create \
+  --name="$SMOKE_POSTMAN_SUBMISSIONS_NAME" \
+  --forms='*' \
+  --no-signing)"
+POSTMAN_SUBMISSIONS_API_KEY="$(extract_api_key "$POSTMAN_SUBMISSIONS_OUTPUT")"
+
+# The bundled collection includes explicit devMode-only diagnostic endpoints.
+# Enable them only inside this disposable compatibility project.
+printf '\nCRAFT_DEV_MODE=true\n' >> .env
+php craft exec '
+if (!Craft::$app->getConfig()->getGeneral()->devMode) {
+    throw new RuntimeException("Unable to enable devMode for the Postman diagnostic endpoint smoke.");
+}
+'
+
+POSTMAN_COLLECTION="vendor/lindemannrock/craft-formie-rest-api/postman/Formie-REST-API.postman_collection.json"
+if [[ ! -f "$POSTMAN_COLLECTION" ]]; then
+  echo "Postman collection not found in the installed package: $POSTMAN_COLLECTION" >&2
+  exit 1
+fi
+
+NEWMAN=(npx --yes newman@6.2.2 run "$POSTMAN_COLLECTION" --insecure --color off)
+
+"${NEWMAN[@]}" \
+  --folder "List forms" \
+  --env-var "base_url=$SMOKE_BASE_URL" \
+  --env-var "api_key=$POSTMAN_FORMS_API_KEY" \
+  --env-var "signing_secret="
+
+"${NEWMAN[@]}" \
+  --folder "List submissions" \
+  --env-var "base_url=$SMOKE_BASE_URL" \
+  --env-var "api_key=$POSTMAN_SUBMISSIONS_API_KEY" \
+  --env-var "signing_secret="
+
+"${NEWMAN[@]}" \
+  --folder "Test auth" \
+  --env-var "base_url=$SMOKE_BASE_URL" \
+  --env-var "api_key=$POSTMAN_FORMS_API_KEY" \
+  --env-var "signing_secret="
+
+echo "Bundled Postman collection passed forms-only, submission-reading, and devMode endpoint release smoke."

@@ -31,7 +31,7 @@ After installing, a **Formie REST API** section appears in the Control Panel nav
 3. **Optional** — Enable [Logging Library](https://github.com/LindemannRock/craft-logging-library) for log viewing:
 
 > [!NOTE]
-> Logging Library is included as a Composer dependency and downloaded automatically. Activate it in Craft to view every API request under **Formie REST API → Logs**.
+> Logging Library is required by Composer. Install or activate it in Craft to enable log viewing.
 
 ```bash title="PHP"
 php craft plugin/install logging-library
