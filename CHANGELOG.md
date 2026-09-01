@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.10.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.10.1...v3.10.2) - 2026-09-01
+
+
+### Fixed
+
+* **api-keys:** enforce management contracts ([bd543ba](https://github.com/LindemannRock/craft-formie-rest-api/commit/bd543ba7fb8dd67c9c486a81865a731abeadb46a))
+* **api-keys:** remove obsolete environment sample ([5e64047](https://github.com/LindemannRock/craft-formie-rest-api/commit/5e64047287b0258e46f5be19a808f94e18684ad5))
+* **api-keys:** remove unused translation category from validation summary ([f4a4b0c](https://github.com/LindemannRock/craft-formie-rest-api/commit/f4a4b0ccba9a3d132db715c5f34df595fe705d03))
+* **api:** define advanced field value contract ([bf2b38f](https://github.com/LindemannRock/craft-formie-rest-api/commit/bf2b38f594c6348001a15ec0d2a227a7956860f9))
+* **api:** harden REST request controls and verification ([867cd4a](https://github.com/LindemannRock/craft-formie-rest-api/commit/867cd4a9d09c4e397560c63a549b4912be2a1d88))
+* **cli:** correct help introduction version ([dc01d97](https://github.com/LindemannRock/craft-formie-rest-api/commit/dc01d974a55b06e188488b5b997ff7636e442dd5))
+* **deps:** enforce supported dependency floors ([0e0ec03](https://github.com/LindemannRock/craft-formie-rest-api/commit/0e0ec032b6f8160cd36a3948b51bb06916750dc5))
+* remove unused linkMode parameter from error summary ([7fd4c14](https://github.com/LindemannRock/craft-formie-rest-api/commit/7fd4c14d99bd9f0b8c9b193e27e2e235caa705c2))
+* **settings:** capitalize Developer Resources heading in API test info box ([d3caccf](https://github.com/LindemannRock/craft-formie-rest-api/commit/d3caccf49cd4e25fd0655831237c745c2683a0d0))
+* **settings:** harden diagnostic requests ([447ce91](https://github.com/LindemannRock/craft-formie-rest-api/commit/447ce915de5257ce170938ea78d7803e2b8889d9))
+* **settings:** remove unused translation category from error summary ([6393397](https://github.com/LindemannRock/craft-formie-rest-api/commit/6393397bf6d885e56b47ac4632f44e58c403a0f9))
+
+
+### Security
+
+* **api-keys:** enforce Formie permissions for API key management ([64e5139](https://github.com/LindemannRock/craft-formie-rest-api/commit/64e51393cef67f6c4d8f8af26221ba07872c608d))
+* **api:** require submission permission for form counts ([f501636](https://github.com/LindemannRock/craft-formie-rest-api/commit/f501636c96bbb4ccbd79b1a5da9104cf49ce3830))
+
 ## [3.10.1](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.10.0...v3.10.1) - 2026-06-18
 
 
