@@ -64,6 +64,7 @@ return [
     'Couldn’t revoke API keys' => 'No se pudieron revocar las claves API',
 
     // Validation messages
+    '{attribute} must be a date.' => 'El {attribute} debe ser una fecha.',
     'Enabled keys must allow all forms or at least one specific form.' => 'Las claves activadas deben permitir todos los formularios o al menos un formulario específico.',
     'Invalid IP whitelist entry: "{entry}". Use a single IP or CIDR range (e.g. 203.0.113.5 or 192.168.1.0/24).' => 'Entrada de lista blanca de IP no válida: "{entry}". Utilice una dirección IP única o un rango CIDR (p. ej. 203.0.113.5 o 192.168.1.0/24).',
 

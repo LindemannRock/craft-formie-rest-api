@@ -71,3 +71,21 @@ The form checklist and API-key list follow the current Control Panel user's Form
 Grant Formie's global **View submissions** permission to expose every form, every key, and the **All forms** option. Alternatively, grant the matching per-form submission permission for every form on the key. Opening a broader key by direct URL, or trying to save, enable, disable, or revoke it (including bulk actions), returns `403` explaining that the key includes forms outside the user's Formie submission access.
 
 The plugin does not silently remove those forms. Have an operator with sufficient Formie access update the key instead.
+
+## API-key create or edit returns 403
+
+The API-key list and its actions use separate Craft permissions. **Manage API keys** opens the filtered list only; it does not grant create, edit, status-change, or revoke controls.
+
+- Add **Create API keys** for the create page and new-key saves.
+- Add **Edit API keys** for existing-key pages, saves, and enable/disable actions.
+- Add **Revoke API keys** for single and bulk revocation.
+
+Each child capability also requires **Manage API keys**. Formie's submission permissions independently restrict which forms and keys the operator can manage, as described above.
+
+## API-key expiry will not save
+
+**Valid until** accepts a valid date and time, or an empty value for no expiry. Malformed non-empty input is rejected and shown again so it can be corrected; it is never silently converted to “no expiry.”
+
+## Console API-key creation reports an unknown form handle
+
+Every explicit `--forms` handle must exist in Formie's current form catalogue. Correct or remove every reported handle and retry; mixed known/unknown input creates no key. Repeated valid handles are deduplicated. Use `--forms=*` for all current and future forms, or omit the option only when creating a disabled key.

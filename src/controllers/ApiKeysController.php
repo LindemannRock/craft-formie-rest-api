@@ -26,14 +26,14 @@ use yii\web\Response;
  * CP CRUD for DB-managed API keys.
  *
  * Permission model:
- *   manageApiKeys  — page access + view list/edit form (no mutations)
- *   createApiKeys  — POST a brand-new key
- *   editApiKeys    — POST changes to an existing key's metadata/restrictions
- *   revokeApiKeys  — DELETE a key
+ *   manageApiKeys  — filtered listing access only
+ *   createApiKeys  — create form + POST a brand-new key
+ *   editApiKeys    — existing-key edit form + POST/bulk status changes
+ *   revokeApiKeys  — single/bulk revoke actions
  *
  * Plaintext credentials are shown exactly once: after a successful create,
  * the key AND its paired signing secret are stashed in the session flash and
- * the operator is redirected to the edit page, which reveals both via
+ * the operator is redirected to the create page, which reveals both via
  * copy-to-clipboard banners. Edit of an existing key never reveals either
  * (the key exists only as a hash; the secret stays encrypted at rest).
  * Rotation = revoke + create.
@@ -158,11 +158,14 @@ class ApiKeysController extends Controller
     // EDIT (new + existing share this action)
     // =========================================================================
 
-    public function actionEdit(?int $keyId = null, ?ApiKey $apiKey = null): Response
+    public function actionEdit(?int $keyId = null, ?ApiKey $apiKey = null, mixed $validUntilValue = null): Response
     {
         $this->requirePermission('formieRestApi:manageApiKeys');
 
         $isNew = ($keyId === null);
+        $this->requirePermission($isNew
+            ? 'formieRestApi:createApiKeys'
+            : 'formieRestApi:editApiKeys');
 
         // When a save action re-renders due to validation errors it passes an
         // already-populated $apiKey through; in all other cases load or build.
@@ -191,10 +194,14 @@ class ApiKeysController extends Controller
             ? Craft::t('formie-rest-api', 'New API Key')
             : Craft::t('formie-rest-api', 'Edit API Key');
 
-        // Pull the credentials stashed during a fresh create (one-shot reveal).
-        // Craft's session->getFlash() consumes the value on read.
-        $newPlaintext = Craft::$app->getSession()->getFlash(self::FLASH_NEW_PLAINTEXT);
-        $newSecret = Craft::$app->getSession()->getFlash(self::FLASH_NEW_SECRET);
+        $newPlaintext = null;
+        $newSecret = null;
+        if ($isNew) {
+            // Pull the credentials stashed during a fresh create and delete
+            // them immediately. Permission checks above must run before reads.
+            $newPlaintext = Craft::$app->getSession()->getFlash(self::FLASH_NEW_PLAINTEXT, null, true);
+            $newSecret = Craft::$app->getSession()->getFlash(self::FLASH_NEW_SECRET, null, true);
+        }
 
         return $this->renderTemplate('formie-rest-api/api-keys/edit', [
             'apiKey' => $apiKey,
@@ -204,6 +211,10 @@ class ApiKeysController extends Controller
             'canAllowAllForms' => $this->canViewAllFormieSubmissions(),
             'newPlaintext' => is_string($newPlaintext) ? $newPlaintext : null,
             'newSecret' => is_string($newSecret) ? $newSecret : null,
+            'validUntilValue' => $validUntilValue ?? $apiKey->validUntil,
+            'invalidValidUntilDisplayValue' => $apiKey->hasErrors('validUntil')
+                ? $this->invalidValidUntilDisplayValue($validUntilValue)
+                : null,
             'canCreate' => Craft::$app->getUser()->checkPermission('formieRestApi:createApiKeys'),
             'canEdit' => Craft::$app->getUser()->checkPermission('formieRestApi:editApiKeys'),
             'canRevoke' => Craft::$app->getUser()->checkPermission('formieRestApi:revokeApiKeys'),
@@ -224,6 +235,7 @@ class ApiKeysController extends Controller
             : null;
         $isNew = ($keyId === null);
 
+        $this->requirePermission('formieRestApi:manageApiKeys');
         $this->requirePermission($isNew ? 'formieRestApi:createApiKeys' : 'formieRestApi:editApiKeys');
 
         if ($isNew) {
@@ -248,16 +260,17 @@ class ApiKeysController extends Controller
             // rotation = revoke + create.
         }
 
-        $this->populateRestrictionsFromRequest($apiKey, $request);
+        $restrictionsValid = $this->populateRestrictionsFromRequest($apiKey, $request);
         $this->requireApiKeyFormieSubmissionScope($apiKey);
 
-        if (!$apiKey->save()) {
+        if (!$restrictionsValid || !$apiKey->save()) {
             Craft::$app->getSession()->setError(Craft::t('formie-rest-api', 'Couldn’t save API key'));
             // Re-render the form with the unsaved model so errors surface
             // beside their fields. Craft's runAction routes to the same view.
             Craft::$app->getUrlManager()->setRouteParams([
                 'apiKey' => $apiKey,
                 'keyId' => $keyId,
+                'validUntilValue' => $request->getBodyParam('validUntil'),
             ]);
             return null;
         }
@@ -270,11 +283,11 @@ class ApiKeysController extends Controller
             Craft::$app->getSession()->setNotice(Craft::t('formie-rest-api', 'API key saved'));
         }
 
-        // New keys always land back on the edit page so the one-time
-        // credential reveal banners have somewhere to render. Existing keys
-        // honour the posted redirect.
+        // New keys land back on the create page so create-only operators can
+        // receive the one-time reveal without gaining existing-key edit access.
+        // Existing keys honour the posted redirect.
         if ($isNew) {
-            return $this->redirect('formie-rest-api/api-keys/edit/' . $apiKey->id);
+            return $this->redirect('formie-rest-api/api-keys/create');
         }
 
         return $this->redirectToPostedUrl($apiKey);
@@ -287,6 +300,7 @@ class ApiKeysController extends Controller
     public function actionDelete(?int $keyId = null): ?Response
     {
         $this->requirePostRequest();
+        $this->requirePermission('formieRestApi:manageApiKeys');
         $this->requirePermission('formieRestApi:revokeApiKeys');
 
         $request = Craft::$app->getRequest();
@@ -341,6 +355,7 @@ class ApiKeysController extends Controller
     public function actionBulkDelete(): ?Response
     {
         $this->requirePostRequest();
+        $this->requirePermission('formieRestApi:manageApiKeys');
         $this->requirePermission('formieRestApi:revokeApiKeys');
 
         $ids = $this->parseBulkIds(Craft::$app->getRequest()->getBodyParam('ids', []));
@@ -357,6 +372,7 @@ class ApiKeysController extends Controller
     private function runBulkSetEnabled(bool $enabled): Response
     {
         $this->requirePostRequest();
+        $this->requirePermission('formieRestApi:manageApiKeys');
         $this->requirePermission('formieRestApi:editApiKeys');
 
         $ids = $this->parseBulkIds(Craft::$app->getRequest()->getBodyParam('ids', []));
@@ -438,7 +454,7 @@ class ApiKeysController extends Controller
      * Pull restriction fields from POST body into the model. Centralised so
      * create and edit normalize the same way.
      */
-    private function populateRestrictionsFromRequest(ApiKey $apiKey, \craft\web\Request $request): void
+    private function populateRestrictionsFromRequest(ApiKey $apiKey, \craft\web\Request $request): bool
     {
         $apiKey->name = trim((string)$request->getBodyParam('name', ''));
         $apiKey->enabled = (bool)$request->getBodyParam('enabled', true);
@@ -472,9 +488,117 @@ class ApiKeysController extends Controller
         // Optional numeric field — empty input means null (default limit).
         $apiKey->rateLimit = $this->parseOptionalInt($request->getBodyParam('rateLimit'));
 
-        // Optional expiry — Craft's datetime picker submits an array {date, time}
-        // or a single string. Use Craft's helper for consistent parsing.
-        $apiKey->validUntil = DateTimeHelper::toDateTime($request->getBodyParam('validUntil')) ?: null;
+        return $this->populateValidUntil($apiKey, $request->getBodyParam('validUntil'));
+    }
+
+    /**
+     * Parse the optional expiry without collapsing malformed non-empty input
+     * into the semantically different "never expires" value.
+     */
+    private function populateValidUntil(ApiKey $apiKey, mixed $raw): bool
+    {
+        if ($this->isBlankDateTimeValue($raw)) {
+            $apiKey->validUntil = null;
+            return true;
+        }
+
+        if (!$this->isSupportedDateTimeShape($raw)) {
+            $this->addValidUntilError($apiKey);
+            return false;
+        }
+
+        try {
+            $parsed = DateTimeHelper::toDateTime($raw);
+        } catch (\Throwable) {
+            $parsed = false;
+        }
+
+        if ($parsed === false) {
+            $this->addValidUntilError($apiKey);
+            return false;
+        }
+
+        $apiKey->validUntil = $parsed;
+        return true;
+    }
+
+    private function isBlankDateTimeValue(mixed $raw): bool
+    {
+        if ($raw === null || (is_string($raw) && trim($raw) === '')) {
+            return true;
+        }
+        if (!is_array($raw)) {
+            return false;
+        }
+        if (!$this->isSupportedDateTimeShape($raw)) {
+            return false;
+        }
+
+        foreach (['datetime', 'date', 'time'] as $key) {
+            if (array_key_exists($key, $raw) && trim((string)$raw[$key]) !== '') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function isSupportedDateTimeShape(mixed $raw): bool
+    {
+        if (is_string($raw)) {
+            return true;
+        }
+        if (!is_array($raw)) {
+            return false;
+        }
+
+        $allowedKeys = ['datetime', 'date', 'time', 'timezone', 'locale'];
+        if (array_diff(array_keys($raw), $allowedKeys) !== []) {
+            return false;
+        }
+
+        foreach ($raw as $value) {
+            if ($value !== null && !is_string($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function addValidUntilError(ApiKey $apiKey): void
+    {
+        $apiKey->validUntil = null;
+        $apiKey->addError('validUntil', Craft::t('formie-rest-api', '{attribute} must be a date.', [
+            'attribute' => $apiKey->getAttributeLabel('validUntil'),
+        ]));
+    }
+
+    /**
+     * Convert rejected input into an editable string without asking Craft's
+     * date field to parse the same malformed value again while rendering.
+     */
+    private function invalidValidUntilDisplayValue(mixed $raw): string
+    {
+        if (is_string($raw) || is_int($raw) || is_float($raw)) {
+            return (string)$raw;
+        }
+        if (!is_array($raw)) {
+            return '';
+        }
+
+        $parts = [];
+        foreach (['datetime', 'date', 'time'] as $key) {
+            if (isset($raw[$key]) && is_string($raw[$key]) && trim($raw[$key]) !== '') {
+                $parts[] = $raw[$key];
+            }
+        }
+        if ($parts !== []) {
+            return implode(' ', $parts);
+        }
+
+        $encoded = json_encode($raw, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        return is_string($encoded) ? $encoded : '';
     }
 
     private function parseOptionalInt(mixed $raw): ?int

@@ -13,6 +13,7 @@ use craft\helpers\Console;
 use craft\helpers\DateTimeHelper;
 use lindemannrock\formierestapi\FormieRestApi;
 use lindemannrock\formierestapi\models\ApiKey;
+use verbb\formie\elements\Form;
 use yii\console\ExitCode;
 
 /**
@@ -144,6 +145,12 @@ class ApiKeysController extends Controller
         $apiKey->ipWhitelist = $this->parseIpWhitelist($this->ipWhitelist);
         $apiKey->rateLimit = $this->rateLimit;
 
+        $unknownFormHandles = $this->unknownFormHandles($apiKey->allowedForms);
+        if ($unknownFormHandles !== []) {
+            $this->stderr('Unknown form handle(s): ' . implode(', ', $unknownFormHandles) . ".\n", Console::FG_RED);
+            return ExitCode::DATAERR;
+        }
+
         if ($this->validUntil !== '') {
             $parsed = DateTimeHelper::toDateTime($this->validUntil);
             if ($parsed === false) {
@@ -221,10 +228,33 @@ class ApiKeysController extends Controller
         if ($trimmed === ApiKey::ALL_FORMS) {
             return [ApiKey::ALL_FORMS];
         }
-        return array_values(array_filter(
+        return array_values(array_unique(array_filter(
             array_map('trim', explode(',', $trimmed)),
             fn(string $h): bool => $h !== '',
-        ));
+        )));
+    }
+
+    /**
+     * Return explicit form handles that do not exist in the current Formie
+     * form inventory. Wildcard and disabled empty scopes need no lookup.
+     *
+     * @param string[] $allowedForms
+     * @return string[]
+     */
+    private function unknownFormHandles(array $allowedForms): array
+    {
+        if ($allowedForms === [] || in_array(ApiKey::ALL_FORMS, $allowedForms, true)) {
+            return [];
+        }
+
+        $knownHandles = [];
+        foreach (Form::find()->all() as $form) {
+            if ($form instanceof Form) {
+                $knownHandles[] = $form->handle;
+            }
+        }
+
+        return array_values(array_diff($allowedForms, $knownHandles));
     }
 
     /**

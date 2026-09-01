@@ -2,7 +2,7 @@
 
 Give each consumer of the API its own key, scoped to exactly what it should see. An API key is what an external system sends to authenticate — and it carries the rules for what that system can read: which forms, whether submissions are included, whether requests must be signed, which IPs may connect, how often, and for how long.
 
-You manage keys in the Control Panel under **Formie REST API → API Keys**. The plugin stores only a hash of each key (never the plaintext) and the signing secret encrypted at rest.
+You manage keys in the Control Panel under **Formie REST API → API Keys**. Plugin tables store only a hash of each key and the signing secret encrypted at rest. The one-time plaintext reveal uses a short-lived, authenticated server-side session handoff described below.
 
 ## What you'll use it for
 
@@ -24,10 +24,10 @@ In the Control Panel — no code:
 
    ![API key edit screen](../images/api-keys-edit.webp)
 
-3. **Copy the key and signing secret now** — they're shown once, immediately after saving, and never again.
+3. **Copy the key and signing secret now** — after saving, you're returned to the create page and they're shown for that one authorized request only.
 
 > [!CAUTION]
-> The plaintext key and signing secret are revealed only once, at creation. The plugin keeps just a hash of the key and the encrypted secret — if either is lost, there's no recovery. Revoke the key and create a new one (that's also how you rotate).
+> The successful create request puts both plaintext values in your authenticated server-side session for the following create-page request. That authorized read removes them immediately. They are never stored in plugin tables or normal plugin logs. If either value is lost, there's no recovery: revoke the key and create a new one (that's also how you rotate).
 
 ## Key settings
 
@@ -40,9 +40,9 @@ In the Control Panel — no code:
 | **Require signing** | When on, every request must carry a valid HMAC-SHA256 signature (see [Authentication](../developers/authentication.md)) |
 | **Read submissions** | When off, the key is limited to the forms endpoints and can't read submission data |
 | **Rate limit** | Requests per hour. Empty uses the default (100/hour) — see [Rate limiting](../developers/rate-limiting.md) |
-| **Valid until** | Optional expiry datetime. Empty = never expires |
+| **Valid until** | Optional expiry datetime. Empty = never expires. A non-empty value Craft can't parse is rejected and left in the field for correction; it is never silently changed to “never expires” |
 
-After the first save, the edit screen also shows read-only details: the key's **status** (Enabled / Disabled / Expired), its **prefix**, **last used** time, and created/updated timestamps.
+Users with **Edit API keys** can open an existing key's edit screen, which also shows read-only details: the key's **status** (Enabled / Disabled / Expired), its **prefix**, **last used** time, and created/updated timestamps.
 
 ## Status: enabled, disabled, expired
 
@@ -66,6 +66,8 @@ A form-scoped key is constrained everywhere: it only lists its allowed forms, on
 The API Keys section also respects the current Control Panel user's Formie submission permissions. Users with Formie's global **View submissions** permission can see and manage every key, select any form, and use **All forms**. Users with per-form submission access only see forms they may delegate and only see keys whose entire form scope they may manage.
 
 That boundary applies to every management action: opening, saving, enabling, disabling, and revoking a key, including bulk actions. A direct URL or forged request for a broader key returns `403` with an explanation. The plugin never silently removes inaccessible forms from an existing key; an operator with access to every form on that key must update it.
+
+Craft's API-key permissions are independent capabilities. **Manage API keys** shows the filtered list only; by itself it shows no New button, editable name, selection checkbox, bulk control, row-action column/menu, or ID column, and direct create/edit routes return `403`. Add **Create API keys** for the create form and create request, **Edit API keys** for existing-key editing and bulk enable/disable, and **Revoke API keys** for single and bulk revoke. There is no read-only detail page.
 
 ## Creating keys from the command line
 

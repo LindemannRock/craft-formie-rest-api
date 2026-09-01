@@ -135,7 +135,7 @@ final class FormieSubmissionDelegationTest extends TestCase
             'requireApiKeyFormieSubmissionScope($apiKey)',
             is_int($populate) ? $populate : 0,
         );
-        $save = strpos($saveBody, 'if (!$apiKey->save())');
+        $save = strpos($saveBody, 'if (!$restrictionsValid || !$apiKey->save())');
         self::assertIsInt($populate);
         self::assertIsInt($existingScope);
         self::assertIsInt($requestedScope);

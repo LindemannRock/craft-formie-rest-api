@@ -64,6 +64,7 @@ return [
     'Couldn’t revoke API keys' => 'تعذر إبطال مفاتيح API',
 
     // Validation messages
+    '{attribute} must be a date.' => 'يجب أن يكون {attribute} عبارة عن تاريخ.',
     'Enabled keys must allow all forms or at least one specific form.' => 'يجب أن تسمح المفاتيح المفعّلة بكل النماذج أو بنموذج محدد واحد على الأقل.',
     'Invalid IP whitelist entry: "{entry}". Use a single IP or CIDR range (e.g. 203.0.113.5 or 192.168.1.0/24).' => 'إدخال قائمة بيضاء IP غير صالح: "{entry}". استخدم عنوان IP واحدًا أو نطاق CIDR (مثل 203.0.113.5 أو 192.168.1.0/24).',
 

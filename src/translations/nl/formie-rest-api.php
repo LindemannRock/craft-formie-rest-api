@@ -64,6 +64,7 @@ return [
     'Couldn’t revoke API keys' => 'Kan API-sleutels niet intrekken',
 
     // Validation messages
+    '{attribute} must be a date.' => '{attribute} moet een datum zijn.',
     'Enabled keys must allow all forms or at least one specific form.' => 'Ingeschakelde sleutels moeten alle formulieren of ten minste één specifiek formulier toestaan.',
     'Invalid IP whitelist entry: "{entry}". Use a single IP or CIDR range (e.g. 203.0.113.5 or 192.168.1.0/24).' => 'Ongeldige IP-whitelist-invoer: "{entry}". Gebruik een enkel IP-adres of een CIDR-bereik (bijv. 203.0.113.5 of 192.168.1.0/24).',
 

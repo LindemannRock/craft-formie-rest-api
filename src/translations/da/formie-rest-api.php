@@ -64,6 +64,7 @@ return [
     'Couldn’t revoke API keys' => 'Kunne ikke tilbagekalde API-nøgler',
 
     // Validation messages
+    '{attribute} must be a date.' => '{attribute} skal være en dato.',
     'Enabled keys must allow all forms or at least one specific form.' => 'Aktiverede nøgler skal tillade alle formularer eller mindst én specifik formular.',
     'Invalid IP whitelist entry: "{entry}". Use a single IP or CIDR range (e.g. 203.0.113.5 or 192.168.1.0/24).' => 'Ugyldig IP-hvidlistepost: "{entry}". Brug en enkelt IP eller et CIDR-interval (f.eks. 203.0.113.5 eller 192.168.1.0/24).',
 

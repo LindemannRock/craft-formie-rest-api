@@ -64,6 +64,7 @@ return [
     'Couldn’t revoke API keys' => 'API キーを失効できませんでした',
 
     // Validation messages
+    '{attribute} must be a date.' => '{attribute} は日付である必要があります。',
     'Enabled keys must allow all forms or at least one specific form.' => '有効なキーは、すべてのフォームまたは少なくとも 1 つの特定のフォームを許可する必要があります。',
     'Invalid IP whitelist entry: "{entry}". Use a single IP or CIDR range (e.g. 203.0.113.5 or 192.168.1.0/24).' => 'IP ホワイトリストのエントリが無効です : "{entry}"。単一の IP または CIDR 範囲を指定してください ( 例 : 203.0.113.5 または 192.168.1.0/24 )。',
 

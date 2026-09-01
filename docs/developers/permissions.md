@@ -7,10 +7,10 @@ These are **Craft user permissions** for Control Panel users (humans) — assign
 | Permission | Description |
 |------------|-------------|
 | **`formieRestApi:manageSettings`** | Access the plugin's Settings pages |
-| **`formieRestApi:manageApiKeys`** | Access the API Keys section and view keys within the user's Formie submission ACL |
-| └─ `formieRestApi:createApiKeys` | Create new API keys |
-| └─ `formieRestApi:editApiKeys` | Edit existing API keys |
-| └─ `formieRestApi:revokeApiKeys` | Revoke (delete) API keys |
+| **`formieRestApi:manageApiKeys`** | Access the filtered API Keys list only; no create, edit, bulk, or row actions |
+| └─ `formieRestApi:createApiKeys` | Open the create form and create new API keys |
+| └─ `formieRestApi:editApiKeys` | Open/save existing keys and bulk-enable or bulk-disable them |
+| └─ `formieRestApi:revokeApiKeys` | Revoke individual keys or a bulk selection |
 | **`formieRestApi:viewSystemLogs`** | View the plugin's logs (Logging Library) |
 | └─ `formieRestApi:downloadSystemLogs` | Download log files |
 
@@ -39,11 +39,14 @@ $this->requirePermission('formieRestApi:manageApiKeys');
 
 Craft's nested permissions are a UI convenience — a parent does **not** automatically grant its children.
 
-- **`manageApiKeys`** grants access to the section and the manageable-key list (read).
-- **`createApiKeys` / `editApiKeys` / `revokeApiKeys`** each gate their specific write action and must be granted on top of `manageApiKeys`.
+- **`manageApiKeys`** grants access to the section and the manageable-key list (read). The list has no read-only detail destination: names are plain text, and the New button, ID column, checkboxes, bulk controls, action column, and row menus are absent.
+- **`createApiKeys`** adds the create page and create request. The one-time credential reveal returns to that page, so a create-only operator can receive it without existing-key edit access.
+- **`editApiKeys`** adds existing-key edit GET/POST routes and bulk enable/disable.
+- **`revokeApiKeys`** adds individual and bulk revoke.
+- Each child must be granted on top of **`manageApiKeys`**. A child permission alone cannot be used through a direct URL or forged POST.
 - **`viewSystemLogs`** controls the Logs nav; **`downloadSystemLogs`** adds the download action.
 
-To give a user read-only access to keys, grant `manageApiKeys` alone. For full control, also grant the create/edit/revoke children.
+To give a user filtered listing access, grant `manageApiKeys` alone. For full control, also grant the create/edit/revoke children. No permission combination exposes a read-only key-detail page.
 
 ## Two permission systems
 

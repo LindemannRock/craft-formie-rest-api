@@ -64,6 +64,7 @@ return [
     'Couldn’t revoke API keys' => 'API-Schlüssel konnten nicht widerrufen werden',
 
     // Validation messages
+    '{attribute} must be a date.' => '{attribute} muss ein Datum sein.',
     'Enabled keys must allow all forms or at least one specific form.' => 'Aktivierte Schlüssel müssen alle Formulare oder mindestens ein bestimmtes Formular erlauben.',
     'Invalid IP whitelist entry: "{entry}". Use a single IP or CIDR range (e.g. 203.0.113.5 or 192.168.1.0/24).' => 'Ungültiger IP-Whitelist-Eintrag: „{entry}". Verwenden Sie eine einzelne IP oder einen CIDR-Bereich (z. B. 203.0.113.5 oder 192.168.1.0/24).',
 

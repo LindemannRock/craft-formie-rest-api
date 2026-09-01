@@ -47,4 +47,4 @@ php craft formie-rest-api/api-keys/create --name="Reporting" --forms="*" --no-su
 ```
 
 > [!NOTE]
-> An enabled key must allow at least one form (or `*`). An empty `--forms` is accepted only together with `--disabled`, producing a draft key you widen later.
+> An enabled key must allow at least one form (or `*`). For an explicit comma-separated list, every normalized handle must match a form that currently exists in Formie; unknown or mixed known/unknown input exits with an error before any key row or credentials are created. Duplicate handles are collapsed. The `*` wildcard keeps its current-and-future form meaning, and an empty `--forms` remains valid only together with `--disabled`, producing a draft key you widen later.

@@ -210,15 +210,19 @@
             data: {key: 'rateLimit'},
         }) }}
 
-        {{ forms.dateTimeField({
+        {% set validUntilField = {
             label: 'Valid until'|t('formie-rest-api'),
             instructions: 'Optional expiry datetime. Leave empty for no expiry.'|t('formie-rest-api'),
             id: 'validUntil',
             name: 'validUntil',
-            value: apiKey.validUntil,
             errors: apiKey.getErrors('validUntil'),
             data: {key: 'validUntil'},
-        }) }}
+        } %}
+        {% if apiKey.hasErrors('validUntil') %}
+            {{ forms.textField(validUntilField|merge({value: invalidValidUntilDisplayValue})) }}
+        {% else %}
+            {{ forms.dateTimeField(validUntilField|merge({value: validUntilValue})) }}
+        {% endif %}
     </div>
 
     {% if not isNew %}
