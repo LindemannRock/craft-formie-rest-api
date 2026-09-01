@@ -21,6 +21,7 @@ use lindemannrock\formierestapi\FormieRestApi;
 use lindemannrock\formierestapi\models\ApiKey;
 use lindemannrock\formierestapi\tests\TestCase;
 use verbb\formie\elements\Form;
+use yii\log\Logger;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -303,7 +304,21 @@ final class ApiKeysControlPanelTest extends TestCase
         $name = self::ROW_PREFIX . 'reveal';
         $this->setPostBody($this->validBody($name));
 
-        $response = $this->controller()->actionSave();
+        $logger = Craft::getLogger();
+        $originalMessages = $logger->messages;
+        $originalFlushInterval = $logger->flushInterval;
+        $logger->flushInterval = 0;
+
+        try {
+            $response = $this->controller()->actionSave();
+            $appendedMessages = array_slice(array_values($logger->messages), count($originalMessages));
+        } finally {
+            $logger->messages = $originalMessages;
+            $logger->flushInterval = $originalFlushInterval;
+        }
+
+        self::assertSame($originalMessages, $logger->messages);
+        self::assertSame($originalFlushInterval, $logger->flushInterval);
         self::assertInstanceOf(Response::class, $response);
         self::assertStringEndsWith('/formie-rest-api/api-keys/create', (string)$response->getHeaders()->get('Location'));
         $plaintext = $this->session->peek(self::FLASH_KEY);
@@ -318,12 +333,22 @@ final class ApiKeysControlPanelTest extends TestCase
         self::assertIsArray($stored);
         self::assertStringNotContainsString($plaintext, json_encode($stored, JSON_THROW_ON_ERROR));
         self::assertStringNotContainsString($secret, json_encode($stored, JSON_THROW_ON_ERROR));
-        foreach (glob(Craft::$app->getPath()->getLogPath() . '/*formie-rest-api*') ?: [] as $logFile) {
-            $log = file_get_contents($logFile);
-            self::assertIsString($log);
-            self::assertStringNotContainsString($plaintext, $log);
-            self::assertStringNotContainsString($secret, $log);
-        }
+
+        $saveEvents = array_values(array_filter(
+            $appendedMessages,
+            static fn(mixed $message): bool => is_array($message)
+                && ($message[1] ?? null) === Logger::LEVEL_INFO
+                && ($message[2] ?? null) === 'formie-rest-api'
+                && is_string($message[0] ?? null)
+                && str_starts_with($message[0], 'API key saved | '),
+        ));
+        self::assertCount(1, $saveEvents);
+        $saveMessage = $saveEvents[0][0] ?? null;
+        self::assertIsString($saveMessage);
+        self::assertStringContainsString($name, $saveMessage);
+        self::assertStringContainsString((string)$stored['keyPrefix'], $saveMessage);
+        self::assertStringNotContainsString($plaintext, $saveMessage);
+        self::assertStringNotContainsString($secret, $saveMessage);
 
         $firstReveal = $this->controller()->actionEdit();
         self::assertSame($plaintext, $firstReveal->data['variables']['newPlaintext'] ?? null);

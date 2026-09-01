@@ -3,7 +3,7 @@
 # Formie REST API Plugin
 
 [![Latest Version](https://img.shields.io/packagist/v/lindemannrock/craft-formie-rest-api.svg)](https://packagist.org/packages/lindemannrock/craft-formie-rest-api)
-[![Craft CMS](https://img.shields.io/badge/Craft%20CMS-5.0+-orange.svg)](https://craftcms.com/)
+[![Craft CMS](https://img.shields.io/badge/Craft%20CMS-5.10%2B-orange.svg)](https://craftcms.com/)
 [![Formie](https://img.shields.io/badge/Formie-3.0+-purple.svg)](https://verbb.io/craft-plugins/formie)
 [![PHP](https://img.shields.io/badge/PHP-8.2+-blue.svg)](https://php.net/)
 [![License](https://img.shields.io/packagist/l/lindemannrock/craft-formie-rest-api.svg)](LICENSE.md)
@@ -34,9 +34,11 @@ This plugin is in active development and not yet available on the Craft Plugin S
 
 ## Requirements
 
-- Craft CMS 5.0 or greater
+- Craft CMS 5.10 or greater
 - PHP 8.2 or greater
 - [Formie](https://verbb.io/craft-plugins/formie) 3.0 or greater
+- [Base](https://github.com/LindemannRock/craft-plugin-base) 5.38.2 or greater
+- [Logging Library](https://github.com/LindemannRock/craft-logging-library) 5.18.2+ (required by Composer; install in CP for log viewing)
 
 ## Installation
 

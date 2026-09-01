@@ -11,8 +11,7 @@ declare(strict_types=1);
 namespace lindemannrock\formierestapi\tests\Integration;
 
 use craft\base\ElementInterface;
-use craft\commerce\elements\Product;
-use craft\commerce\elements\Variant;
+use craft\base\FieldInterface as CraftFieldInterface;
 use craft\elements\Category;
 use craft\elements\db\ElementQuery;
 use craft\elements\Entry;
@@ -186,16 +185,16 @@ final class FormieAdvancedFieldValuesTest extends TestCase
             'email' => 'reader@example.test',
             'username' => 'api-reader',
         ]);
-        $product = new Product(['id' => 105, 'title' => 'Reference product', 'slug' => 'reference-product']);
-        $variant = new Variant(['id' => 106, 'title' => 'Reference variant', 'slug' => 'reference-variant']);
+        $product = new Entry(['id' => 105, 'title' => 'Reference product', 'slug' => 'reference-product']);
+        $variant = new Entry(['id' => 106, 'title' => 'Reference variant', 'slug' => 'reference-variant']);
 
         $cases = [
             [new Entries(['handle' => 'relatedEntries']), $entry, ['id' => 101, 'title' => 'Reference entry', 'slug' => 'reference-entry']],
             [new Categories(['handle' => 'relatedCategories']), $category, ['id' => 102, 'title' => 'Reference category', 'slug' => 'reference-category']],
             [new Tags(['handle' => 'relatedTags']), $tag, ['id' => 103, 'title' => 'Reference tag', 'slug' => 'reference-tag']],
             [new Users(['handle' => 'relatedUsers']), $user, ['id' => 104, 'fullName' => 'API Reader', 'email' => 'reader@example.test', 'username' => 'api-reader']],
-            [new Products(['handle' => 'relatedProducts']), $product, ['id' => 105, 'title' => 'Reference product', 'slug' => 'reference-product']],
-            [new Variants(['handle' => 'relatedVariants']), $variant, ['id' => 106, 'title' => 'Reference variant', 'slug' => 'reference-variant']],
+            [$this->fieldWithoutConstructor(Products::class), $product, ['id' => 105, 'title' => 'Reference product', 'slug' => 'reference-product']],
+            [$this->fieldWithoutConstructor(Variants::class), $variant, ['id' => 106, 'title' => 'Reference variant', 'slug' => 'reference-variant']],
         ];
 
         foreach ($cases as [$field, $element, $expected]) {
@@ -239,5 +238,18 @@ final class FormieAdvancedFieldValuesTest extends TestCase
         $query->setCachedResult([$element]);
 
         return $query;
+    }
+
+    /**
+     * Instantiate an optional Formie field without booting its integration.
+     *
+     * @param class-string<CraftFieldInterface> $fieldClass
+     */
+    private function fieldWithoutConstructor(string $fieldClass): CraftFieldInterface
+    {
+        $field = (new \ReflectionClass($fieldClass))->newInstanceWithoutConstructor();
+        self::assertInstanceOf(CraftFieldInterface::class, $field);
+
+        return $field;
     }
 }
