@@ -26,8 +26,8 @@ use lindemannrock\logginglibrary\LoggingLibrary;
 final class DependencyContractTest extends TestCase
 {
     private const REQUIREMENTS = [
-        'craftcms/cms' => '^5.10',
-        'lindemannrock/craft-plugin-base' => '^5.38.2',
+        'craftcms/cms' => '^5.11',
+        'lindemannrock/craft-plugin-base' => '^5.39.0',
         'lindemannrock/craft-logging-library' => '^5.18.2',
     ];
 
@@ -39,10 +39,10 @@ final class DependencyContractTest extends TestCase
             self::assertSame($constraint, $composer['require'][$package] ?? null, $package);
         }
 
-        self::assertTrue(Semver::satisfies('5.10.0', self::REQUIREMENTS['craftcms/cms']));
-        self::assertFalse(Semver::satisfies('5.9.99', self::REQUIREMENTS['craftcms/cms']));
-        self::assertTrue(Semver::satisfies('5.38.2', self::REQUIREMENTS['lindemannrock/craft-plugin-base']));
-        self::assertFalse(Semver::satisfies('5.38.1', self::REQUIREMENTS['lindemannrock/craft-plugin-base']));
+        self::assertTrue(Semver::satisfies('5.11.0', self::REQUIREMENTS['craftcms/cms']));
+        self::assertFalse(Semver::satisfies('5.10.99', self::REQUIREMENTS['craftcms/cms']));
+        self::assertTrue(Semver::satisfies('5.39.0', self::REQUIREMENTS['lindemannrock/craft-plugin-base']));
+        self::assertFalse(Semver::satisfies('5.38.99', self::REQUIREMENTS['lindemannrock/craft-plugin-base']));
         self::assertTrue(Semver::satisfies('5.18.2', self::REQUIREMENTS['lindemannrock/craft-logging-library']));
         self::assertFalse(Semver::satisfies('5.18.1', self::REQUIREMENTS['lindemannrock/craft-logging-library']));
         self::assertSame('^1.12.33', $composer['require-dev']['phpstan/phpstan'] ?? null);
@@ -54,15 +54,15 @@ final class DependencyContractTest extends TestCase
         $requirements = $this->packageFile('docs/get-started/requirements.md');
         $bootstrap = $this->packageFile('tests/bootstrap.php');
 
-        self::assertStringContainsString('Craft%20CMS-5.10%2B', $readme);
-        self::assertStringContainsString('- Craft CMS 5.10 or greater', $readme);
-        self::assertStringContainsString('- [Base](https://github.com/LindemannRock/craft-plugin-base) 5.38.2 or greater', $readme);
+        self::assertStringContainsString('Craft%20CMS-5.11%2B', $readme);
+        self::assertStringContainsString('- Craft CMS 5.11 or greater', $readme);
+        self::assertStringContainsString('- [Base](https://github.com/LindemannRock/craft-plugin-base) 5.39.0 or greater', $readme);
         self::assertStringContainsString('- [Logging Library](https://github.com/LindemannRock/craft-logging-library) 5.18.2+ (required by Composer; install in CP for log viewing)', $readme);
 
-        self::assertStringContainsString('| [Craft CMS](https://craftcms.com/) | 5.10+ |', $requirements);
-        self::assertStringContainsString('| [lindemannrock/craft-plugin-base](https://github.com/LindemannRock/craft-plugin-base) | 5.38.2+ |', $requirements);
+        self::assertStringContainsString('| [Craft CMS](https://craftcms.com/) | 5.11+ |', $requirements);
+        self::assertStringContainsString('| [lindemannrock/craft-plugin-base](https://github.com/LindemannRock/craft-plugin-base) | 5.39.0+ |', $requirements);
         self::assertStringContainsString('| [lindemannrock/craft-logging-library](https://github.com/LindemannRock/craft-logging-library) | 5.18.2+ | Optional — install in CP for log viewing |', $requirements);
-        self::assertStringContainsString('craft-plugin-base ^5.38.2 is present', $bootstrap);
+        self::assertStringContainsString('craft-plugin-base ^5.39.0 is present', $bootstrap);
     }
 
     public function testRequiredSharedRuntimeSurfacesAreAvailable(): void
