@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.11.0](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.10.2...v3.11.0) (2026-10-13)
+
+
+### Added
+
+* **deps:** require Craft 5.11 and Base 5.39 ([b2f101e](https://github.com/LindemannRock/craft-formie-rest-api/commit/b2f101eb5448c49ff8d86694b5380e8fc7abb770))
+
 ## [3.10.2](https://github.com/LindemannRock/craft-formie-rest-api/compare/v3.10.1...v3.10.2) - 2026-09-01
 
 
